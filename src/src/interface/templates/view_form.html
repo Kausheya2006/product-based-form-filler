@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Form: {{ form.name }}{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>{{ form.name }}</h2>
+    <p>{{ form.description }}</p>
+    <h3>Fields</h3>
+    {% for k, v in form.fields.items() %}
+    <div class="field"><span class="field-name">{{ k }}:</span> <span class="field-value">{{ v }}</span></div>
+    {% endfor %}
+</div>
+<a href="/forms/{{ form.id }}/conversations" class="btn btn-success">Confirm & Select Conversation →</a>
+<a href="/forms/{{ form.id }}/enter-conversation" class="btn btn-primary">Confirm &amp; Enter Conversation →</a>
+{% endblock %}

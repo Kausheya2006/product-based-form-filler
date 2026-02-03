@@ -1,0 +1,16 @@
+[
+    {
+        "form_id": "12345",
+        "form_name": "Hospital Consultancy Form",
+        "description": "Form to collect patient info",
+        "schema": {
+            "name": "What is the patient's full name?",
+            "age": "How old is the patient?",
+            "contact_number": "What is the patient's phone number?",
+            "address.street": "What is the street address?",
+            "address.city": "What city does the patient live in?",
+            "address.state": "What state does the patient live in?",
+            "symptoms": "What are the patient's symptoms?"
+        }
+    }
+]

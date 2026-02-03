@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Home - ProductLabs{% endblock %}
+{% block content %}
+<p>
+    Select a form to begin extraction:
+    <a href="/forms/new" class="btn btn-success" style="float:right;">+ Add New Form</a>
+</p>
+{% if forms %}
+{% for f in forms %}
+<div class="card">
+    <a href="/forms/{{ f.id }}"><strong>{{ f.id }}</strong> - {{ f.name }}</a>
+    <p>{{ f.description }}</p>
+</div>
+{% endfor %}
+{% else %}
+<p>No forms available.</p>
+{% endif %}
+<hr>
+<p>
+    <a href="/outputs">View Past Outputs</a>
+    <a href="/runs">View Logs</a>
+</p>
+{% endblock %}

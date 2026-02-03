@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Extraction Result{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Conversation #{{ convo.id }}</h2>
+    {% for speaker, text in convo.history.items() %}
+    <div class="turn {% if loop.index is odd %}blue{% else %}green{% endif %}"><strong>{{ speaker }}:</strong> {{ text }}</div>
+    {% endfor %}
+</div>
+<div class="card">
+    <h2>Extraction Complete!</h2>
+    <p>Form: {{ form_id }} | Conversation: {{ convo_id }}</p>
+    <h3>Extracted Data</h3>
+    <div>{% if fields_html %}{{ fields_html | safe }}{% else %}<p>No fields extracted.</p>{% endif %}</div>
+</div>
+<pre>{{ json_pretty }}</pre>
+<a href="/" class="btn">← Start Over</a>
+<a href="/outputs" class="btn">View All Outputs</a>
+{% endblock %}

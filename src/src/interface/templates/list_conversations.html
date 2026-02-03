@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Conversations for {{ form.name }}{% endblock %}
+{% block content %}
+<p>Conversations for form: <strong>{{ form.name }}</strong></p>
+{% if convos %}
+{% for c in convos %}
+<div class="card"><a href="/conversations/{{ c.id }}?form_id={{ form.id }}">Conversation #{{ c.id }}</a></div>
+{% endfor %}
+{% else %}
+<p>No conversations linked to this form.</p>
+{% endif %}
+{% endblock %}

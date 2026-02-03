@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Run Details{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Run ID: {{ run.run_id }}</h2>
+    <h3>Run Info</h3>
+    <p><strong>Conversation ID:</strong> {{ run.conversation_id }}</p>
+    <p><strong>Status:</strong> {{ run.status }}</p>
+    <p><strong>Started:</strong> {{ run.started_at }}</p>
+    <p><strong>Finished:</strong> {{ run.finished_at }}</p>
+    <hr>
+    <h3>Extraction Metadata</h3>
+    <p><strong>Form ID:</strong> {{ ef.get('form_id', '-') }}</p>
+    <hr>
+    <h3>Filled Form Data</h3>
+    {% if fields_html %}{{ fields_html | safe }}{% else %}<p>No data.</p>{% endif %}
+    {% if run.error %}
+    <hr>
+    <p style="color:red"><strong>Error:</strong> {{ run.error }}</p>{% endif %}
+</div>
+{% endblock %}

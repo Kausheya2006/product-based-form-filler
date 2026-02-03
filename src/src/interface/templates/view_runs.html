@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Run Logs{% endblock %}
+{% block content %}
+{% if not runs %}
+<p>No runs yet.</p>
+{% else %}
+{% for r in runs %}
+{% set ef = (r.extracted_fields or {}) %}
+{% set filled = ef.get('filled_data', {}) %}
+<div class="card">
+    <h3>Run ID: <a href="/runs/{{ r.run_id }}">{{ r.run_id }}</a></h3>
+    <p><strong>Conversation ID:</strong> {{ r.conversation_id }}</p>
+    <p><strong>Form ID:</strong> {{ ef.get('form_id', '-') }}</p>
+    <p><strong>Status:</strong> {{ r.status }}</p>
+    <p><strong>Started:</strong> {{ r.started_at }}</p>
+    <p><strong>Finished:</strong> {{ r.finished_at or '-' }}</p>
+    {% if r.error %}
+    <hr>
+    <p style="color:red"><strong>Error:</strong> {{ r.error }}</p>{% endif %}
+</div>
+{% endfor %}
+{% endif %}
+{% endblock %}

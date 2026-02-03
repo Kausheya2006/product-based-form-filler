@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Past Outputs{% endblock %}
+{% block content %}
+{% if outputs %}
+{% for out in outputs|reverse %}
+<div class="card">
+    <strong>Form:</strong> {{ out.get('form_id') }} | <strong>Conversation:</strong> {{ out.get('conversation_id') }}
+    {% if out.get('filled_data') %}
+    <div>{{ out.get('filled_data') | tojson(indent=2) }}</div>
+    {% endif %}
+</div>
+{% endfor %}
+{% else %}
+<p>No outputs yet. Run an extraction first.</p>
+{% endif %}
+{% endblock %}

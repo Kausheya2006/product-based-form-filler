@@ -1,0 +1,53 @@
+<!-- ...existing code... -->
+{% extends "base.html" %}
+{% block title %}Create New Form{% endblock %}
+{% block content %}
+<form id="create-form" method="post" action="/forms">
+    <div class="card">
+        <h2>Create New Form</h2>
+        <label>
+            Form name
+            <input type="text" name="form_name" required placeholder="Enter form name" />
+        </label>
+
+        <h3>Fields</h3>
+
+        <div id="fields-container">
+            <div class="field-row" style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+                <input type="text" name="field_name[]" required placeholder="Field name" />
+                <select name="field_type[]">
+                    <option value="string">String</option>
+                    <option value="int">Int</option>
+                </select>
+                <button type="button" class="btn" onclick="removeField(this)" title="Remove"
+                    style="background:#ef4444;color:white;">Remove</button>
+            </div>
+        </div>
+
+        <div style="margin-top:10px;">
+            <button type="button" id="add-field" class="btn btn-success">+ Add Field</button>
+        </div>
+
+        <div style="margin-top:18px;">
+            <a href="/" class="btn">Exit</a>
+            <button type="submit" class="btn btn-success">Submit</button>
+        </div>
+    </div>
+</form>
+
+<!-- hidden template -->
+<div id="field-template" style="display:none;">
+    <div class="field-row" style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+        <input type="text" name="field_name[]" required placeholder="Field name" />
+        <select name="field_type[]">
+            <option value="string">String</option>
+            <option value="int">Int</option>
+        </select>
+        <button type="button" class="btn" onclick="removeField(this)" title="Remove"
+            style="background:#ef4444;color:white;">Remove</button>
+    </div>
+</div>
+
+<script src="/static/js/create_form.js"></script>
+{% endblock %}
+<!-- ...existing code... -->

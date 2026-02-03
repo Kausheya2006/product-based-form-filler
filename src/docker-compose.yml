@@ -1,0 +1,29 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: productlabs_mongo
+    command: ["mongod", "--quiet", "--logpath", "/dev/null"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: productlabs_app
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017
+      - DB_NAME=chat_db
+    depends_on:
+      - mongodb
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./src:/app/src
+    command: uvicorn src.interface.api:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  mongo_data:

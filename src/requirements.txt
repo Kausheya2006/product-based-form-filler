@@ -1,0 +1,9 @@
+pymongo
+motor
+pydantic
+pydantic-settings
+torch
+transformers
+fastapi
+uvicorn
+python-multipart

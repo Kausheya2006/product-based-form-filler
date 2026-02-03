@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Enter Conversation{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Enter Conversation for: {{ form.name }}</h2>
+    <form id="conversation-form" method="post" action="/conversations/create">
+        <input type="hidden" name="form_id" value="{{ form.id }}" />
+
+        <label>
+            Conversation ID (optional - will auto-generate if empty)
+            <input type="text" name="conversation_id" placeholder="e.g., 100" />
+        </label>
+
+        <label style="display:block; margin-top:15px;">
+            Conversation Text
+            <textarea name="conversation_text" rows="15" required placeholder="Enter conversation in format:
+Doctor: Hello, what is your name?
+Patient: My name is John Doe.
+Doctor: How old are you?
+Patient: I am 30 years old." style="width:100%; font-family:monospace;"></textarea>
+        </label>
+
+        <div style="margin-top:18px;">
+            <a href="/forms/{{ form.id }}" class="btn">← Back</a>
+            <button type="submit" class="btn btn-success">Save & Extract →</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
