@@ -1,16 +1,45 @@
 {% extends "base.html" %}
 {% block title %}Past Outputs{% endblock %}
 {% block content %}
-{% if outputs %}
-{% for out in outputs|reverse %}
-<div class="card">
-    <strong>Form:</strong> {{ out.get('form_id') }} | <strong>Conversation:</strong> {{ out.get('conversation_id') }}
-    {% if out.get('filled_data') %}
-    <div>{{ out.get('filled_data') | tojson(indent=2) }}</div>
-    {% endif %}
+<div class="header-container">
+    <h2>Past Extraction Results</h2>
 </div>
-{% endfor %}
+
+{% if outputs %}
+    {% for out in outputs|reverse %}
+    <div class="card">
+        <h3>Form ID: {{ out.get('form_id', '-') }}</h3>
+        <p><strong>Conversation ID:</strong> <a href="/conversations/{{ out.get('conversation_id') }}?form_id={{ out.get('form_id') }}">
+            {{ out.get('conversation_id', '-') }}
+        </a></p>
+        
+        <hr>
+        
+        <h3>Extracted Data</h3>
+        {% if out.get('filled_data') %}
+            <div class="extracted-data-container">
+                {# Use the same formatting style as the run details #}
+                {% for key, value in out.get('filled_data').items() %}
+                    <div class="field" style="margin-bottom: 8px;">
+                        <span class="field-name" style="font-weight: bold;">{{ key }}:</span> 
+                        <span class="field-value">
+                            {% if value is mapping %}
+                                {{ value | tojson }}
+                            {% else %}
+                                {{ value }}
+                            {% endif %}
+                        </span>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No data extracted.</p>
+        {% endif %}
+    </div>
+    {% endfor %}
 {% else %}
-<p>No outputs yet. Run an extraction first.</p>
+    <div class="card">
+        <p>No outputs yet. Run an extraction first.</p>
+    </div>
 {% endif %}
 {% endblock %}
