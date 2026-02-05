@@ -54,6 +54,32 @@ async def home(request: Request):
     forms = await container.form_repo.get_all()
     return templates.TemplateResponse("home.html", {"request": request, "forms": forms})
 
+@app.post("/forms", response_class=RedirectResponse)
+async def handle_create_form(
+    request: Request,
+    form_name: str = Form(...),
+    field_name: List[str] = Form(..., alias="field_name[]"),
+    field_type: List[str] = Form(..., alias="field_type[]")
+):
+    """Saves a new form schema to MongoDB and redirects home"""
+    form_id = str(uuid4())[:8]
+    
+    # Map names to types for the 'schema' field in MongoDB
+    schema_dict = {name: ftype for name, ftype in zip(field_name, field_type) if name.strip()}
+    
+    new_form = FormSchema(
+        form_id=form_id,
+        form_name=form_name,
+        schema=schema_dict
+    )
+    
+    # Persist to Mongo via the repository
+    await container.form_repo.save(new_form)
+    logger.info(f"Form {form_id} created in MongoDB.")
+    
+    # Return to the home page list
+    return RedirectResponse(url="/", status_code=303)
+
 
 @app.get("/forms/new", response_class=HTMLResponse)
 async def create_form(request: Request):
