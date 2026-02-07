@@ -23,6 +23,7 @@ class LocalHuggingFaceModel(IExtractionModel):
 
         # Prepare inputs for the pipeline
         # Passing separate lists for questions and contexts to avoid DeprecationWarning
+        # system_prompt = "You are retrieving information from the above conversation to retrieve the data of a particular field. Answer N/A if the information is not available. Retrieve the information which matches this given field name the closest: "
         questions = [req.instruction for req in requests]
         contexts = [req.context for req in requests]
         

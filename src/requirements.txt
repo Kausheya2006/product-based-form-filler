@@ -7,3 +7,4 @@ transformers
 fastapi
 uvicorn
 python-multipart
+dotenv
