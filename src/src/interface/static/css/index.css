@@ -94,3 +94,20 @@ input:focus {
     outline: 2px solid var(--primary);
     border-color: transparent;
 }
+
+.version-badge {
+    background: var(--primary);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    vertical-align: middle;
+}
+
+textarea.form-control {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Monaco', monospace;
+}

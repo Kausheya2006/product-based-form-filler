@@ -3,8 +3,10 @@
 {% block content %}
 <div class="card">
     <h2>Conversation #{{ convo.id }}</h2>
-    {% for speaker, text in convo.history.items() %}
-    <div class="turn {% if loop.index is odd %}blue{% else %}green{% endif %}"><strong>{{ speaker }}:</strong> {{ text }}</div>
+    {% for speaker, text in convo.latest_history.items() %}
+    <div class="turn {% if loop.index is odd %}blue{% else %}green{% endif %}">
+        <strong>{{ speaker.split(' ')[0] }}:</strong> {{ text }}
+    </div>
     {% endfor %}
 </div>
 <div class="card">

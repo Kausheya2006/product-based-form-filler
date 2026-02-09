@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from typing import List, Dict, Any
 from uuid import uuid4
 
-from ..domain.domain import Conversation, FormSchema, ExtractionResult
+from ..domain.domain import Conversation, FormSchema, ExtractionResult, ConversationVersion
 from .dependencies import container, Container
 
 logging.basicConfig(level=logging.INFO)
@@ -25,6 +25,11 @@ async def seed_data():
         with open("data/conversations.json", "r") as f:
             for data in json.load(f):
                 data["conversation_id"] = str(data["conversation_id"])
+                
+                history = data.pop("history", data.pop("conversation", None))
+                if history and not data.get("versions"):
+                    data["versions"] = [ConversationVersion(version_index=0, history=history).model_dump()]
+                
                 await container.convo_repo.save(Conversation(**data))
         logger.info("Conversations seeded.")
     if os.path.exists("data/forms.json"):
@@ -145,29 +150,53 @@ async def create_conversation(
     conversation_id: str = Form(""), 
     conversation_text: str = Form(...)
 ):
-    """Create a new conversation and redirect to extraction"""
-    # Generate ID if not provided
+    """Initializes a new conversation with Version 0"""
     if not conversation_id.strip():
         conversation_id = str(uuid4())[:8]
     
-    # Parse conversation text into dict format
     conversation_dict = _parse_conversation_text(conversation_text)
     
     if not conversation_dict:
-        raise HTTPException(400, "Could not parse conversation. Use format: 'Doctor: text' or 'Patient: text'")
+        raise HTTPException(400, "Could not parse conversation.")
     
-    # Create and save conversation
+    # Initialize with the first version
     convo = Conversation(
         conversation_id=conversation_id,
         form_id=form_id,
-        conversation=conversation_dict
+        versions=[ConversationVersion(version_index=0, history=conversation_dict)]
     )
     await container.convo_repo.save(convo)
-    logger.info(f"Saved conversation {conversation_id}")
-    
-    # Redirect to extraction
     return RedirectResponse(url=f"/extract/{form_id}/{conversation_id}", status_code=303)
 
+@app.get("/conversations/{convo_id}/edit", response_class=HTMLResponse)
+async def edit_conversation_page(request: Request, convo_id: str, form_id: str):
+    convo = await container.convo_repo.get_by_id(convo_id)
+    # Convert dict history back to raw text for the textarea
+    raw_text = "\n".join([f"{k.split(' ')[0]}: {v}" for k, v in convo.latest_history.items()])
+    return templates.TemplateResponse("edit_conversation.html", {
+        "request": request, 
+        "convo": convo, 
+        "raw_text": raw_text, 
+        "form_id": form_id
+    })
+
+@app.post("/conversations/{convo_id}/update", response_class=RedirectResponse)
+async def update_conversation(
+    convo_id: str,
+    form_id: str = Form(...),
+    new_content: str = Form(...)
+):
+    existing = await container.convo_repo.get_by_id(convo_id)
+    
+    # Parse new content and determine version index
+    new_history = _parse_conversation_text(new_content)
+    new_version_idx = len(existing.versions)
+    
+    new_v = ConversationVersion(version_index=new_version_idx, history=new_history)
+    existing.versions.append(new_v)
+    
+    await container.convo_repo.save(existing)
+    return RedirectResponse(url=f"/extract/{form_id}/{convo_id}", status_code=303)
 
 @app.get("/conversations/{convo_id}", response_class=HTMLResponse)
 async def view_conversation(request: Request, convo_id: str, form_id: str):

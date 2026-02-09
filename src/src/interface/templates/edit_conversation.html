@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h2>Edit Conversation #{{ convo.id }}</h2>
+    <form method="post" action="/conversations/{{ convo.id }}/update">
+        <input type="hidden" name="form_id" value="{{ form_id }}" />
+        <label>
+            <strong>Existing Context + New Additions:</strong>
+            <textarea name="new_content" rows="15" class="form-control">{{ raw_text }}</textarea>
+        </label>
+        <div style="margin-top:15px;">
+            <button type="submit" class="btn btn-success">Update & Re-Extract</button>
+            <a href="/forms/{{ form_id }}" class="btn">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

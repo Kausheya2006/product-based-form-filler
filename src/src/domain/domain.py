@@ -2,15 +2,27 @@ from pydantic import BaseModel, Field
 from typing import Dict, Any, List
 from datetime import datetime
 
+class ConversationVersion(BaseModel):
+    version_index: int
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    history: Dict[str, str]
+
 class Conversation(BaseModel):
     id: str = Field(alias="conversation_id")
     form_id: str = Field(alias="form_id")
-    history: Dict[str, str] = Field(alias="conversation")
+    versions: List[ConversationVersion] = [] 
+
+    @property
+    def latest_history(self) -> Dict[str, str]:
+        """Returns the most recent version of the conversation."""
+        if not self.versions:
+            return {}
+        return sorted(self.versions, key=lambda x: x.version_index)[-1].history
 
     @property
     def full_text(self) -> str:
-        """Combines all turns into a single string for valid context."""
-        return "\n".join([f"{k}: {v}" for k, v in self.history.items()])
+        """Combines all turns from the LATEST version into a single string."""
+        return "\n".join([f"{k}: {v}" for k, v in self.latest_history.items()])
 
 class FormSchema(BaseModel):
     id: str = Field(alias="form_id")

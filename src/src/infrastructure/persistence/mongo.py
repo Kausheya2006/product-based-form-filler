@@ -19,6 +19,9 @@ class MongoConversationRepository(IConversationRepository):
         return [Conversation(**doc) for doc in docs]
 
     async def save(self, conversation: Conversation) -> None:
+        if not conversation.versions:
+            return
+            
         await self.collection.update_one(
             {"conversation_id": conversation.id},
             {"$set": conversation.model_dump(by_alias=True)},
