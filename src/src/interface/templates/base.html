@@ -4,117 +4,17 @@
 <head>
     <meta charset="utf-8">
     <title>{% block title %}ProductLabs Form Filler{% endblock %}</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 900px;
-            margin: 40px auto;
-            padding: 20px;
-            background: #f5f5f5;
-        }
-
-        .card {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 15px 0;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .card:hover {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-        }
-
-        a {
-            color: #2563eb;
-            text-decoration: none;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-
-        .btn {
-            display: inline-block;
-            background: #2563eb;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 6px;
-            margin: 5px;
-        }
-
-        .btn:hover {
-            background: #1d4ed8;
-            text-decoration: none;
-        }
-
-        .btn-success {
-            background: #16a34a;
-        }
-
-        .btn-success:hover {
-            background: #15803d;
-        }
-
-        .back-btn {
-            display: inline-block;
-            margin-bottom: 20px;
-            color: #666;
-        }
-
-        h1 {
-            color: #1f2937;
-        }
-
-        h2,
-        h3 {
-            color: #374151;
-        }
-
-        .field {
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .field-name {
-            font-weight: bold;
-            color: #4b5563;
-        }
-
-        .field-value {
-            color: #1f2937;
-        }
-
-        .turn {
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 6px;
-        }
-
-        .blue {
-            background: #a5d6ec;
-        }
-
-        .green {
-            background: #dcfce7;
-        }
-
-        pre {
-            background: #1f2937;
-            color: #f9fafb;
-            padding: 15px;
-            border-radius: 6px;
-            overflow-x: auto;
-        }
-    </style>
+    <link rel="stylesheet" href="/static/css/index.css">
 </head>
 
 <body>
-    {% if back_link %}
-    <a href="{{ back_link }}" class="back-btn">← Back</a>
-    {% endif %}
-    <h1>{% block header %}ProductLabs Form Filler{% endblock %}</h1>
-    <div id="content">{% block content %}{% endblock %}</div>
+    <div class="container">
+        {% if back_link %}
+            <a href="{{ back_link }}" class="back-btn">← Back</a>
+        {% endif %}
+        <h1>{% block header %}ProductLabs Form Filler{% endblock %}</h1>
+        <div id="content">{% block content %}{% endblock %}</div>
+    </div>
 </body>
 
 </html>

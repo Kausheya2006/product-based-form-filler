@@ -1,0 +1,96 @@
+/* src/interface/static/css/index.css */
+:root {
+    --primary: #2563eb;
+    --success: #16a34a;
+    --bg-gray: #f8fafc;
+    --border: #e2e8f0;
+    --text: #1e293b;
+    --text-muted: #64748b;
+}
+
+body {
+    background-color: var(--bg-gray);
+    color: var(--text);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.5;
+}
+
+/* Container for scannability */
+.container {
+    max-width: 850px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+/* Enhanced Cards */
+.card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* Modern Chat Bubbles */
+.turn {
+    padding: 12px 18px;
+    margin: 10px 0;
+    border-radius: 18px;
+    max-width: 80%;
+    font-size: 0.95rem;
+}
+
+.turn.blue {
+    background: #eff6ff;
+    color: #1e40af;
+    border-bottom-left-radius: 4px;
+    margin-right: auto;
+}
+
+.turn.green {
+    background: #f0fdf4;
+    color: #166534;
+    border-bottom-right-radius: 4px;
+    margin-left: auto;
+    text-align: right;
+}
+
+.turn strong {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    opacity: 0.7;
+}
+
+/* Tables/Fields Consistency */
+.field {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.field-name {
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.field-value {
+    color: var(--text);
+    font-family: 'Monaco', monospace;
+}
+
+/* Forms */
+input, select, textarea {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 5px;
+}
+
+input:focus {
+    outline: 2px solid var(--primary);
+    border-color: transparent;
+}
