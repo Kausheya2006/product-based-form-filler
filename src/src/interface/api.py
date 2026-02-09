@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 
 from typing import List, Dict, Any
 from uuid import uuid4
+from datetime import datetime
 
 from ..domain.domain import Conversation, FormSchema, ExtractionResult, ConversationVersion
 from .dependencies import container, Container
@@ -19,23 +20,53 @@ logger = logging.getLogger(__name__)
 
 templates = Jinja2Templates(directory="src/interface/templates")
 
+def _convert_mongo_types(obj):
+    """Recursively convert Mongo Extended JSON types to native Python types.
+    Handles {'$date': ISOString} -> datetime and {'$oid': id} -> str.
+    """
+    if isinstance(obj, dict):
+        # Mongo date format: {'$date': '2026-02-09T16:44:08.176Z'}
+        if '$date' in obj:
+            s = obj['$date']
+            # some exports wrap dates in nested structures
+            if isinstance(s, dict) and '$numberLong' in s:
+                s = s['$numberLong']
+            if isinstance(s, str):
+                if s.endswith('Z'):
+                    s = s.replace('Z', '+00:00')
+                try:
+                    return datetime.fromisoformat(s)
+                except Exception:
+                    return s
+        if '$oid' in obj:
+            return str(obj['$oid'])
+        return {k: _convert_mongo_types(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [_convert_mongo_types(i) for i in obj]
+    else:
+        return obj
+
+
 async def seed_data():
     """Seed MongoDB from JSON files"""
     if os.path.exists("data/conversations.json"):
         with open("data/conversations.json", "r") as f:
-            for data in json.load(f):
-                data["conversation_id"] = str(data["conversation_id"])
-                
+            for raw in json.load(f):
+                data = _convert_mongo_types(raw)
+                # ensure ids are strings
+                data["conversation_id"] = str(data.get("conversation_id", ""))
+
                 history = data.pop("history", data.pop("conversation", None))
                 if history and not data.get("versions"):
                     data["versions"] = [ConversationVersion(version_index=0, history=history).model_dump()]
-                
+
                 await container.convo_repo.save(Conversation(**data))
         logger.info("Conversations seeded.")
     if os.path.exists("data/forms.json"):
         with open("data/forms.json", "r") as f:
-            for data in json.load(f):
-                data["form_id"] = str(data["form_id"])
+            for raw in json.load(f):
+                data = _convert_mongo_types(raw)
+                data["form_id"] = str(data.get("form_id", ""))
                 await container.form_repo.save(FormSchema(**data))
         logger.info("Forms seeded.")
 
@@ -213,7 +244,9 @@ async def run_extraction(request: Request, form_id: str, convo_id: str):
     try:
         convo = await container.convo_repo.get_by_id(convo_id)
         result = await container.pipeline.run(convo_id, form_id)
-        _save_output(result)
+
+        await _save_output(result)
+
         json_pretty = json.dumps(result.filled_data, indent=2)
         fields_html = _format_filled_data(result.filled_data)
         return templates.TemplateResponse(
@@ -233,7 +266,7 @@ async def run_extraction(request: Request, form_id: str, convo_id: str):
 @app.get("/outputs", response_class=HTMLResponse)
 async def view_outputs(request: Request):
     """View past extraction outputs"""
-    outputs = _load_outputs()
+    outputs = await _load_outputs()
     return templates.TemplateResponse("view_outputs.html", {"request": request, "outputs": outputs})
 
 @app.get("/runs", response_class=HTMLResponse)
@@ -266,19 +299,15 @@ def _format_filled_data(data: Dict[str, Any], prefix: str = "") -> str:
             html += f'<div class="field"><span class="field-name">{key}:</span> <span class="field-value">{v}</span></div>'
     return html
 
-def _save_output(result: ExtractionResult):
-    """Append result to output.json"""
-    outputs = _load_outputs()
-    outputs.append(result.model_dump())
-    with open("data/output.json", "w") as f:
-        json.dump(outputs, f, indent=2)
+async def _save_output(result: ExtractionResult):
+    """Save result to MongoDB instead of a local file"""
+    # Access the collection directly from the container's db instance
+    collection = container.convo_repo.db.outputs 
+    await collection.insert_one(result.model_dump())
+    logger.info("Extraction result saved to Atlas.")
 
-def _load_outputs() -> List[Dict]:
-    """Load existing outputs"""
-    if os.path.exists("data/output.json"):
-        try:
-            with open("data/output.json", "r") as f:
-                return json.load(f)
-        except:
-            pass
-    return []
+async def _load_outputs() -> List[Dict]:
+    """Load outputs from MongoDB Atlas"""
+    collection = container.convo_repo.db.outputs
+    cursor = collection.find({}).sort("_id", -1)
+    return await cursor.to_list(length=100)

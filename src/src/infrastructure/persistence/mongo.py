@@ -82,8 +82,8 @@ class MongoRunLogRepo(IRunLogRepository):
     async def get_by_id(self, run_id: str) -> Optional[RunLog]:
         doc = await self.collection.find_one({"run_id": run_id})
         if doc:
-            doc.pop(" _id", None)
-            return RunLog(**doc) 
+            doc.pop("_id", None)
+            return RunLog(**doc)
         else:
             return None
 
