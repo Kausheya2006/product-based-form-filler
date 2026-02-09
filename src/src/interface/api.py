@@ -94,6 +94,7 @@ async def home(request: Request):
 async def handle_create_form(
     request: Request,
     form_name: str = Form(...),
+    form_description: str = Form(""),
     field_name: List[str] = Form(..., alias="field_name[]"),
     field_type: List[str] = Form(..., alias="field_type[]")
 ):
@@ -106,6 +107,7 @@ async def handle_create_form(
     new_form = FormSchema(
         form_id=form_id,
         form_name=form_name,
+        description=form_description,
         schema=schema_dict
     )
     
@@ -243,7 +245,16 @@ async def run_extraction(request: Request, form_id: str, convo_id: str):
     """Run pipeline and display result"""
     try:
         convo = await container.convo_repo.get_by_id(convo_id)
-        result = await container.pipeline.run(convo_id, form_id)
+        if not convo or not convo.versions:
+            raise HTTPException(404, "No conversation history found.")
+        
+        latest_version = convo.versions[-1]
+        v_idx = latest_version.version_index
+        
+        result = await container.pipeline.run(convo_id, form_id, version_index=v_idx)
+
+        latest_version.run_id = result.run_id
+        await container.convo_repo.save(convo)
 
         await _save_output(result)
 

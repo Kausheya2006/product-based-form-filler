@@ -11,10 +11,18 @@
     <h3>Version History</h3>
     <div class="version-list" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px;">
         {% for version in convo.versions %}
-        <div class="version-tag" style="padding: 8px 12px; background: white; border: 1px solid #e2e8f0; border-radius: 20px; font-size: 0.85rem; white-space: nowrap;">
-            <strong>v{{ version.version_index }}</strong> 
-            <span style="color: #64748b; margin-left: 5px;">{{ version.timestamp.strftime('%H:%M') }}</span>
-        </div>
+            {% if version.run_id %}
+                <a href="/runs/{{ version.run_id }}" class="version-tag" 
+                style="text-decoration: none; color: inherit; padding: 8px 12px; background: #e0f2fe; border: 1px solid #bae6fd; border-radius: 20px; font-size: 0.85rem; white-space: nowrap;">
+                    <strong>v{{ version.version_index }}</strong> 
+                    <span style="color: #64748b; margin-left: 5px;">View Output</span>
+                </a>
+            {% else %}
+                <div class="version-tag" style="padding: 8px 12px; background: white; border: 1px solid #e2e8f0; border-radius: 20px; font-size: 0.85rem; white-space: nowrap;">
+                    <strong>v{{ version.version_index }}</strong> 
+                    <span style="color: #64748b; margin-left: 5px;">{{ version.timestamp.strftime('%H:%M') }}</span>
+                </div>
+            {% endif %}
         {% endfor %}
     </div>
 </div>

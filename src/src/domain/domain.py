@@ -6,6 +6,7 @@ class ConversationVersion(BaseModel):
     version_index: int
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     history: Dict[str, str]
+    run_id: str | None = None
 
 class Conversation(BaseModel):
     id: str = Field(alias="conversation_id")
@@ -36,6 +37,7 @@ class ExtractionResult(BaseModel):
     conversation_id: str
     form_id: str
     filled_data: Dict[str, Any]
+    run_id: str
 
 class ExtractionRequest(BaseModel):
     context: str
@@ -46,6 +48,7 @@ class ExtractionRequest(BaseModel):
 class RunLog(BaseModel):
     run_id: str
     conversation_id: str
+    version_index: int
     started_at: datetime
     finished_at: datetime | None = None
     extracted_fields: Dict[str, Any] = Field(default_factory=dict)

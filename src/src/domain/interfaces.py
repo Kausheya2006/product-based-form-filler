@@ -24,7 +24,7 @@ class IExtractionModel(ABC):
 
 class IPipeline(ABC):
     @abstractmethod
-    async def run(self, conversation_id: str, form_id: str) -> ExtractionResult: pass
+    async def run(self, conversation_id: str, form_id: str, version_index: int) -> ExtractionResult: pass
 
 class IRunLogRepository(ABC): 
     @abstractmethod

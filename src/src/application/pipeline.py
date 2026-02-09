@@ -4,18 +4,19 @@ from ..domain.domain import ExtractionResult, ExtractionRequest, RunLog
 from ..domain.interfaces import IConversationRepository, IFormRepository, IExtractionModel, IPipeline, IRunLogRepository
 
 class FormFillingService(IPipeline):
-    def __init__(self, conversation_repo: IConversationRepository, form_repo: IFormRepository, extraction_model: IExtractionModel, runlog_repo: IRunLogRepository):
+    def __init__(self, conversation_repo: IConversationRepository, form_repo: IFormRepository, extraction_model: IExtractionModel, runlog_repo: IRunLogRepository, ):
         self.convo_repo = conversation_repo
         self.form_repo = form_repo
         self.model = extraction_model
         self.runlog_repo = runlog_repo
 
-    async def run(self, conversation_id: str, form_id: str) -> ExtractionResult:
+    async def run(self, conversation_id: str, form_id: str, version_index: int) -> ExtractionResult:
         run_id = str(uuid4())
 
         await self.runlog_repo.create(RunLog(
             run_id=run_id,
             conversation_id=conversation_id,
+            version_index=version_index,
             started_at=datetime.utcnow(),
             status="running"
         ))
@@ -65,7 +66,8 @@ class FormFillingService(IPipeline):
             result = ExtractionResult(
                 conversation_id=conversation_id,
                 form_id=form_id,
-                filled_data=filled_data
+                filled_data=filled_data,
+                run_id=run_id
             )
 
             await self.runlog_repo.update(run_id, {

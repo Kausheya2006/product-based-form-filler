@@ -59,6 +59,10 @@ class MongoRunLogRepo(IRunLogRepository):
     async def ensure_indexes(self):
         await self.collection.create_index("run_id", unique=True)
         await self.collection.create_index("started_at")
+        await self.collection.create_index([
+            ("conversation_id", 1), 
+            ("version_index", 1)
+        ])
 
     async def create(self, log: RunLog) -> None:
         await self.collection.insert_one(log.model_dump(by_alias=True))
