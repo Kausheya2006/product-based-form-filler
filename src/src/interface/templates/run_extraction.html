@@ -10,6 +10,16 @@
     {% endfor %}
 </div>
 <div class="card">
+    <h2>Conversation Chunks</h2>
+    <p>Showing {{ chunks|length }} chunk(s) generated from the conversation</p>
+    {% for chunk in chunks %}
+    <div style="margin-bottom: 20px; padding: 15px; background: #f8fafc; border-left: 4px solid #2563eb; border-radius: 8px;">
+        <h3 style="margin-top: 0; color: #64748b; font-size: 0.9rem;">Chunk {{ loop.index }}</h3>
+        <pre style="white-space: pre-wrap; font-family: 'Monaco', monospace; font-size: 0.85rem; margin: 0; color: #1e293b;">{{ chunk }}</pre>
+    </div>
+    {% endfor %}
+</div>
+<div class="card">
     <h2>Extraction Complete!</h2>
     <p>Form: {{ form_id }} | Conversation: {{ convo_id }}</p>
     <h3>Extracted Data</h3>

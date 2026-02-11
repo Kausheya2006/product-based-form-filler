@@ -38,6 +38,7 @@ class ExtractionResult(BaseModel):
     form_id: str
     filled_data: Dict[str, Any]
     run_id: str
+    chunks: List[str] = Field(default_factory=list)
 
 class ExtractionRequest(BaseModel):
     context: str

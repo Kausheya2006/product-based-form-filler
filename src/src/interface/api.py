@@ -269,6 +269,7 @@ async def run_extraction(request: Request, form_id: str, convo_id: str):
                 "convo": convo,
                 "fields_html": fields_html,
                 "json_pretty": json_pretty,
+                "chunks": result.chunks,
             },
         )
     except Exception as e:

@@ -2,6 +2,7 @@ from uuid import uuid4
 from datetime import datetime
 from ..domain.domain import ExtractionResult, ExtractionRequest, RunLog
 from ..domain.interfaces import IConversationRepository, IFormRepository, IExtractionModel, IPipeline, IRunLogRepository
+from ..infrastructure.ai.local_model import smart_turn_chunks_generic
 
 class FormFillingService(IPipeline):
     def __init__(self, conversation_repo: IConversationRepository, form_repo: IFormRepository, extraction_model: IExtractionModel, runlog_repo: IRunLogRepository, ):
@@ -33,6 +34,10 @@ class FormFillingService(IPipeline):
 
             # 2. Prepare Context & Batch Requests
             context = convo.full_text
+            
+            # Generate chunks for visibility (word-based chunking)
+            chunks = smart_turn_chunks_generic(context, max_words=30)
+            
             requests = []
             field_keys = []
 
@@ -67,7 +72,8 @@ class FormFillingService(IPipeline):
                 conversation_id=conversation_id,
                 form_id=form_id,
                 filled_data=filled_data,
-                run_id=run_id
+                run_id=run_id,
+                chunks=chunks
             )
 
             await self.runlog_repo.update(run_id, {
