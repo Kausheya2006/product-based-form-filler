@@ -5,3 +5,6 @@ __pycache__/
 data/
 *.log
 .git
+data_generation/models/
+*.safetensors
+*.pt

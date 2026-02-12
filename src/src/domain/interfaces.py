@@ -19,8 +19,8 @@ class IFormRepository(ABC):
     async def save(self, form: FormSchema) -> None: pass
 
 class IExtractionModel(ABC):
-    @abstractmethod
     async def extract_batch(self, requests: List[ExtractionRequest]) -> List[Any]: pass
+    async def process_extraction_request(self, input_str: str) -> List[Any]: pass
 
 class IPipeline(ABC):
     @abstractmethod

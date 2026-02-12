@@ -1,0 +1,17 @@
+{
+    "id": 10001,
+    "conversation_title": "Internet Outage Support Call",
+    "conversation": "Agent: Thank you for calling NetWave support, this is Riya. How can I help you today?\nCustomer: Hi, my internet has been down since last night.\nAgent: I’m sorry about that. May I have your full name?\nCustomer: Arjun Mehta.\nAgent: Thanks, Arjun. Could you confirm your registered phone number?\nCustomer: I don't want to reveal that.\nAgent: Got it. What’s your service address?\nCustomer: Flat 302, Green Park Apartments, Sector 14, Bengaluru.\nAgent: Understood. Which router model are you using?\nCustomer: NetWave X1200.\nAgent: Are any lights blinking red on the router?\nCustomer: Yes, the LOS light is red.\nAgent: Noted. When did you first notice the issue?\nCustomer: Around 10:30 PM yesterday.\nAgent: I’ll run a line test. Please hold.\nAgent: Thanks for waiting. There seems to be a fiber fault in your area.\nCustomer: Okay, when will it be fixed?\nAgent: Estimated restoration is by 6:00 PM today.\nCustomer: Please raise a complaint ticket.\nAgent: Done. Your ticket ID is NW-458921.\nCustomer: Thanks.",
+    "form_name": "Internet Outage Complaint Form",
+    "fields": {
+        "customer_name": "",
+        "phone_number": "",
+        "service_address": "",
+        "router_model": "",
+        "issue_type": "",
+        "first_reported_time": "",
+        "ticket_id": "",
+        "estimated_restoration_time": "",
+        "status": ""
+    }
+}

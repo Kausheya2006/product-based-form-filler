@@ -2,7 +2,7 @@
 import logging
 from ..domain.interfaces import IConversationRepository, IFormRepository, IPipeline, IRunLogRepository
 from ..infrastructure.persistence.mongo import MongoConversationRepository, MongoFormRepository, MongoRunLogRepo
-from ..infrastructure.ai.local_model import LocalHuggingFaceModel
+from ..infrastructure.ai.local_model import LocalHuggingFaceModel, GemmaFunctionalModel
 from ..infrastructure.config import settings
 from ..application.pipeline import FormFillingService
 
@@ -20,8 +20,8 @@ class Container:
         cls.convo_repo = MongoConversationRepository(settings.MONGO_URI, settings.DB_NAME)
         cls.form_repo = MongoFormRepository(settings.MONGO_URI, settings.DB_NAME)
         cls.runlog_repo = MongoRunLogRepo(settings.MONGO_URI, settings.DB_NAME)
-        model = LocalHuggingFaceModel()
-        cls.pipeline = FormFillingService(cls.convo_repo, cls.form_repo, model, cls.runlog_repo)
+        model = GemmaFunctionalModel(max_input_tokens=512, max_new_tokens=256, temperature=0.0, checkpoint_path="/app/data_generation/models/checkpoint-200")
+        cls.pipeline = FormFillingService(cls.convo_repo, cls.form_repo, model, cls.runlog_repo, model_type="full_process")
 
         # Log which Mongo host is being used (mask credentials)
         uri = settings.MONGO_URI

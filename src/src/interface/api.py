@@ -251,7 +251,7 @@ async def run_extraction(request: Request, form_id: str, convo_id: str):
         latest_version = convo.versions[-1]
         v_idx = latest_version.version_index
         
-        result = await container.pipeline.run(convo_id, form_id, version_index=v_idx)
+        result = await container.pipeline.run(convo_id, form_id, version_index=v_idx) 
 
         latest_version.run_id = result.run_id
         await container.convo_repo.save(convo)
