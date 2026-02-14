@@ -2,9 +2,14 @@ pymongo
 motor
 pydantic
 pydantic-settings
-torch
 transformers
 fastapi
 uvicorn
 python-multipart
 dotenv
+sentencepiece
+protobuf
+sacremoses
+pyyaml
+tqdm
+requests

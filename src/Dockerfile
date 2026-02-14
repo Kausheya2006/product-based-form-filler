@@ -4,6 +4,9 @@ FROM python:3.11-slim
 # Set the working directory in the container
 WORKDIR /app
 
+RUN pip install --upgrade pip
+RUN pip install --no-cache-dir torch --default-timeout=1000
+
 # Copy the requirements file into the container at /app
 COPY requirements.txt .
 
