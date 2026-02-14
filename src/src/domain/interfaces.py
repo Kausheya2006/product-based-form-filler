@@ -36,4 +36,6 @@ class IRunLogRepository(ABC):
     @abstractmethod
     async def get_by_id(self, run_id: str) -> Optional[RunLog]: pass
 
-
+class ISummarizer(ABC):
+    @abstractmethod
+    async def summarize(self, text: str) -> str: pass

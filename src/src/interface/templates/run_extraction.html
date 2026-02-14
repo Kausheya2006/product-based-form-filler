@@ -1,21 +1,67 @@
 {% extends "base.html" %}
-{% block title %}Extraction Result{% endblock %}
+{% block title %}Extraction Results{% endblock %}
+
 {% block content %}
-<div class="card">
-    <h2>Conversation #{{ convo.id }}</h2>
-    {% for speaker, text in convo.latest_history.items() %}
-    <div class="turn {% if loop.index is odd %}blue{% else %}green{% endif %}">
-        <strong>{{ speaker.split(' ')[0] }}:</strong> {{ text }}
-    </div>
-    {% endfor %}
-</div>
-<div class="card">
+<div class="header-container">
     <h2>Extraction Complete!</h2>
     <p>Form: {{ form_id }} | Conversation: {{ convo_id }}</p>
-    <h3>Extracted Data</h3>
-    <div>{% if fields_html %}{{ fields_html | safe }}{% else %}<p>No fields extracted.</p>{% endif %}</div>
 </div>
-<pre>{{ json_pretty }}</pre>
-<a href="/" class="btn">← Start Over</a>
-<a href="/outputs" class="btn">View All Outputs</a>
+
+{% if summary %}
+<div class="card">
+    <div class="summary-section" style="background: #eef2ff; padding: 15px; border-radius: 6px; border-left: 5px solid #2563eb; margin: 15px 0;">
+        <h3 style="margin-top: 0; color: #1e40af;">📝 AI Conversation Summary</h3>
+        <p style="font-style: italic; color: #374151; line-height: 1.6; margin: 0;">
+            {{ summary }}
+        </p>
+    </div>
+</div>
+{% endif %}
+
+<div class="card">
+    <h3>Extracted Data</h3>
+    <hr>
+    {% if fields_html %}
+        <div class="extracted-fields">
+            {{ fields_html | safe }}
+        </div>
+    {% else %}
+        <p>No data extracted.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3>JSON Output</h3>
+    <hr>
+    <pre style="background: #f8fafc; padding: 15px; border-radius: 6px; overflow-x: auto;">{{ json_pretty }}</pre>
+</div>
+
+<div class="action-bar" style="margin-top: 20px; display: flex; gap: 10px;">
+    <a href="/conversations/{{ convo_id }}/edit?form_id={{ form_id }}" class="btn" style="flex: 1; text-align: center;">
+        ← Edit Conversation
+    </a>
+    <a href="/outputs" class="btn" style="flex: 1; text-align: center;">
+        View All Outputs
+    </a>
+</div>
+
+<style>
+.extracted-fields .field {
+    margin-bottom: 12px;
+    padding: 8px;
+    background: #f8fafc;
+    border-radius: 4px;
+}
+
+.extracted-fields .field-name {
+    font-weight: 600;
+    color: #1e293b;
+    margin-right: 8px;
+}
+
+.extracted-fields .field-value {
+    color: #475569;
+}
+</style>
+
 {% endblock %}

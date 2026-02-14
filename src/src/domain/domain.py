@@ -38,6 +38,7 @@ class ExtractionResult(BaseModel):
     form_id: str
     filled_data: Dict[str, Any]
     run_id: str
+    summary: str
 
 class ExtractionRequest(BaseModel):
     context: str
@@ -54,3 +55,4 @@ class RunLog(BaseModel):
     extracted_fields: Dict[str, Any] = Field(default_factory=dict)
     status: str  # "running", "success", "failed"
     error: str | None = None
+    summary: str | None = None
