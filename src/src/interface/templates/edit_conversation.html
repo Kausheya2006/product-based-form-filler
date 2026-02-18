@@ -1,17 +1,224 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="card">
-    <h2>Edit Conversation #{{ convo.id }}</h2>
-    <form method="post" action="/conversations/{{ convo.id }}/update">
-        <input type="hidden" name="form_id" value="{{ form_id }}" />
-        <label>
-            <strong>Existing Context + New Additions:</strong>
-            <textarea name="new_content" rows="15" class="form-control">{{ raw_text }}</textarea>
-        </label>
-        <div style="margin-top:15px;">
-            <button type="submit" class="btn btn-success">Update & Re-Extract</button>
-            <a href="/forms/{{ form_id }}" class="btn">Cancel</a>
+  <h2>Edit Conversation #{{ convo.id }}</h2>
+
+  <form method="post" action="/conversations/{{ convo.id }}/update" id="chatForm">
+    <input type="hidden" name="form_id" value="{{ form_id }}" />
+
+    <textarea id="raw_text" style="display:none;">{{ raw_text }}</textarea>
+
+    <input type="hidden" name="new_content" id="new_content" />
+
+    <div style="display:flex; gap:16px; align-items:flex-end; flex-wrap:wrap; margin-bottom:12px;">
+      <div style="flex:1; min-width:260px;">
+        <label><strong>Speakers</strong></label>
+        <div id="speakerChips" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:6px;"></div>
+      </div>
+
+      <div style="min-width:260px;">
+        <label><strong>Add Speaker</strong></label>
+        <div style="display:flex; gap:8px; margin-top:6px;">
+          <input id="newSpeakerName" class="form-control" placeholder="e.g., Agent" />
+          <button type="button" class="btn" id="addSpeakerBtn">+ Add</button>
         </div>
-    </form>
+      </div>
+
+      <div>
+        <button type="button" class="btn" id="addMsgBtn" style="margin-top:22px;">+ Add Message</button>
+      </div>
+    </div>
+
+    <div id="bubbleList" style="display:flex; flex-direction:column; gap:10px;"></div>
+
+    <div style="margin-top:15px;">
+      <button type="submit" class="btn btn-success">Update & Re-Extract</button>
+      <a href="/forms/{{ form_id }}" class="btn">Cancel</a>
+    </div>
+  </form>
 </div>
+
+<style>
+  .bubble-row{
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    margin-bottom:8px;
+  }
+  .bubble-select{
+    width:150px;
+    min-width:150px;
+  }
+  .bubble-text{
+    flex:1;
+    border-radius:8px;
+    padding:10px 12px;
+    resize:vertical;
+    min-height:60px;
+  }
+  .chip{
+    padding:6px 10px;
+    border:1px solid #cfcfcf;
+    border-radius:999px;
+    font-size:12px;
+    background:#fafafa;
+  }
+  .muted{
+    opacity:0.75;
+    font-size:12px;
+  }
+</style>
+
+<script>
+  function autosizeTextarea(el) {
+    el.style.height = "auto";
+    el.style.height = (el.scrollHeight + 2) + "px";
+  }
+
+  function parseChat(rawText) {
+    const lines = (rawText || "").split("\n");
+    const messages = [];
+    const speakerSet = new Set();
+    const re = /^\s*([^:\n]{1,40})\s*:\s*(.*)\s*$/;
+    let current = null;
+
+    for (const line of lines) {
+      const m = line.match(re);
+      if (m) {
+        const speaker = m[1].trim();
+        const text = m[2].replace(/\s+$/,"");
+        speakerSet.add(speaker);
+        current = { speaker, text };
+        messages.push(current);
+      } else if (current) {
+        current.text = (current.text + "\n" + line).replace(/\s+$/,"");
+      }
+    }
+
+    if (messages.length === 0) {
+      speakerSet.add("Customer");
+      speakerSet.add("Agent");
+      messages.push({ speaker: "Customer", text: "" });
+    }
+
+    return { messages, speakers: Array.from(speakerSet) };
+  }
+
+  function buildRawText(messages) {
+    return messages
+      .filter(m => m.speaker || m.text)
+      .map(m => `${m.speaker}: ${m.text}`)
+      .join("\n");
+  }
+
+  // ---------- State ----------
+  const speakerChips = document.getElementById("speakerChips");
+  const bubbleList = document.getElementById("bubbleList");
+  const addSpeakerBtn = document.getElementById("addSpeakerBtn");
+  const newSpeakerName = document.getElementById("newSpeakerName");
+  const addMsgBtn = document.getElementById("addMsgBtn");
+  const newContentInput = document.getElementById("new_content");
+  const chatForm = document.getElementById("chatForm");
+  const rawTextEl = document.getElementById("raw_text");
+
+  const parsed = parseChat(rawTextEl.value);
+
+  let speakers = parsed.speakers.slice();
+  let messages = parsed.messages.slice();
+
+  // ---------- Render ----------
+  function renderSpeakers() {
+    speakerChips.innerHTML = "";
+    speakers.forEach((s) => {
+      const chip = document.createElement("span");
+      chip.className = "chip";
+      chip.textContent = s;
+      speakerChips.appendChild(chip);
+    });
+    if (speakers.length === 0) {
+      const hint = document.createElement("span");
+      hint.className = "muted";
+      hint.textContent = "No speakers yet";
+      speakerChips.appendChild(hint);
+    }
+  }
+
+  function renderMessages() {
+    bubbleList.innerHTML = "";
+
+    messages.forEach((msg, idx) => {
+      const row = document.createElement("div");
+      row.className = "bubble-row";
+
+      // speaker select
+      const select = document.createElement("select");
+      select.className = "form-control bubble-select";
+      speakers.forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s;
+        opt.textContent = s;
+        select.appendChild(opt);
+      });
+      select.value = msg.speaker || speakers[0] || "Speaker";
+
+      // message textarea
+      const ta = document.createElement("textarea");
+      ta.className = "form-control bubble-text";
+      ta.value = msg.text || "";
+      ta.placeholder = "Type message...";
+      ta.rows = 3;
+
+      setTimeout(() => autosizeTextarea(ta), 0);
+
+      // update state on changes
+      select.addEventListener("change", () => {
+        messages[idx].speaker = select.value;
+      });
+
+      ta.addEventListener("input", () => {
+        messages[idx].text = ta.value;
+        autosizeTextarea(ta);
+      });
+
+      row.appendChild(select);
+      row.appendChild(ta);
+      bubbleList.appendChild(row);
+    });
+  }
+
+  function render() {
+    renderSpeakers();
+    renderMessages();
+  }
+
+  // ---------- Controls ----------
+  addSpeakerBtn.addEventListener("click", () => {
+    const name = newSpeakerName.value.trim();
+    if (name && !speakers.includes(name)) {
+      speakers.push(name);
+      render();
+    }
+    newSpeakerName.value = "";
+  });
+
+  newSpeakerName.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addSpeakerBtn.click();
+    }
+  });
+
+  addMsgBtn.addEventListener("click", () => {
+    const lastSpeaker = messages[messages.length - 1]?.speaker || speakers[0] || "Speaker";
+    messages.push({ speaker: lastSpeaker, text: "" });
+    render();
+  });
+
+  chatForm.addEventListener("submit", () => {
+    newContentInput.value = buildRawText(messages);
+  });
+
+  // init
+  render();
+</script>
 {% endblock %}
