@@ -5,20 +5,33 @@
     <h2>Enter Conversation for: {{ form.name }}</h2>
     <form id="conversation-form" method="post" action="/conversations/create">
         <input type="hidden" name="form_id" value="{{ form.id }}" />
+        <input type="hidden" name="conversation_text" id="conversation_text" />
 
         <label>
             Conversation ID (optional - will auto-generate if empty)
             <input type="text" name="conversation_id" placeholder="e.g., 100" />
         </label>
 
-        <label style="display:block; margin-top:15px;">
-            Conversation Text
-            <textarea name="conversation_text" rows="15" required placeholder="Enter conversation in format:
-Doctor: Hello, what is your name?
-Patient: My name is John Doe.
-Doctor: How old are you?
-Patient: I am 30 years old." style="width:100%; font-family:monospace;"></textarea>
-        </label>
+        <div style="display:flex; gap:16px; align-items:flex-end; flex-wrap:wrap; margin-top:20px; margin-bottom:12px;">
+            <div style="flex:1; min-width:260px;">
+                <label><strong>Speakers</strong></label>
+                <div id="speakerChips" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:6px;"></div>
+            </div>
+
+            <div style="min-width:260px;">
+                <label><strong>Add Speaker</strong></label>
+                <div style="display:flex; gap:8px; margin-top:6px;">
+                    <input id="newSpeakerName" class="form-control" placeholder="e.g., Doctor" />
+                    <button type="button" class="btn" id="addSpeakerBtn">+ Add</button>
+                </div>
+            </div>
+
+            <div>
+                <button type="button" class="btn" id="addMsgBtn" style="margin-top:22px;">+ Add Message</button>
+            </div>
+        </div>
+
+        <div id="bubbleList" style="display:flex; flex-direction:column; gap:10px;"></div>
 
         <div style="margin-top:18px;">
             <a href="/forms/{{ form.id }}" class="btn">← Back</a>
@@ -26,4 +39,150 @@ Patient: I am 30 years old." style="width:100%; font-family:monospace;"></textar
         </div>
     </form>
 </div>
+
+<style>
+  .bubble-row{
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    margin-bottom:8px;
+  }
+  .bubble-select{
+    width:150px;
+    min-width:150px;
+  }
+  .bubble-text{
+    flex:1;
+    border-radius:8px;
+    padding:10px 12px;
+    resize:vertical;
+    min-height:60px;
+  }
+  .chip{
+    padding:6px 10px;
+    border:1px solid #cfcfcf;
+    border-radius:999px;
+    font-size:12px;
+    background:#fafafa;
+  }
+  .muted{
+    opacity:0.75;
+    font-size:12px;
+  }
+</style>
+
+<script>
+  function autosizeTextarea(el) {
+    el.style.height = "auto";
+    el.style.height = (el.scrollHeight + 2) + "px";
+  }
+
+  function buildRawText(messages) {
+    return messages
+      .filter(m => m.speaker || m.text)
+      .map(m => `${m.speaker}: ${m.text}`)
+      .join("\n");
+  }
+
+  // ---------- State ----------
+  const speakerChips = document.getElementById("speakerChips");
+  const bubbleList = document.getElementById("bubbleList");
+  const addSpeakerBtn = document.getElementById("addSpeakerBtn");
+  const newSpeakerName = document.getElementById("newSpeakerName");
+  const addMsgBtn = document.getElementById("addMsgBtn");
+  const conversationTextInput = document.getElementById("conversation_text");
+  const chatForm = document.getElementById("conversation-form");
+
+  let speakers = [];
+  let messages = [];
+
+  // ---------- Render ----------
+  function renderSpeakers() {
+    speakerChips.innerHTML = "";
+    speakers.forEach((s) => {
+      const chip = document.createElement("span");
+      chip.className = "chip";
+      chip.textContent = s;
+      speakerChips.appendChild(chip);
+    });
+  }
+
+  function renderMessages() {
+    bubbleList.innerHTML = "";
+
+    messages.forEach((msg, idx) => {
+      const row = document.createElement("div");
+      row.className = "bubble-row";
+
+      // speaker select
+      const select = document.createElement("select");
+      select.className = "form-control bubble-select";
+      speakers.forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s;
+        opt.textContent = s;
+        select.appendChild(opt);
+      });
+      select.value = msg.speaker || speakers[0];
+
+      // message textarea
+      const ta = document.createElement("textarea");
+      ta.className = "form-control bubble-text";
+      ta.value = msg.text || "";
+      ta.placeholder = "Type message...";
+      ta.rows = 3;
+
+      setTimeout(() => autosizeTextarea(ta), 0);
+
+      // update state on changes
+      select.addEventListener("change", () => {
+        messages[idx].speaker = select.value;
+      });
+
+      ta.addEventListener("input", () => {
+        messages[idx].text = ta.value;
+        autosizeTextarea(ta);
+      });
+
+      row.appendChild(select);
+      row.appendChild(ta);
+      bubbleList.appendChild(row);
+    });
+  }
+
+  function render() {
+    renderSpeakers();
+    renderMessages();
+  }
+
+  // ---------- Controls ----------
+  addSpeakerBtn.addEventListener("click", () => {
+    const name = newSpeakerName.value.trim();
+    if (name && !speakers.includes(name)) {
+      speakers.push(name);
+      render();
+    }
+    newSpeakerName.value = "";
+  });
+
+  newSpeakerName.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addSpeakerBtn.click();
+    }
+  });
+
+  addMsgBtn.addEventListener("click", () => {
+    const lastSpeaker = messages[messages.length - 1]?.speaker || speakers[0];
+    messages.push({ speaker: lastSpeaker, text: "" });
+    render();
+  });
+
+  chatForm.addEventListener("submit", () => {
+    conversationTextInput.value = buildRawText(messages);
+  });
+
+  // init
+  render();
+</script>
 {% endblock %}

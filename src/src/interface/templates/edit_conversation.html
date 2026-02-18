@@ -95,12 +95,6 @@
       }
     }
 
-    if (messages.length === 0) {
-      speakerSet.add("Customer");
-      speakerSet.add("Agent");
-      messages.push({ speaker: "Customer", text: "" });
-    }
-
     return { messages, speakers: Array.from(speakerSet) };
   }
 
