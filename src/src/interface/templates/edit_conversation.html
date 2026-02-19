@@ -7,7 +7,6 @@
     <input type="hidden" name="form_id" value="{{ form_id }}" />
 
     <textarea id="raw_text" style="display:none;">{{ raw_text }}</textarea>
-
     <input type="hidden" name="new_content" id="new_content" />
 
     <div style="display:flex; gap:16px; align-items:flex-end; flex-wrap:wrap; margin-bottom:12px;">
@@ -30,6 +29,13 @@
     </div>
 
     <div id="bubbleList" style="display:flex; flex-direction:column; gap:10px;"></div>
+
+    <div class="card" style="margin-top:18px;">
+      <h3 style="margin-top:0;">Live Form Extraction</h3>
+      <p class="muted" id="extractStatus">Edit messages, then click outside a message box to reprocess.</p>
+      <div id="summaryBox" style="display:none; margin:12px 0; padding:10px; border-radius:6px; background:#f8fafc; border:1px solid #e2e8f0;"></div>
+      <div id="formFillGrid" style="display:grid; gap:10px;"></div>
+    </div>
 
     <div style="margin-top:15px;">
       <button type="submit" class="btn btn-success">Update & Re-Extract</button>
@@ -67,6 +73,16 @@
     opacity:0.75;
     font-size:12px;
   }
+  .filled-field{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .filled-field label{
+    font-size:12px;
+    font-weight:600;
+    color:#334155;
+  }
 </style>
 
 <script>
@@ -86,12 +102,12 @@
       const m = line.match(re);
       if (m) {
         const speaker = m[1].trim();
-        const text = m[2].replace(/\s+$/,"");
+        const text = m[2].replace(/\s+$/, "");
         speakerSet.add(speaker);
         current = { speaker, text };
         messages.push(current);
       } else if (current) {
-        current.text = (current.text + "\n" + line).replace(/\s+$/,"");
+        current.text = (current.text + "\n" + line).replace(/\s+$/, "");
       }
     }
 
@@ -105,6 +121,19 @@
       .join("\n");
   }
 
+  function flattenObject(obj, prefix = "", out = {}) {
+    if (!obj || typeof obj !== "object") return out;
+    Object.entries(obj).forEach(([k, v]) => {
+      const key = prefix ? `${prefix}.${k}` : k;
+      if (v && typeof v === "object" && !Array.isArray(v)) {
+        flattenObject(v, key, out);
+      } else {
+        out[key] = v;
+      }
+    });
+    return out;
+  }
+
   // ---------- State ----------
   const speakerChips = document.getElementById("speakerChips");
   const bubbleList = document.getElementById("bubbleList");
@@ -114,11 +143,27 @@
   const newContentInput = document.getElementById("new_content");
   const chatForm = document.getElementById("chatForm");
   const rawTextEl = document.getElementById("raw_text");
+  const formFillGrid = document.getElementById("formFillGrid");
+  const extractStatus = document.getElementById("extractStatus");
+  const summaryBox = document.getElementById("summaryBox");
+  const formFields = {{ form.fields | tojson }};
 
   const parsed = parseChat(rawTextEl.value);
-
   let speakers = parsed.speakers.slice();
   let messages = parsed.messages.slice();
+  let hasPendingEdits = false;
+  const fieldInputs = {};
+
+  function syncMessagesFromDOM() {
+    const rows = bubbleList.querySelectorAll(".bubble-row");
+    rows.forEach((row, idx) => {
+      const select = row.querySelector("select");
+      const ta = row.querySelector("textarea");
+      if (!messages[idx]) messages[idx] = { speaker: "", text: "" };
+      if (select) messages[idx].speaker = select.value || "";
+      if (ta) messages[idx].text = ta.value || "";
+    });
+  }
 
   // ---------- Render ----------
   function renderSpeakers() {
@@ -144,7 +189,6 @@
       const row = document.createElement("div");
       row.className = "bubble-row";
 
-      // speaker select
       const select = document.createElement("select");
       select.className = "form-control bubble-select";
       speakers.forEach(s => {
@@ -155,7 +199,6 @@
       });
       select.value = msg.speaker || speakers[0] || "Speaker";
 
-      // message textarea
       const ta = document.createElement("textarea");
       ta.className = "form-control bubble-text";
       ta.value = msg.text || "";
@@ -164,14 +207,19 @@
 
       setTimeout(() => autosizeTextarea(ta), 0);
 
-      // update state on changes
       select.addEventListener("change", () => {
         messages[idx].speaker = select.value;
+        hasPendingEdits = true;
       });
 
       ta.addEventListener("input", () => {
         messages[idx].text = ta.value;
+        hasPendingEdits = true;
         autosizeTextarea(ta);
+      });
+
+      ta.addEventListener("focusout", () => {
+        if (hasPendingEdits) runLiveExtraction();
       });
 
       row.appendChild(select);
@@ -180,9 +228,83 @@
     });
   }
 
+  function renderFormFields() {
+    formFillGrid.innerHTML = "";
+    Object.keys(formFields).forEach((fieldKey) => {
+      const wrap = document.createElement("div");
+      wrap.className = "filled-field";
+
+      const lbl = document.createElement("label");
+      lbl.textContent = fieldKey;
+
+      const input = document.createElement("input");
+      input.className = "form-control";
+      input.readOnly = true;
+      input.placeholder = "N/A";
+
+      fieldInputs[fieldKey] = input;
+      wrap.appendChild(lbl);
+      wrap.appendChild(input);
+      formFillGrid.appendChild(wrap);
+    });
+  }
+
+  function applyFilledData(filledData) {
+    const flat = flattenObject(filledData || {});
+    Object.keys(fieldInputs).forEach((key) => {
+      const val = flat[key];
+      fieldInputs[key].value = val === undefined || val === null ? "N/A" : String(val);
+    });
+  }
+
   function render() {
     renderSpeakers();
     renderMessages();
+  }
+
+  async function runLiveExtraction() {
+    syncMessagesFromDOM();
+    const conversationText = buildRawText(messages);
+    if (!conversationText.trim()) {
+      extractStatus.textContent = "No conversation text yet.";
+      summaryBox.style.display = "none";
+      applyFilledData({});
+      return;
+    }
+
+    extractStatus.textContent = "Processing conversation so far...";
+    const body = new URLSearchParams({
+      form_id: "{{ form_id }}",
+      conversation_text: conversationText
+    });
+
+    try {
+      const res = await fetch("/extract/preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: body.toString()
+      });
+      const raw = await res.text();
+      let data = {};
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch (e) {
+        data = { detail: raw || "Extraction failed" };
+      }
+      if (!res.ok) throw new Error(data.detail || "Extraction failed");
+
+      applyFilledData(data.filled_data || {});
+      if (data.summary) {
+        summaryBox.textContent = data.summary;
+        summaryBox.style.display = "block";
+      } else {
+        summaryBox.style.display = "none";
+      }
+      hasPendingEdits = false;
+      extractStatus.textContent = "Form filled using conversation up to this point.";
+    } catch (err) {
+      extractStatus.textContent = `Extraction error: ${err.message}`;
+    }
   }
 
   // ---------- Controls ----------
@@ -191,6 +313,8 @@
     if (name && !speakers.includes(name)) {
       speakers.push(name);
       render();
+      hasPendingEdits = true;
+      runLiveExtraction();
     }
     newSpeakerName.value = "";
   });
@@ -206,13 +330,17 @@
     const lastSpeaker = messages[messages.length - 1]?.speaker || speakers[0] || "Speaker";
     messages.push({ speaker: lastSpeaker, text: "" });
     render();
+    hasPendingEdits = true;
   });
 
   chatForm.addEventListener("submit", () => {
+    syncMessagesFromDOM();
     newContentInput.value = buildRawText(messages);
   });
 
   // init
+  renderFormFields();
   render();
+  runLiveExtraction();
 </script>
 {% endblock %}
