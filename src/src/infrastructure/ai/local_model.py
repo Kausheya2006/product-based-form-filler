@@ -43,7 +43,13 @@ class LocalHuggingFaceModel(IExtractionModel):
                 lambda: self.pipeline(question=questions, context=contexts)
             )
             # results will be [{'score':.., 'start':.., 'end':.., 'answer':..}, ...]
-            return [r['answer'] if r else None for r in results]
+            # Use confidence threshold: QA models always return *something*, so we
+            # gate on score to avoid filling unrelated fields with spurious spans.
+            CONFIDENCE_THRESHOLD = 0.1
+            return [
+                r['answer'] if (r and r.get('score', 0) >= CONFIDENCE_THRESHOLD) else None
+                for r in results
+            ]
         except Exception as e:
             print(f"Batch extraction error: {e}")
             return [None] * len(requests)
