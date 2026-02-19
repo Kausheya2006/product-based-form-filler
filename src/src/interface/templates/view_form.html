@@ -9,6 +9,10 @@
     <div class="field"><span class="field-name">{{ k }}:</span> <span class="field-value">{{ v }}</span></div>
     {% endfor %}
 </div>
-<a href="/forms/{{ form.id }}/conversations" class="btn btn-success">Confirm & Select Conversation →</a>
-<a href="/forms/{{ form.id }}/enter-conversation" class="btn btn-primary">Confirm &amp; Enter Conversation →</a>
+<div class="flex">
+    <a href="/forms/{{ form.id }}/conversations" class="btn btn-success">Confirm & Select Conversation →</a>
+    <a href="/forms/{{ form.id }}/enter-conversation" class="btn btn-primary">Confirm &amp; Enter Conversation →</a>
+    <a href="/forms/{{ form.id }}/live" class="btn">Start Live →</a>
+</div>
+
 {% endblock %}
