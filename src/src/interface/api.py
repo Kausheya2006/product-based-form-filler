@@ -16,6 +16,23 @@ from datetime import datetime
 from ..domain.domain import Conversation, FormSchema, ExtractionResult, ConversationVersion
 from .dependencies import container, Container
 
+from pydantic import BaseModel as PydanticBaseModel
+from ..infrastructure.ai.local_model import LocalHuggingFaceModel
+from ..domain.domain import ExtractionRequest
+
+_live_model: LocalHuggingFaceModel | None = None
+
+def get_live_model() -> LocalHuggingFaceModel:
+    """Return (and lazily initialise) the module-level LocalHuggingFaceModel."""
+    global _live_model
+    if _live_model is None:
+        _live_model = LocalHuggingFaceModel()
+    return _live_model
+
+class LiveExtractRequest(PydanticBaseModel):
+    form_id: str
+    conversation: str   # raw "Speaker: text\nSpeaker: text\n…" string
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -410,3 +427,43 @@ async def _load_outputs() -> List[Dict]:
     collection = container.convo_repo.db.outputs
     cursor = collection.find({}).sort("_id", -1)
     return await cursor.to_list(length=100)
+
+@app.get("/forms/{form_id}/live", response_class=HTMLResponse)
+async def live_extraction_page(request: Request, form_id: str):
+    """Render the two-panel live extraction UI."""
+    form = await container.form_repo.get_by_id(form_id)
+    if not form:
+        raise HTTPException(404, "Form not found")
+    return templates.TemplateResponse(
+        "live_extract.html",
+        {"request": request, "form": form}
+    )
+
+@app.post("/api/live-extract")
+async def api_live_extract(payload: LiveExtractRequest) -> JSONResponse:
+    form = await container.form_repo.get_by_id(payload.form_id)
+    if not form:
+        raise HTTPException(404, "Form not found")
+
+    context = payload.conversation.strip()
+    if not context:
+        raise HTTPException(400, "Conversation text is empty")
+
+    requests: list[ExtractionRequest] = [
+        ExtractionRequest(
+            context=context,
+            field_name=field_key,
+            instruction=question
+        )
+        for field_key, question in form.fields.items()
+    ]
+
+    model = get_live_model()
+    answers = await model.extract_batch(requests)
+
+    result: Dict[str, str] = {}
+    for req, answer in zip(requests, answers):
+        if answer and answer.strip():
+            result[req.field_name] = answer
+
+    return JSONResponse(content=result)
