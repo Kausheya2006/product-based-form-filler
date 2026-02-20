@@ -111,7 +111,7 @@ def generate_forms():
     print(f"Continuing from form {start_idx + 1}/100")
     
     api_keys = [os.getenv("GEMINI_API_KEY"), os.getenv("GEMINI_API_KEY_2")]
-    models = ["models/gemini-2.5-flash", "models/gemini-1.5-flash"]
+    models = ["models/gemini-2.5-flash", "models/gemini-3-flash"]
     
     for api_key in api_keys:
         if start_idx >= 100:
