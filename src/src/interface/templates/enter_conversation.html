@@ -281,7 +281,7 @@
       speakers.push(name);
       render();
     }
-    runLiveExtraction();
+    
     newSpeakerName.value = "";
   });
 
@@ -293,6 +293,7 @@
   });
 
   addMsgBtn.addEventListener("click", () => {
+    runLiveExtraction();
     conversationTextInput.value = buildRawText(messages);
     const lastSpeaker = messages[messages.length - 1]?.speaker || speakers[0];
     messages.push({ speaker: lastSpeaker, text: "" });
