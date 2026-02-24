@@ -1,45 +1,51 @@
 {% extends "base.html" %}
-{% block title %}Past Outputs{% endblock %}
+{% block title %}Past Outputs — ProductLabs{% endblock %}
+{% block nav_outputs %}active{% endblock %}
 {% block content %}
-<div class="header-container">
-    <h2>Past Extraction Results</h2>
+
+<div class="page-header">
+    <h1>Past Outputs</h1>
+    <p class="page-subtitle">All extraction results, most recent first.</p>
 </div>
 
 {% if outputs %}
     {% for out in outputs|reverse %}
     <div class="card">
-        <h3>Form ID: {{ out.get('form_id', '-') }}</h3>
-        <p><strong>Conversation ID:</strong> <a href="/conversations/{{ out.get('conversation_id') }}?form_id={{ out.get('form_id') }}">
-            {{ out.get('conversation_id', '-') }}
-        </a></p>
-        
-        <hr>
-        
-        <h3>Extracted Data</h3>
-        {% if out.get('filled_data') %}
-            <div class="extracted-data-container">
-                {# Use the same formatting style as the run details #}
-                {% for key, value in out.get('filled_data').items() %}
-                    <div class="field" style="margin-bottom: 8px;">
-                        <span class="field-name" style="font-weight: bold;">{{ key }}:</span> 
-                        <span class="field-value">
-                            {% if value is mapping %}
-                                {{ value | tojson }}
-                            {% else %}
-                                {{ value }}
-                            {% endif %}
-                        </span>
-                    </div>
-                {% endfor %}
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+            <div>
+                <div style="font-weight:700; font-size:1rem; margin-bottom:4px;">
+                    Form: <span style="color:var(--primary);">{{ out.get('form_id', '—') }}</span>
+                </div>
+                <div style="font-size:0.875rem; color:var(--text-muted);">
+                    Conversation:
+                    <a href="/conversations/{{ out.get('conversation_id') }}?form_id={{ out.get('form_id') }}"
+                       style="color:var(--primary); font-weight:500;">#{{ out.get('conversation_id', '—') }}</a>
+                </div>
             </div>
+            <span class="badge badge-green">Extracted</span>
+        </div>
+
+        {% if out.get('filled_data') %}
+            <hr>
+            {% for key, value in out.get('filled_data').items() %}
+                <div class="field">
+                    <span class="field-name">{{ key }}</span>
+                    <span class="field-value">
+                        {% if value is mapping %}{{ value | tojson }}{% else %}{{ value }}{% endif %}
+                    </span>
+                </div>
+            {% endfor %}
         {% else %}
-            <p>No data extracted.</p>
+            <p style="color:var(--text-muted); font-size:0.875rem; margin:12px 0 0 0;">No data extracted.</p>
         {% endif %}
     </div>
     {% endfor %}
 {% else %}
-    <div class="card">
-        <p>No outputs yet. Run an extraction first.</p>
+    <div class="empty-state card">
+        <div class="empty-icon"></div>
+        <h3>No outputs yet</h3>
+        <p>Run an extraction on a conversation to see results here.</p>
+        <a href="/" class="btn btn-success">← Go to Forms</a>
     </div>
 {% endif %}
 {% endblock %}

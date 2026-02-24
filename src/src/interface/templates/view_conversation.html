@@ -1,50 +1,54 @@
 {% extends "base.html" %}
-{% block title %}Conversation #{{ convo.id }}{% endblock %}
+{% block title %}Conversation #{{ convo.id }} — ProductLabs{% endblock %}
 
 {% block content %}
-<div class="header-container" style="display: flex; justify-content: space-between; align-items: center;">
-    <h2>Conversation #{{ convo.id }}</h2>
+
+    <div class="page-header" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+    <div>
+        <h1 style="margin:0 0 4px 0;">Conversation #{{ convo.id }}</h1>
+        <p class="page-subtitle" style="margin:0;">{{ convo.versions | length }} version{{ convo.versions | length != 1 and 's' or '' }}</p>
+    </div>
     <a href="/conversations/{{ convo.id }}/edit?form_id={{ form_id }}" class="btn">Edit / Add Context</a>
 </div>
 
-<div class="card" style="background: #f8fafc; border-style: dashed;">
+{% if convo.versions | length > 0 %}
+<div class="card">
     <h3>Version History</h3>
-    <div class="version-list" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px;">
+    <div style="display:flex; gap:8px; flex-wrap:wrap; padding: 4px 0;">
         {% for version in convo.versions %}
             {% if version.run_id %}
-                <a href="/runs/{{ version.run_id }}" class="version-tag" 
-                style="text-decoration: none; color: inherit; padding: 8px 12px; background: #e0f2fe; border: 1px solid #bae6fd; border-radius: 20px; font-size: 0.85rem; white-space: nowrap;">
-                    <strong>v{{ version.version_index }}</strong> 
-                    <span style="color: #64748b; margin-left: 5px;">View Output</span>
+                <a href="/runs/{{ version.run_id }}" style="text-decoration:none;">
+                    <span class="badge badge-blue" style="padding:5px 12px; font-size:0.78rem;">
+                        v{{ version.version_index }} · View Output
+                    </span>
                 </a>
             {% else %}
-                <div class="version-tag" style="padding: 8px 12px; background: white; border: 1px solid #e2e8f0; border-radius: 20px; font-size: 0.85rem; white-space: nowrap;">
-                    <strong>v{{ version.version_index }}</strong> 
-                    <span style="color: #64748b; margin-left: 5px;">{{ version.timestamp.strftime('%H:%M') }}</span>
-                </div>
+                <span class="badge badge-gray" style="padding:5px 12px; font-size:0.78rem;">
+                    v{{ version.version_index }} · {{ version.timestamp.strftime('%H:%M') }}
+                </span>
             {% endif %}
         {% endfor %}
     </div>
 </div>
+{% endif %}
 
 <div class="card">
-    <div style="display: flex; justify-content: space-between;">
-        <h3>Latest Transcript (v{{ convo.versions|length - 1 }})</h3>
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+        <h3 style="margin:0;">Latest Transcript <span class="badge badge-gray" style="font-weight:500; margin-left:6px;">v{{ convo.versions|length - 1 }}</span></h3>
     </div>
     <hr>
     <div class="chat-container">
         {% for speaker, text in convo.latest_history.items() %}
-            {# Clean the speaker name (removing the timestamp suffix from the key) #}
             {% set speaker_name = speaker.split(' ')[0] %}
             <div class="turn {% if loop.index is odd %}blue{% else %}green{% endif %}">
-                <strong>{{ speaker_name }}:</strong> {{ text }}
+                <strong>{{ speaker_name }}</strong>{{ text }}
             </div>
         {% endfor %}
     </div>
 </div>
 
-<div class="action-bar" style="margin-top: 20px;">
-    <a href="/extract/{{ form_id }}/{{ convo.id }}" class="btn btn-success" style="width: 100%; text-align: center; display: block;">
+<div class="action-row">
+    <a href="/extract/{{ form_id }}/{{ convo.id }}" class="btn btn-success" style="flex:1; justify-content:center;">
         Run Extraction on Latest Version →
     </a>
 </div>

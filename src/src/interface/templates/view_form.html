@@ -1,18 +1,47 @@
 {% extends "base.html" %}
-{% block title %}Form: {{ form.name }}{% endblock %}
+{% block title %}{{ form.name }} — ProductLabs{% endblock %}
 {% block content %}
+
+<div class="page-header">
+    <h1>{{ form.name }}</h1>
+    {% if form.description %}
+        <p class="page-subtitle">{{ form.description }}</p>
+    {% endif %}
+</div>
+
 <div class="card">
-    <h2>{{ form.name }}</h2>
-    <p>{{ form.description }}</p>
-    <h3>Fields</h3>
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+        <h3 style="margin:0;">Fields</h3>
+        <span class="badge badge-blue">{{ form.fields | length }} field{{ form.fields | length != 1 and 's' or '' }}</span>
+    </div>
     {% for k, v in form.fields.items() %}
-    <div class="field"><span class="field-name">{{ k }}:</span> <span class="field-value">{{ v }}</span></div>
+    <div class="field">
+        <span class="field-name">{{ k }}</span>
+        <span class="badge badge-gray" style="font-family:monospace; font-size:0.75rem;">{{ v }}</span>
+    </div>
     {% endfor %}
 </div>
-<div class="flex">
-    <a href="/forms/{{ form.id }}/conversations" class="btn btn-success">Confirm & Select Conversation →</a>
-    <a href="/forms/{{ form.id }}/enter-conversation" class="btn btn-primary">Confirm &amp; Enter Conversation →</a>
-    <a href="/forms/{{ form.id }}/live" class="btn">Start Live →</a>
+
+<div class="card">
+    <h3>What would you like to do?</h3>
+    <p style="color:var(--text-muted); font-size:0.875rem; margin-bottom:16px;">Choose how you want to provide the conversation for this form.</p>
+    <div class="action-cards">
+        <a href="/forms/{{ form.id }}/conversations" class="action-card">
+            <span class="ac-icon"></span>
+            <span class="ac-title">Select a Conversation</span>
+            <span class="ac-desc">Browse and pick from previously saved conversations.</span>
+        </a>
+        <a href="/forms/{{ form.id }}/enter-conversation" class="action-card">
+            <span class="ac-icon"></span>
+            <span class="ac-title">Type a Conversation</span>
+            <span class="ac-desc">Manually enter a new conversation, then run extraction.</span>
+        </a>
+        <a href="/forms/{{ form.id }}/live" class="action-card">
+            <span class="ac-icon"></span>
+            <span class="ac-title">Live Extraction</span>
+            <span class="ac-desc">Build the conversation message by message and see fields update in real time.</span>
+        </a>
+    </div>
 </div>
 
 {% endblock %}

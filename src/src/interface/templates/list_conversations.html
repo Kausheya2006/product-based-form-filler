@@ -1,12 +1,36 @@
 {% extends "base.html" %}
-{% block title %}Conversations for {{ form.name }}{% endblock %}
+{% block title %}Conversations — {{ form.name }}{% endblock %}
 {% block content %}
-<p>Conversations for form: <strong>{{ form.name }}</strong></p>
+
+<div class="page-header">
+    <h1>Select a Conversation</h1>
+    <p class="page-subtitle">Form: <strong>{{ form.name }}</strong></p>
+</div>
+
 {% if convos %}
-{% for c in convos %}
-<div class="card"><a href="/conversations/{{ c.id }}?form_id={{ form.id }}">Conversation #{{ c.id }}</a></div>
-{% endfor %}
+    {% for c in convos %}
+    <a href="/conversations/{{ c.id }}?form_id={{ form.id }}" class="form-card">
+        <div class="form-card-icon">💬</div>
+        <div class="form-card-body">
+            <div class="form-card-name">Conversation #{{ c.id }}</div>
+            <div class="form-card-desc">
+                {% if c.versions %}
+                    {{ c.versions | length }} version{{ c.versions | length != 1 and 's' or '' }}
+                {% else %}
+                    No versions yet
+                {% endif %}
+            </div>
+        </div>
+        <span class="form-card-arrow">›</span>
+    </a>
+    {% endfor %}
 {% else %}
-<p>No conversations linked to this form.</p>
+    <div class="empty-state card">
+        <div class="empty-icon">💬</div>
+        <h3>No conversations yet</h3>
+        <p>There are no conversations linked to this form.</p>
+        <a href="/forms/{{ form.id }}/enter-conversation" class="btn btn-success">✏️ Type a Conversation</a>
+    </div>
 {% endif %}
+
 {% endblock %}

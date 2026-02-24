@@ -1,58 +1,66 @@
-<!-- ...existing code... -->
 {% extends "base.html" %}
 {% block title %}Create New Form{% endblock %}
 {% block content %}
+
+<div class="page-header">
+    <h1>Create New Form</h1>
+    <p class="page-subtitle">Define the form name, description, and the fields you want to extract from conversations.</p>
+</div>
+
 <form id="create-form" method="post" action="/forms">
     <div class="card">
-        <h2>Create New Form</h2>
-        <label>
-            Form name
-            <input type="text" name="form_name" required placeholder="Enter form name" />
-        </label>
+        <div class="form-group">
+            <label for="form_name">Form Name <span style="color:var(--danger)">*</span></label>
+            <input type="text" id="form_name" name="form_name" required placeholder="e.g., Patient Intake Form" />
+        </div>
 
-        <label style="display:block; margin-top:15px;">
-            Description
-            <textarea name="form_description" rows="3" placeholder="Enter form description (e.g., Patient intake form for clinic X)" style="width:100%; margin-top:5px;"></textarea>
-        </label>
+        <div class="form-group">
+            <label for="form_description">Description</label>
+            <textarea id="form_description" name="form_description" rows="2"
+                placeholder="e.g., Extracts patient details from a clinic intake conversation"></textarea>
+            <p class="form-hint">Helps the AI understand what this form is for.</p>
+        </div>
+    </div>
 
-        <h3>Fields</h3>
+    <div class="card">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+            <h3 style="margin:0;">Fields</h3>
+            <span class="counter" id="field-counter">1 field</span>
+        </div>
 
         <div id="fields-container">
-            <div class="field-row" style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
-                <input type="text" name="field_name[]" required placeholder="Field name" />
-                <select name="field_type[]">
+            <div class="field-row">
+                <input type="text" name="field_name[]" required placeholder="Field name (e.g., patient_name)" style="flex:1;" />
+                <select name="field_type[]" style="width:110px;">
                     <option value="string">String</option>
-                    <option value="int">Int</option>
+                    <option value="int">Integer</option>
                 </select>
-                <button type="button" class="btn" onclick="removeField(this)" title="Remove"
-                    style="background:#ef4444;color:white;">Remove</button>
+                <button type="button" class="btn btn-sm btn-danger" onclick="removeField(this)" title="Remove field">Remove</button>
             </div>
         </div>
 
-        <div style="margin-top:10px;">
-            <button type="button" id="add-field" class="btn btn-success">+ Add Field</button>
+        <div style="margin-top:12px;">
+            <button type="button" id="add-field" class="btn btn-sm">＋ Add Field</button>
         </div>
+    </div>
 
-        <div style="margin-top:18px;">
-            <a href="/" class="btn">Exit</a>
-            <button type="submit" class="btn btn-success">Submit</button>
-        </div>
+    <div class="action-row">
+        <a href="/" class="btn">← Cancel</a>
+        <button type="submit" class="btn btn-success">✓ Create Form</button>
     </div>
 </form>
 
-<!-- hidden template -->
+<!-- hidden row template -->
 <div id="field-template" style="display:none;">
-    <div class="field-row" style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
-        <input type="text" name="field_name[]" required placeholder="Field name" />
-        <select name="field_type[]">
+    <div class="field-row">
+        <input type="text" name="field_name[]" required placeholder="Field name (e.g., patient_name)" style="flex:1;" />
+        <select name="field_type[]" style="width:110px;">
             <option value="string">String</option>
-            <option value="int">Int</option>
+            <option value="int">Integer</option>
         </select>
-        <button type="button" class="btn" onclick="removeField(this)" title="Remove"
-            style="background:#ef4444;color:white;">Remove</button>
+        <button type="button" class="btn btn-sm btn-danger" onclick="removeField(this)" title="Remove field">Remove</button>
     </div>
 </div>
 
 <script src="/static/js/create_form.js"></script>
 {% endblock %}
-<!-- ...existing code... -->

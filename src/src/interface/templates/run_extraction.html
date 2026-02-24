@@ -1,67 +1,63 @@
 {% extends "base.html" %}
-{% block title %}Extraction Results{% endblock %}
+{% block title %}Extraction Results — ProductLabs{% endblock %}
 
 {% block content %}
-<div class="header-container">
-    <h2>Extraction Complete!</h2>
-    <p>Form: {{ form_id }} | Conversation: {{ convo_id }}</p>
+
+    <div class="page-header" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+    <div>
+        <h1 style="margin:0 0 4px 0;">Extraction Complete</h1>
+        <p class="page-subtitle" style="margin:0;">
+            Form <strong>{{ form_id }}</strong> &nbsp;·&nbsp; Conversation <strong>{{ convo_id }}</strong>
+        </p>
+    </div>
 </div>
 
 {% if summary %}
 <div class="card">
-    <div class="summary-section" style="background: #eef2ff; padding: 15px; border-radius: 6px; border-left: 5px solid #2563eb; margin: 15px 0;">
-        <h3 style="margin-top: 0; color: #1e40af;">📝 AI Conversation Summary</h3>
-        <p style="font-style: italic; color: #374151; line-height: 1.6; margin: 0;">
-            {{ summary }}
-        </p>
-    </div>
+    <h3 style="margin-top:0; color:var(--primary); display:flex; align-items:center; gap:8px;">
+        AI Conversation Summary
+    </h3>
+    <p style="font-style:italic; color:var(--text-muted); line-height:1.7; margin:0; border-left: 3px solid var(--primary-light); padding-left:14px;">
+        {{ summary }}
+    </p>
 </div>
 {% endif %}
 
 <div class="card">
-    <h3>Extracted Data</h3>
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+        <h3 style="margin:0;">Extracted Fields</h3>
+        <span class="badge badge-green">{{ fields_html and 'Data found' or 'No data' }}</span>
+    </div>
     <hr>
     {% if fields_html %}
-        <div class="extracted-fields">
-            {{ fields_html | safe }}
-        </div>
+        <div class="extracted-fields">{{ fields_html | safe }}</div>
     {% else %}
-        <p>No data extracted.</p>
+        <div class="empty-state" style="padding:24px;">
+            <div class="empty-icon"></div>
+            <p>No data could be extracted from this conversation.</p>
+        </div>
     {% endif %}
 </div>
 
 <div class="card">
-    <h3>JSON Output</h3>
+    <h3 style="margin-top:0;">JSON Output</h3>
     <hr>
-    <pre style="background: #f8fafc; padding: 15px; border-radius: 6px; overflow-x: auto;">{{ json_pretty }}</pre>
+    <pre style="background:var(--bg-gray); padding:16px; border-radius:8px; overflow-x:auto; font-size:0.82rem; line-height:1.5; margin:0; border:1px solid var(--border);">{{ json_pretty }}</pre>
 </div>
 
-<div class="action-bar" style="margin-top: 20px; display: flex; gap: 10px;">
-    <a href="/conversations/{{ convo_id }}/edit?form_id={{ form_id }}" class="btn" style="flex: 1; text-align: center;">
+<div class="action-row">
+    <a href="/conversations/{{ convo_id }}/edit?form_id={{ form_id }}" class="btn" style="flex:1; justify-content:center;">
         ← Edit Conversation
     </a>
-    <a href="/outputs" class="btn" style="flex: 1; text-align: center;">
+    <a href="/outputs" class="btn btn-primary" style="flex:1; justify-content:center;">
         View All Outputs
     </a>
 </div>
 
 <style>
-.extracted-fields .field {
-    margin-bottom: 12px;
-    padding: 8px;
-    background: #f8fafc;
-    border-radius: 4px;
-}
-
-.extracted-fields .field-name {
-    font-weight: 600;
-    color: #1e293b;
-    margin-right: 8px;
-}
-
-.extracted-fields .field-value {
-    color: #475569;
-}
+.extracted-fields .field { margin-bottom: 0; }
+.extracted-fields .field-name { font-weight: 600; color: var(--text-muted); }
+.extracted-fields .field-value { font-family: 'Monaco', monospace; font-size: 0.875rem; }
 </style>
 
 {% endblock %}

@@ -1,23 +1,41 @@
 {% extends "base.html" %}
-{% block title %}Home - ProductLabs{% endblock %}
+{% block title %}Forms — ProductLabs{% endblock %}
+{% block nav_home %}active{% endblock %}
 {% block content %}
-<p>
-    Select a form to begin extraction:
-    <a href="/forms/new" class="btn btn-success" style="float:right;">+ Add New Form</a>
-</p>
-{% if forms %}
-{% for f in forms %}
-<div class="card">
-    <a href="/forms/{{ f.id }}"><strong>{{ f.id }}</strong> - {{ f.name }}</a>
-    <p>{{ f.description }}</p>
+
+<div class="page-header" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+    <div>
+        <h1 style="margin:0 0 4px 0;">Your Forms</h1>
+        <p class="page-subtitle">Select a form to begin extraction, or create a new one.</p>
+    </div>
+    <a href="/forms/new" class="btn btn-success">＋ New Form</a>
 </div>
-{% endfor %}
+
+{% if forms %}
+    <div style="display:flex; flex-direction:column; gap:0;">
+        {% for f in forms %}
+        <a href="/forms/{{ f.id }}" class="form-card">
+            <div class="form-card-icon"></div>
+            <div class="form-card-body">
+                <div class="form-card-name">{{ f.name }}</div>
+                {% if f.description %}
+                    <div class="form-card-desc">{{ f.description }}</div>
+                {% else %}
+                    <div class="form-card-desc" style="font-style:italic;">No description</div>
+                {% endif %}
+            </div>
+            <span class="badge badge-blue" style="flex-shrink:0;">{{ f.fields | length }} field{{ f.fields | length != 1 and 's' or '' }}</span>
+            <span class="form-card-arrow">›</span>
+        </a>
+        {% endfor %}
+    </div>
 {% else %}
-<p>No forms available.</p>
+    <div class="empty-state card">
+        <div class="empty-icon"></div>
+        <h3>No forms yet</h3>
+        <p>Create your first form to start extracting data from conversations.</p>
+        <a href="/forms/new" class="btn btn-success">＋ Create a Form</a>
+    </div>
 {% endif %}
-<hr>
-<p>
-    <a href="/outputs">View Past Outputs</a>
-    <a href="/runs">View Logs</a>
-</p>
+
 {% endblock %}

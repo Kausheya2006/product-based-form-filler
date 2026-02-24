@@ -1,18 +1,31 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}ProductLabs Form Filler{% endblock %}</title>
     <link rel="stylesheet" href="/static/css/index.css">
 </head>
 
 <body>
+    <nav class="nav">
+        <a href="/" class="nav-brand">
+            <span class="nav-logo">PL</span>
+            ProductLabs
+        </a>
+        <div class="nav-links">
+            <a href="/" class="nav-link {% block nav_home %}{% endblock %}">Forms</a>
+            <a href="/outputs" class="nav-link {% block nav_outputs %}{% endblock %}">Outputs</a>
+            <a href="/runs" class="nav-link {% block nav_runs %}{% endblock %}">Run Logs</a>
+        </div>
+    </nav>
+
     <div class="container">
         {% if back_link %}
             <a href="{{ back_link }}" class="back-btn">← Back</a>
         {% endif %}
-        <h1>{% block header %}ProductLabs Form Filler{% endblock %}</h1>
+        {% block flash %}{% endblock %}
         <div id="content">{% block content %}{% endblock %}</div>
     </div>
 </body>
