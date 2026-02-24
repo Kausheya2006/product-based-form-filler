@@ -2,18 +2,25 @@
 import os
 import json
 import logging
+import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
+from typing import List, Dict, Any
+from uuid import uuid4
+from datetime import datetime
+
+from ..domain.domain import Conversation, FormSchema, ExtractionResult, ConversationVersion
+from .dependencies import container, Container
+
 from pydantic import BaseModel as PydanticBaseModel
 from ..infrastructure.ai.local_model import LocalHuggingFaceModel
 from ..domain.domain import ExtractionRequest
 
 _live_model: LocalHuggingFaceModel | None = None
-
 
 def get_live_model() -> LocalHuggingFaceModel:
     """Return (and lazily initialise) the module-level LocalHuggingFaceModel."""
@@ -25,13 +32,6 @@ def get_live_model() -> LocalHuggingFaceModel:
 class LiveExtractRequest(PydanticBaseModel):
     form_id: str
     conversation: str   # raw "Speaker: text\nSpeaker: text\n…" string
-
-from typing import List, Dict, Any
-from uuid import uuid4
-from datetime import datetime
-
-from ..domain.domain import Conversation, FormSchema, ExtractionResult, ConversationVersion
-from .dependencies import container, Container
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -194,6 +194,70 @@ def _parse_conversation_text(text: str) -> Dict[str, str]:
     
     return result
 
+def _set_nested_field(target: Dict[str, Any], dotted_key: str, value: Any) -> None:
+    """Populate nested objects from dotted keys."""
+    if "." not in dotted_key:
+        target[dotted_key] = value
+        return
+
+    parts = dotted_key.split(".")
+    current = target
+    for part in parts[:-1]:
+        if part not in current or not isinstance(current[part], dict):
+            current[part] = {}
+        current = current[part]
+    current[parts[-1]] = value
+
+def _has_nested_field(source: Dict[str, Any], dotted_key: str) -> bool:
+    parts = dotted_key.split(".")
+    current: Any = source
+    for part in parts[:-1]:
+        if not isinstance(current, dict) or part not in current:
+            return False
+        current = current[part]
+    return isinstance(current, dict) and parts[-1] in current
+
+async def _extract_for_conversation_text(form: FormSchema, conversation_text: str) -> Dict[str, Any]:
+    """Run extraction directly from raw conversation text using full-process prompt."""
+    parsed = _parse_conversation_text(conversation_text)
+    full_convo = ""
+    for speaker, text in parsed.items():
+        clean_speaker = " ".join(speaker.split()[:-1]) if " " in speaker else speaker
+        full_convo += clean_speaker + ": " + text + "\n"
+
+    # Keep exact prompt shape used in full_process mode.
+    empty_fields = {k: "N/A" for k in form.fields.keys()}
+    input_str = f"""Extract info from conversation to fill form.\nConversation: {full_convo}Form: {form.name}\nFields: {json.dumps(empty_fields)}"""
+
+    answers_task = container.pipeline.model.process_extraction_request(input_str)
+    summary_task = container.pipeline.summarizer.summarize("\n".join([f"{k}: {v}" for k, v in parsed.items()]))
+    answers, summary = await asyncio.gather(answers_task, summary_task)
+
+    filled_data: Dict[str, Any] = {}
+    for field_key, value in zip(form.fields.keys(), answers):
+        _set_nested_field(filled_data, field_key, value)
+    for field_key in form.fields.keys():
+        if not _has_nested_field(filled_data, field_key):
+            _set_nested_field(filled_data, field_key, "N/A")
+
+    return {"filled_data": filled_data, "summary": summary}
+
+@app.post("/extract/preview", response_class=JSONResponse)
+async def preview_extraction(form_id: str = Form(...), conversation_text: str = Form("")):
+    """Preview extraction in-page without saving runs/conversations."""
+    form = await container.form_repo.get_by_id(form_id)
+    if not form:
+        raise HTTPException(404, "Form not found")
+
+    if not conversation_text.strip():
+        return JSONResponse({"filled_data": {}, "summary": ""})
+
+    try:
+        result = await _extract_for_conversation_text(form, conversation_text)
+        return JSONResponse(result)
+    except Exception as e:
+        raise HTTPException(500, str(e))
+
 @app.post("/conversations/create", response_class=HTMLResponse)
 async def create_conversation(
     request: Request,
@@ -201,7 +265,7 @@ async def create_conversation(
     conversation_id: str = Form(""), 
     conversation_text: str = Form(...)
 ):
-    """Initializes a new conversation with Version 0"""
+    """Initializes a new conversation with Version 0 and persists extraction output."""
     if not conversation_id.strip():
         conversation_id = str(uuid4())[:8]
     
@@ -217,18 +281,35 @@ async def create_conversation(
         versions=[ConversationVersion(version_index=0, history=conversation_dict)]
     )
     await container.convo_repo.save(convo)
-    return RedirectResponse(url=f"/extract/{form_id}/{conversation_id}", status_code=303)
+
+    # Run extraction immediately on save, mirroring /extract behavior for persistence.
+    try:
+        latest_version = convo.versions[-1]
+        result = await container.pipeline.run(conversation_id, form_id, version_index=latest_version.version_index)
+        latest_version.run_id = result.run_id
+        await container.convo_repo.save(convo)
+        await _save_output(result)
+    except Exception as e:
+        raise HTTPException(500, f"Conversation saved, but extraction failed: {str(e)}")
+
+    return RedirectResponse(url=f"/forms/{form_id}/conversations", status_code=303)
 
 @app.get("/conversations/{convo_id}/edit", response_class=HTMLResponse)
 async def edit_conversation_page(request: Request, convo_id: str, form_id: str):
     convo = await container.convo_repo.get_by_id(convo_id)
+    form = await container.form_repo.get_by_id(form_id)
+    if not convo:
+        raise HTTPException(404, "Conversation not found")
+    if not form:
+        raise HTTPException(404, "Form not found")
     # Convert dict history back to raw text for the textarea
     raw_text = "\n".join([f"{k.split(' ')[0]}: {v}" for k, v in convo.latest_history.items()])
     return templates.TemplateResponse("edit_conversation.html", {
         "request": request, 
         "convo": convo, 
         "raw_text": raw_text, 
-        "form_id": form_id
+        "form_id": form_id,
+        "form": form
     })
 
 @app.post("/conversations/{convo_id}/update", response_class=RedirectResponse)
@@ -238,9 +319,13 @@ async def update_conversation(
     new_content: str = Form(...)
 ):
     existing = await container.convo_repo.get_by_id(convo_id)
+    if not existing:
+        raise HTTPException(404, "Conversation not found")
     
     # Parse new content and determine version index
     new_history = _parse_conversation_text(new_content)
+    if not new_history:
+        raise HTTPException(400, "Could not parse updated conversation.")
     new_version_idx = len(existing.versions)
     
     new_v = ConversationVersion(version_index=new_version_idx, history=new_history)

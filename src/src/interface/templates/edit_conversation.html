@@ -1,49 +1,89 @@
 {% extends "base.html" %}
-{% block title %}Edit Conversation #{{ convo.id }}{% endblock %}
 {% block content %}
+<div class="card">
+  <h2>Edit Conversation #{{ convo.id }}</h2>
 
-<div class="page-header">
-    <h1>Edit Conversation #{{ convo.id }}</h1>
-    <p class="page-subtitle">Modify the transcript below, then re-run extraction.</p>
-</div>
-
-<form method="post" action="/conversations/{{ convo.id }}/update" id="chatForm">
+  <form method="post" action="/conversations/{{ convo.id }}/update" id="chatForm">
     <input type="hidden" name="form_id" value="{{ form_id }}" />
+
     <textarea id="raw_text" style="display:none;">{{ raw_text }}</textarea>
     <input type="hidden" name="new_content" id="new_content" />
 
-    <div class="card">
-        <div style="display:flex; gap:16px; align-items:flex-end; flex-wrap:wrap; margin-bottom:16px;">
-            <div style="flex:1; min-width:220px;">
-                <div class="section-label">Speakers</div>
-                <div id="speakerChips" style="display:flex; gap:8px; flex-wrap:wrap; min-height:32px; align-items:center;"></div>
-            </div>
-            <div style="min-width:220px;">
-                <div class="section-label">Add Speaker</div>
-                <div style="display:flex; gap:8px;">
-                    <input id="newSpeakerName" class="form-control" placeholder="e.g., Agent" style="margin-top:0;" />
-                    <button type="button" class="btn" id="addSpeakerBtn" style="flex-shrink:0;">＋ Add</button>
-                </div>
-            </div>
-        </div>
+    <div style="display:flex; gap:16px; align-items:flex-end; flex-wrap:wrap; margin-bottom:12px;">
+      <div style="flex:1; min-width:260px;">
+        <label><strong>Speakers</strong></label>
+        <div id="speakerChips" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:6px;"></div>
+      </div>
 
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-            <div class="section-label" style="margin:0;">Messages</div>
-            <span class="counter" id="msg-counter">0 messages</span>
+      <div style="min-width:260px;">
+        <label><strong>Add Speaker</strong></label>
+        <div style="display:flex; gap:8px; margin-top:6px;">
+          <input id="newSpeakerName" class="form-control" placeholder="e.g., Agent" />
+          <button type="button" class="btn" id="addSpeakerBtn">+ Add</button>
         </div>
+      </div>
 
-        <div id="bubbleList"></div>
-
-        <div style="margin-top:12px;">
-            <button type="button" class="btn btn-sm" id="addMsgBtn">＋ Add Message</button>
-        </div>
+      <div>
+        <button type="button" class="btn" id="addMsgBtn" style="margin-top:22px;">+ Add Message</button>
+      </div>
     </div>
 
-    <div class="action-row">
-        <a href="/forms/{{ form_id }}" class="btn">← Cancel</a>
-        <button type="submit" class="btn btn-success">Update &amp; Re-Extract →</button>
+    <div id="bubbleList" style="display:flex; flex-direction:column; gap:10px;"></div>
+
+    <div class="card" style="margin-top:18px;">
+      <h3 style="margin-top:0;">Live Form Extraction</h3>
+      <p class="muted" id="extractStatus">Edit messages, then click outside a message box to reprocess.</p>
+      <div id="summaryBox" style="display:none; margin:12px 0; padding:10px; border-radius:6px; background:#f8fafc; border:1px solid #e2e8f0;"></div>
+      <div id="formFillGrid" style="display:grid; gap:10px;"></div>
     </div>
-</form>
+
+    <div style="margin-top:15px;">
+      <button type="submit" class="btn btn-success">Update & Re-Extract</button>
+      <a href="/forms/{{ form_id }}" class="btn">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<style>
+  .bubble-row{
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    margin-bottom:8px;
+  }
+  .bubble-select{
+    width:150px;
+    min-width:150px;
+  }
+  .bubble-text{
+    flex:1;
+    border-radius:8px;
+    padding:10px 12px;
+    resize:vertical;
+    min-height:60px;
+  }
+  .chip{
+    padding:6px 10px;
+    border:1px solid #cfcfcf;
+    border-radius:999px;
+    font-size:12px;
+    background:#fafafa;
+  }
+  .muted{
+    opacity:0.75;
+    font-size:12px;
+  }
+  .filled-field{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .filled-field label{
+    font-size:12px;
+    font-weight:600;
+    color:#334155;
+  }
+</style>
 
 <script>
   function autosizeTextarea(el) {
@@ -57,6 +97,7 @@
     const speakerSet = new Set();
     const re = /^\s*([^:\n]{1,40})\s*:\s*(.*)\s*$/;
     let current = null;
+
     for (const line of lines) {
       const m = line.match(re);
       if (m) {
@@ -69,13 +110,31 @@
         current.text = (current.text + "\n" + line).replace(/\s+$/, "");
       }
     }
+
     return { messages, speakers: Array.from(speakerSet) };
   }
 
   function buildRawText(messages) {
-    return messages.filter(m => m.speaker || m.text).map(m => `${m.speaker}: ${m.text}`).join("\n");
+    return messages
+      .filter(m => m.speaker || m.text)
+      .map(m => `${m.speaker}: ${m.text}`)
+      .join("\n");
   }
 
+  function flattenObject(obj, prefix = "", out = {}) {
+    if (!obj || typeof obj !== "object") return out;
+    Object.entries(obj).forEach(([k, v]) => {
+      const key = prefix ? `${prefix}.${k}` : k;
+      if (v && typeof v === "object" && !Array.isArray(v)) {
+        flattenObject(v, key, out);
+      } else {
+        out[key] = v;
+      }
+    });
+    return out;
+  }
+
+  // ---------- State ----------
   const speakerChips = document.getElementById("speakerChips");
   const bubbleList = document.getElementById("bubbleList");
   const addSpeakerBtn = document.getElementById("addSpeakerBtn");
@@ -84,108 +143,204 @@
   const newContentInput = document.getElementById("new_content");
   const chatForm = document.getElementById("chatForm");
   const rawTextEl = document.getElementById("raw_text");
-  const msgCounter = document.getElementById("msg-counter");
+  const formFillGrid = document.getElementById("formFillGrid");
+  const extractStatus = document.getElementById("extractStatus");
+  const summaryBox = document.getElementById("summaryBox");
+  const formFields = {{ form.fields | tojson }};
 
   const parsed = parseChat(rawTextEl.value);
   let speakers = parsed.speakers.slice();
   let messages = parsed.messages.slice();
+  let hasPendingEdits = false;
+  const fieldInputs = {};
 
-  function updateMsgCounter() {
-    if (!msgCounter) return;
-    const n = messages.length;
-    msgCounter.textContent = n === 1 ? "1 message" : `${n} messages`;
+  function syncMessagesFromDOM() {
+    const rows = bubbleList.querySelectorAll(".bubble-row");
+    rows.forEach((row, idx) => {
+      const select = row.querySelector("select");
+      const ta = row.querySelector("textarea");
+      if (!messages[idx]) messages[idx] = { speaker: "", text: "" };
+      if (select) messages[idx].speaker = select.value || "";
+      if (ta) messages[idx].text = ta.value || "";
+    });
   }
 
+  // ---------- Render ----------
   function renderSpeakers() {
     speakerChips.innerHTML = "";
-    if (speakers.length === 0) {
-      const hint = document.createElement("span");
-      hint.style.cssText = "font-size:0.8rem; color:var(--text-light); font-style:italic;";
-      hint.textContent = "No speakers added yet";
-      speakerChips.appendChild(hint);
-      return;
-    }
     speakers.forEach((s) => {
       const chip = document.createElement("span");
-        chip.className = "chip";
-        chip.innerHTML = `${s} <button type="button" style="background:none;border:none;cursor:pointer;padding:0;margin-left:2px;color:var(--text-muted);font-size:0.9em;" onclick="removeSpeaker('${s}')" title="Remove speaker">Remove</button>`;
+      chip.className = "chip";
+      chip.textContent = s;
       speakerChips.appendChild(chip);
     });
-  }
-
-  function removeSpeaker(name) {
-    speakers = speakers.filter(s => s !== name);
-    renderSpeakers();
-    renderMessages();
-  }
-
-  function createBubbleRow(msg, idx) {
-    const row = document.createElement("div");
-    row.className = "bubble-row";
-
-    const select = document.createElement("select");
-    select.className = "form-control bubble-select";
-    speakers.forEach(s => {
-      const opt = document.createElement("option");
-      opt.value = s; opt.textContent = s;
-      select.appendChild(opt);
-    });
-    select.value = msg.speaker || speakers[0] || "Speaker";
-    select.addEventListener("change", () => { messages[idx].speaker = select.value; });
-
-    const ta = document.createElement("textarea");
-    ta.className = "form-control bubble-text";
-    ta.value = msg.text || "";
-    ta.placeholder = "Type message…";
-    ta.rows = 2;
-    setTimeout(() => autosizeTextarea(ta), 0);
-    ta.addEventListener("input", () => { messages[idx].text = ta.value; autosizeTextarea(ta); });
-
-    const removeBtn = document.createElement("button");
-    removeBtn.type = "button";
-    removeBtn.className = "btn btn-sm btn-danger";
-    removeBtn.title = "Remove message";
-    removeBtn.style.flexShrink = "0";
-    removeBtn.textContent = "Remove";
-    removeBtn.addEventListener("click", () => {
-      messages.splice(idx, 1);
-      renderMessages();
-    });
-
-    row.appendChild(select);
-    row.appendChild(ta);
-    row.appendChild(removeBtn);
-    return row;
+    if (speakers.length === 0) {
+      const hint = document.createElement("span");
+      hint.className = "muted";
+      hint.textContent = "No speakers yet";
+      speakerChips.appendChild(hint);
+    }
   }
 
   function renderMessages() {
     bubbleList.innerHTML = "";
-    messages.forEach((msg, idx) => bubbleList.appendChild(createBubbleRow(msg, idx)));
-    updateMsgCounter();
+
+    messages.forEach((msg, idx) => {
+      const row = document.createElement("div");
+      row.className = "bubble-row";
+
+      const select = document.createElement("select");
+      select.className = "form-control bubble-select";
+      speakers.forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s;
+        opt.textContent = s;
+        select.appendChild(opt);
+      });
+      select.value = msg.speaker || speakers[0] || "Speaker";
+
+      const ta = document.createElement("textarea");
+      ta.className = "form-control bubble-text";
+      ta.value = msg.text || "";
+      ta.placeholder = "Type message...";
+      ta.rows = 3;
+
+      setTimeout(() => autosizeTextarea(ta), 0);
+
+      select.addEventListener("change", () => {
+        messages[idx].speaker = select.value;
+        hasPendingEdits = true;
+      });
+
+      ta.addEventListener("input", () => {
+        messages[idx].text = ta.value;
+        hasPendingEdits = true;
+        autosizeTextarea(ta);
+      });
+
+      ta.addEventListener("focusout", () => {
+        if (hasPendingEdits) runLiveExtraction();
+      });
+
+      row.appendChild(select);
+      row.appendChild(ta);
+      bubbleList.appendChild(row);
+    });
   }
 
-  function render() { renderSpeakers(); renderMessages(); }
+  function renderFormFields() {
+    formFillGrid.innerHTML = "";
+    Object.keys(formFields).forEach((fieldKey) => {
+      const wrap = document.createElement("div");
+      wrap.className = "filled-field";
 
+      const lbl = document.createElement("label");
+      lbl.textContent = fieldKey;
+
+      const input = document.createElement("input");
+      input.className = "form-control";
+      input.readOnly = true;
+      input.placeholder = "N/A";
+
+      fieldInputs[fieldKey] = input;
+      wrap.appendChild(lbl);
+      wrap.appendChild(input);
+      formFillGrid.appendChild(wrap);
+    });
+  }
+
+  function applyFilledData(filledData) {
+    const flat = flattenObject(filledData || {});
+    Object.keys(fieldInputs).forEach((key) => {
+      const val = flat[key];
+      fieldInputs[key].value = val === undefined || val === null ? "N/A" : String(val);
+    });
+  }
+
+  function render() {
+    renderSpeakers();
+    renderMessages();
+  }
+
+  async function runLiveExtraction() {
+    syncMessagesFromDOM();
+    const conversationText = buildRawText(messages);
+    if (!conversationText.trim()) {
+      extractStatus.textContent = "No conversation text yet.";
+      summaryBox.style.display = "none";
+      applyFilledData({});
+      return;
+    }
+
+    extractStatus.textContent = "Processing conversation so far...";
+    const body = new URLSearchParams({
+      form_id: "{{ form_id }}",
+      conversation_text: conversationText
+    });
+
+    try {
+      const res = await fetch("/extract/preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: body.toString()
+      });
+      const raw = await res.text();
+      let data = {};
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch (e) {
+        data = { detail: raw || "Extraction failed" };
+      }
+      if (!res.ok) throw new Error(data.detail || "Extraction failed");
+
+      applyFilledData(data.filled_data || {});
+      if (data.summary) {
+        summaryBox.textContent = data.summary;
+        summaryBox.style.display = "block";
+      } else {
+        summaryBox.style.display = "none";
+      }
+      hasPendingEdits = false;
+      extractStatus.textContent = "Form filled using conversation up to this point.";
+    } catch (err) {
+      extractStatus.textContent = `Extraction error: ${err.message}`;
+    }
+  }
+
+  // ---------- Controls ----------
   addSpeakerBtn.addEventListener("click", () => {
     const name = newSpeakerName.value.trim();
-    if (name && !speakers.includes(name)) { speakers.push(name); render(); }
+    if (name && !speakers.includes(name)) {
+      speakers.push(name);
+      render();
+      hasPendingEdits = true;
+      runLiveExtraction();
+    }
     newSpeakerName.value = "";
   });
 
   newSpeakerName.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") { e.preventDefault(); addSpeakerBtn.click(); }
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addSpeakerBtn.click();
+    }
   });
 
   addMsgBtn.addEventListener("click", () => {
-    if (speakers.length === 0) { alert("Please add at least one speaker first."); return; }
     const lastSpeaker = messages[messages.length - 1]?.speaker || speakers[0] || "Speaker";
     messages.push({ speaker: lastSpeaker, text: "" });
-    renderMessages();
-    bubbleList.lastElementChild?.querySelector("textarea")?.focus();
+    render();
+    hasPendingEdits = true;
   });
 
-  chatForm.addEventListener("submit", () => { newContentInput.value = buildRawText(messages); });
+  chatForm.addEventListener("submit", () => {
+    syncMessagesFromDOM();
+    newContentInput.value = buildRawText(messages);
+  });
 
+  // init
+  renderFormFields();
   render();
+  runLiveExtraction();
 </script>
 {% endblock %}
