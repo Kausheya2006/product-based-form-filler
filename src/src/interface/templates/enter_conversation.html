@@ -1,122 +1,379 @@
 {% extends "base.html" %}
 {% block title %}Enter Conversation{% endblock %}
+
 {% block content %}
-<div class="card">
-    <h2>Enter Conversation for: {{ form.name }}</h2>
-    <form id="conversation-form" method="post" action="/conversations/create">
-        <input type="hidden" name="form_id" value="{{ form.id }}" />
-        <input type="hidden" name="conversation_text" id="conversation_text" />
-
-        <label>
-            Conversation ID (optional - will auto-generate if empty)
-            <input type="text" name="conversation_id" placeholder="e.g., 100" />
-        </label>
-
-        <div style="display:flex; gap:16px; align-items:flex-end; flex-wrap:wrap; margin-top:20px; margin-bottom:12px;">
-            <div style="flex:1; min-width:260px;">
-                <label><strong>Speakers</strong></label>
-                <div id="speakerChips" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:6px;"></div>
-            </div>
-
-            <div style="min-width:260px;">
-                <label><strong>Add Speaker</strong></label>
-                <div style="display:flex; gap:8px; margin-top:6px;">
-                    <input id="newSpeakerName" class="form-control" placeholder="e.g., Doctor" />
-                    <button type="button" class="btn" id="addSpeakerBtn">+ Add</button>
-                </div>
-            </div>
-
-            <div>
-                <button type="button" class="btn" id="addMsgBtn" style="margin-top:22px;">+ Add Message</button>
-            </div>
-        </div>
-
-        <div id="bubbleList" style="display:flex; flex-direction:column; gap:10px;"></div>
-
-        <div class="card" style="margin-top:18px;">
-            <h3 style="margin-top:0;">Live Form Extraction</h3>
-            <p class="muted" id="extractStatus">Add messages, then add a new speaker to process conversation so far.</p>
-            <div id="summaryBox" style="display:none; margin:12px 0; padding:10px; border-radius:6px; background:#f8fafc; border:1px solid #e2e8f0;"></div>
-            <div id="formFillGrid" style="display:grid; gap:10px;"></div>
-        </div>
-
-        <div style="margin-top:18px;">
-            <a href="/forms/{{ form.id }}" class="btn">← Back</a>
-            <button type="submit" class="btn btn-success">Save Conversation</button>
-        </div>
-    </form>
-</div>
 
 <style>
-  .bubble-row{
-    display:flex;
-    gap:10px;
-    align-items:flex-start;
-    margin-bottom:8px;
+  /* ── Lock the page so nothing outside the panels scrolls ── */
+  html, body { overflow: hidden; height: 100%; margin: 0; }
+
+  /* ── Header ── */
+  .live-header {
+    background: var(--nav-bg);
+    color: var(--nav-text);
+    padding: 8px 20px;           /* tighter than before */
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    z-index: 99;
+    border-radius: 14px 14px 0 0;
   }
-  .bubble-select{
-    width:150px;
-    min-width:150px;
+  .live-header h1 { font-size: 0.95rem; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+  .live-header .pill {
+    background: var(--primary); color: #fff;
+    font-size: 0.65rem; font-weight: 600;
+    padding: 2px 8px; border-radius: 999px;
   }
-  .bubble-text{
-    flex:1;
-    border-radius:8px;
-    padding:10px 12px;
-    resize:vertical;
-    min-height:60px;
+  .live-header .form-badge { font-size: 0.75rem; color: #94a3b8; font-weight: 500; }
+  .live-header .header-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .live-header .btn {
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);
+    color: #f1f5f9; box-shadow: none; padding: 5px 12px; font-size: 0.82rem;
   }
-  .chip{
-    padding:6px 10px;
-    border:1px solid #cfcfcf;
-    border-radius:999px;
-    font-size:12px;
-    background:#fafafa;
+  .live-header .btn:hover { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.35); color: #fff; }
+  .live-header .btn-success { background: var(--success); border-color: var(--success-dark); color: #fff; }
+  .live-header .btn-success:hover { background: var(--success-dark); }
+
+  /* ── Full-height wrapper — sits below the site nav (56px) ── */
+  .page-shell {
+    position: fixed;
+    top: 100px;
+    left: 220px; right: 220px; bottom: 40px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.13), 0 2px 8px rgba(0,0,0,0.07);
   }
-  .muted{
-    opacity:0.75;
-    font-size:12px;
+
+  /* ── Two-panel layout fills remaining space ── */
+  .panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    border-radius: 0 0 14px 14px;
   }
-  .filled-field{
-    display:flex;
-    flex-direction:column;
-    gap:4px;
+
+  .panel-label {
+    font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em;
+    color: var(--text-muted); text-transform: uppercase;
+    padding: 8px 16px; border-bottom: 1px solid var(--border);
+    background: var(--bg-gray); flex-shrink: 0;
   }
-  .filled-field label{
-    font-size:12px;
-    font-weight:600;
-    color:#334155;
+
+  /* ── Left panel ── */
+  .panel-chat {
+    display: flex; flex-direction: column;
+    border-right: 1px solid var(--border);
+    background: var(--bg-white);
+    min-height: 0; overflow: hidden;
+    border-radius: 0 0 0 14px;
   }
+
+  .chat-messages {
+    flex: 1; min-height: 0;
+    overflow-y: auto;
+    padding: 12px 16px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+
+  .chat-bubble { display: flex; flex-direction: column; max-width: 82%; animation: bubbleIn 0.16s ease; }
+  @keyframes bubbleIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+  .chat-bubble.left  { align-self: flex-start; }
+  .chat-bubble.right { align-self: flex-end; }
+
+  .bubble-speaker {
+    font-size: 0.63rem; font-weight: 700; letter-spacing: 0.06em;
+    color: var(--text-muted); margin-bottom: 2px; padding: 0 4px; text-transform: uppercase;
+  }
+  .bubble-body {
+    padding: 8px 12px; border-radius: 10px;
+    font-size: 0.875rem; line-height: 1.45; word-break: break-word;
+  }
+  .chat-bubble.left  .bubble-body { background: var(--bg-gray); border: 1px solid var(--border); border-bottom-left-radius: 3px; color: var(--text); }
+  .chat-bubble.right .bubble-body { background: var(--primary-light); border: 1px solid #bfdbfe; border-bottom-right-radius: 3px; color: var(--primary-dark); }
+
+  .chat-empty {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; flex: 1; gap: 8px; color: var(--text-light); padding: 24px;
+  }
+  .chat-empty svg { opacity: 0.3; }
+  .chat-empty p { font-size: 0.82rem; color: var(--text-muted); margin: 0; }
+
+  /* ── Add-speaker row ── */
+  .add-speaker-row {
+    display: flex; gap: 6px;
+    padding: 6px 12px;
+    border-top: 1px solid var(--border); background: var(--bg-gray); flex-shrink: 0;
+  }
+  .add-speaker-row input {
+    font-size: 0.8rem; padding: 5px 9px;
+    border: 1px solid var(--border); border-radius: var(--radius);
+    outline: none; flex: 1; background: var(--bg-white); color: var(--text);
+    font-family: inherit; margin-top: 0;
+  }
+  .add-speaker-row input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(37,99,235,0.1); }
+  .add-speaker-row button {
+    background: var(--nav-bg); color: #fff; border: none;
+    border-radius: var(--radius); padding: 5px 11px;
+    font-size: 0.78rem; font-weight: 600; cursor: pointer; font-family: inherit;
+    white-space: nowrap; transition: background 0.12s;
+  }
+  .add-speaker-row button:hover { background: var(--primary); }
+
+  /* ── Speaker strip ── */
+  .speaker-strip {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 12px;
+    border-top: 1px solid var(--border); background: var(--bg-gray);
+    flex-wrap: wrap; flex-shrink: 0;
+  }
+  .speaker-strip-label {
+    font-size: 0.63rem; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-muted); white-space: nowrap;
+  }
+  .speaker-chip {
+    padding: 3px 10px; border: 1px solid var(--border-dark); border-radius: 999px;
+    font-size: 0.75rem; font-weight: 500; background: var(--bg-white); color: var(--text);
+    cursor: pointer; transition: all 0.12s; display: inline-flex; align-items: center;
+  }
+  .speaker-chip.active { background: var(--nav-bg); color: #fff; border-color: var(--nav-bg); }
+  .speaker-chip:hover:not(.active) { background: var(--primary-light); border-color: var(--primary); color: var(--primary-dark); }
+  .muted-hint { font-size: 0.75rem; color: var(--text-muted); }
+
+  /* ── Input row ── */
+  .input-row {
+    display: flex; gap: 8px; padding: 8px 12px;
+    border-top: 1px solid var(--border); background: var(--bg-white);
+    flex-shrink: 0; align-items: flex-end;
+    border-radius: 0 0 0 14px;
+  }
+  .input-row textarea {
+    flex: 1; font-family: inherit; font-size: 0.875rem;
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 7px 11px; resize: none; min-height: 36px; max-height: 110px;
+    outline: none; line-height: 1.45; color: var(--text); background: var(--bg-white);
+    transition: border-color 0.15s, box-shadow 0.15s; margin-top: 0; width: auto;
+  }
+  .input-row textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+  .send-btn {
+    background: var(--primary); color: #fff; border: none; border-radius: var(--radius);
+    width: 36px; min-width: 36px; height: 36px; cursor: pointer;
+    font-size: 1rem; display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s; flex-shrink: 0;
+  }
+  .send-btn:hover    { background: var(--primary-dark); }
+  .send-btn:disabled { background: #93c5fd; cursor: not-allowed; }
+
+  /* ── Right panel ── */
+  .panel-output {
+    display: flex; flex-direction: column;
+    background: var(--bg-gray); min-height: 0; overflow: hidden;
+    border-radius: 0 0 14px 0;
+  }
+  .output-scroll {
+    flex: 1; min-height: 0;
+    overflow-y: auto; padding: 12px 16px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+
+  /* summary card */
+  .summary-card {
+    background: var(--primary-light); border: 1px solid #93c5fd;
+    border-radius: var(--radius-lg); padding: 10px 14px;
+    font-size: 0.82rem; color: var(--primary-dark); line-height: 1.5;
+    display: none; box-shadow: var(--shadow-sm);
+  }
+  .summary-label {
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--primary); margin-bottom: 4px;
+  }
+
+  /* field cards */
+  .field-card {
+    background: var(--bg-white); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 8px 12px;
+    transition: border-color 0.2s, box-shadow 0.2s; box-shadow: var(--shadow-sm);
+  }
+  .field-card.updated {
+    border-color: var(--success);
+    box-shadow: 0 0 0 3px rgba(22,163,74,0.12);
+    animation: cardPop 0.25s ease;
+  }
+  @keyframes cardPop { 0%{transform:scale(1);} 50%{transform:scale(1.012);} 100%{transform:scale(1);} }
+  .field-key {
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em;
+    color: var(--text-muted); text-transform: uppercase;
+    margin-bottom: 3px; display: flex; align-items: center; gap: 5px;
+  }
+  .field-key .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--border-dark); flex-shrink: 0; transition: background 0.25s;
+  }
+  .field-card.updated .dot { background: var(--success); }
+  .field-value {
+    font-family: 'Monaco','Menlo',monospace; font-size: 0.82rem;
+    color: var(--text); min-height: 1.1em; word-break: break-word;
+  }
+  .field-value.empty { color: var(--text-light); font-style: italic; }
+
+  /* status bar */
+  .status-bar {
+    font-size: 0.68rem; color: var(--text-muted);
+    padding: 6px 16px; border-top: 1px solid var(--border);
+    background: var(--bg-white); display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+    border-radius: 0 0 14px 0;
+  }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); flex-shrink: 0; transition: background 0.2s; }
+
+  .empty-output {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; flex: 1; gap: 10px; padding: 24px; color: var(--text-light);
+  }
+  .empty-output svg { opacity: 0.35; }
+  .empty-output p { font-size: 0.82rem; color: var(--text-muted); margin: 0; }
 </style>
 
+<!-- Hidden form used only for final submission -->
+<div class="page-shell">
+<form id="conversation-form" method="post" action="/conversations/create" style="display:none;">
+  <input type="hidden" name="form_id"           value="{{ form.id }}" />
+  <input type="hidden" name="conversation_text" id="conversation_text" />
+  <input type="hidden" name="conversation_id"   id="hidden_conv_id" />
+</form>
+
+<!-- ── Header ── -->
+<div class="live-header">
+  <h1>Enter Conversation</h1>
+  <span class="pill">NEW</span>
+  <span class="form-badge">Form: {{ form.name }} &nbsp;/&nbsp; {{ form.id }}</span>
+  <div class="header-actions">
+    <a href="/forms/{{ form.id }}" class="btn">← Back</a>
+    <button type="button" class="btn btn-success" id="saveBtn">Save Conversation</button>
+  </div>
+</div>
+
+<div class="panels">
+
+  <!-- ── LEFT PANEL ── -->
+  <div class="panel-chat">
+    <div class="panel-label">Conversation Input</div>
+
+    <!-- Scrollable message bubbles -->
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-empty" id="chatEmpty">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+        </svg>
+        <p>Add speakers below, then type the first message.</p>
+      </div>
+    </div>
+
+    <!-- Add speaker -->
+    <div class="add-speaker-row">
+      <input id="newSpeakerName" placeholder="New speaker (e.g. Doctor)…" />
+      <button type="button" id="addSpeakerBtn">+ Add Speaker</button>
+    </div>
+
+    <!-- Active speaker selector -->
+    <div class="speaker-strip">
+      <span class="speaker-strip-label">Speaking as:</span>
+      <div id="speakerChips"></div>
+    </div>
+
+    <!-- Message input -->
+    <div class="input-row">
+      <textarea id="msgInput" rows="1" placeholder="Type a message and press Enter…"></textarea>
+      <button class="send-btn" id="sendBtn" title="Send (Enter)">↑</button>
+    </div>
+  </div>
+
+  <!-- ── RIGHT PANEL ── -->
+  <div class="panel-output">
+    <div class="panel-label">Live Extracted Fields</div>
+
+    <div class="output-scroll" id="outputScroll">
+
+      <div class="summary-card" id="summaryCard">
+        <div class="summary-label">Summary</div>
+        <div id="summaryText"></div>
+      </div>
+
+      <div class="empty-output" id="outputEmpty">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+        </svg>
+        <p>Fields will appear here as you add messages.</p>
+      </div>
+
+    </div>
+
+    <div class="status-bar">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">Ready — add speakers and messages to begin</span>
+    </div>
+  </div>
+
+</div>
+</div><!-- /.page-shell -->
+
 <script>
+  // ── Constants & DOM refs ──
+  const FORM_ID    = "{{ form.id }}";
+  const formFields = {{ form.fields | tojson }};
+
+  console.log("[INIT] FORM_ID:", FORM_ID);
+  console.log("[INIT] formFields:", formFields);
+
+  const speakerChipsEl = document.getElementById("speakerChips");
+  const newSpeakerName = document.getElementById("newSpeakerName");
+  const addSpeakerBtn  = document.getElementById("addSpeakerBtn");
+  const chatMessages   = document.getElementById("chatMessages");
+  const chatEmpty      = document.getElementById("chatEmpty");
+  const msgInput       = document.getElementById("msgInput");
+  const sendBtn        = document.getElementById("sendBtn");
+  const outputScroll   = document.getElementById("outputScroll");
+  const outputEmpty    = document.getElementById("outputEmpty");
+  const statusDot      = document.getElementById("statusDot");
+  const statusText     = document.getElementById("statusText");
+  const summaryCard    = document.getElementById("summaryCard");
+  const summaryText    = document.getElementById("summaryText");
+  const saveBtn        = document.getElementById("saveBtn");
+  const chatForm       = document.getElementById("conversation-form");
+  const convTextInput  = document.getElementById("conversation_text");
+  const hiddenConvId   = document.getElementById("hidden_conv_id");
+  const convIdInput    = document.getElementById("conv_id_input");
+
+  // Sanity-check all DOM refs
+  const domRefs = { speakerChipsEl, newSpeakerName, addSpeakerBtn, chatMessages, chatEmpty,
+    msgInput, sendBtn, outputScroll, outputEmpty, statusDot, statusText,
+    summaryCard, summaryText, saveBtn, chatForm, convTextInput, hiddenConvId, convIdInput };
+  Object.entries(domRefs).forEach(([name, el]) => {
+    if (!el) console.error("[DOM] MISSING element:", name);
+  });
+
+  // ── State ──
+  let speakers      = [];
+  let activeSpeaker = null;
+  let messages      = [];
+  const fieldCards  = {};
+
+  // ── Helpers ──
   function autosizeTextarea(el) {
     el.style.height = "auto";
-    el.style.height = (el.scrollHeight + 2) + "px";
+    el.style.height = Math.min(el.scrollHeight + 2, 130) + "px";
   }
 
-  function buildRawText(messages) {
-    return messages
+  function buildRawText(msgs) {
+    return msgs
       .filter(m => m.speaker || m.text)
       .map(m => `${m.speaker}: ${m.text}`)
       .join("\n");
   }
-
-  // ---------- State ----------
-  const speakerChips = document.getElementById("speakerChips");
-  const bubbleList = document.getElementById("bubbleList");
-  const addSpeakerBtn = document.getElementById("addSpeakerBtn");
-  const newSpeakerName = document.getElementById("newSpeakerName");
-  const addMsgBtn = document.getElementById("addMsgBtn");
-  const conversationTextInput = document.getElementById("conversation_text");
-  const chatForm = document.getElementById("conversation-form");
-  const formFillGrid = document.getElementById("formFillGrid");
-  const extractStatus = document.getElementById("extractStatus");
-  const summaryBox = document.getElementById("summaryBox");
-  const formFields = {{ form.fields | tojson }};
-
-  let speakers = [];
-  let messages = [];
-  const fieldInputs = {};
 
   function flattenObject(obj, prefix = "", out = {}) {
     if (!obj || typeof obj !== "object") return out;
@@ -131,120 +388,150 @@
     return out;
   }
 
-  // ---------- Render ----------
-  function renderSpeakers() {
-    speakerChips.innerHTML = "";
-    speakers.forEach((s) => {
-      const chip = document.createElement("span");
-      chip.className = "chip";
-      chip.textContent = s;
-      speakerChips.appendChild(chip);
+  // ── Field cards (right panel) ──
+  function initFieldCards() {
+    outputEmpty.style.display = "none";
+    Object.keys(formFields).forEach(key => {
+      if (fieldCards[key]) return;
+      const card  = document.createElement("div");
+      card.className = "field-card";
+      const keyEl = document.createElement("div");
+      keyEl.className = "field-key";
+      keyEl.innerHTML = `<span class="dot"></span>${key}`;
+      const valEl = document.createElement("div");
+      valEl.className = "field-value empty";
+      valEl.textContent = "—";
+      card.appendChild(keyEl);
+      card.appendChild(valEl);
+      outputScroll.appendChild(card);
+      fieldCards[key] = { card, valueEl: valEl };
     });
-  }
-
-  function renderMessages() {
-    bubbleList.innerHTML = "";
-
-    messages.forEach((msg, idx) => {
-      const row = document.createElement("div");
-      row.className = "bubble-row";
-
-      // speaker select
-      const select = document.createElement("select");
-      select.className = "form-control bubble-select";
-      speakers.forEach(s => {
-        const opt = document.createElement("option");
-        opt.value = s;
-        opt.textContent = s;
-        select.appendChild(opt);
-      });
-      select.value = msg.speaker || speakers[0];
-
-      // message textarea
-      const ta = document.createElement("textarea");
-      ta.className = "form-control bubble-text";
-      ta.value = msg.text || "";
-      ta.placeholder = "Type message...";
-      ta.rows = 3;
-
-      setTimeout(() => autosizeTextarea(ta), 0);
-
-      // update state on changes
-      select.addEventListener("change", () => {
-        messages[idx].speaker = select.value;
-      });
-
-      ta.addEventListener("input", () => {
-        messages[idx].text = ta.value;
-        autosizeTextarea(ta);
-      });
-
-      row.appendChild(select);
-      row.appendChild(ta);
-      bubbleList.appendChild(row);
-    });
-  }
-
-  function render() {
-    renderSpeakers();
-    renderMessages();
-  }
-
-  function renderFormFields() {
-    formFillGrid.innerHTML = "";
-    Object.keys(formFields).forEach((fieldKey) => {
-      const wrap = document.createElement("div");
-      wrap.className = "filled-field";
-
-      const lbl = document.createElement("label");
-      lbl.textContent = fieldKey;
-
-      const input = document.createElement("input");
-      input.className = "form-control";
-      input.readOnly = true;
-      input.placeholder = "N/A";
-
-      fieldInputs[fieldKey] = input;
-      wrap.appendChild(lbl);
-      wrap.appendChild(input);
-      formFillGrid.appendChild(wrap);
-    });
+    console.log("[FIELDS] initFieldCards — cards created:", Object.keys(fieldCards));
   }
 
   function applyFilledData(filledData) {
+    console.log("[FIELDS] applyFilledData called with:", filledData);
     const flat = flattenObject(filledData || {});
-    Object.keys(fieldInputs).forEach((key) => {
+    console.log("[FIELDS] flattened:", flat);
+    Object.keys(fieldCards).forEach(key => {
+      const { card, valueEl } = fieldCards[key];
       const val = flat[key];
-      fieldInputs[key].value = val === undefined || val === null ? "N/A" : String(val);
+      const display = (val === undefined || val === null || val === "") ? null : String(val);
+      console.log(`[FIELDS]   ${key} → raw="${val}"  display="${display}"`);
+      if (display) {
+        card.classList.add("updated");
+        valueEl.className = "field-value";
+        valueEl.textContent = display;
+        setTimeout(() => card.classList.remove("updated"), 2500);
+      } else {
+        valueEl.className = "field-value empty";
+        valueEl.textContent = "—";
+      }
     });
   }
 
-  function syncMessagesFromDOM() {
-    const rows = bubbleList.querySelectorAll(".bubble-row");
-    rows.forEach((row, idx) => {
-      const select = row.querySelector("select");
-      const ta = row.querySelector("textarea");
-      if (!messages[idx]) messages[idx] = { speaker: "", text: "" };
-      if (select) messages[idx].speaker = select.value || "";
-      if (ta) messages[idx].text = ta.value || "";
+  // ── Speaker management ──
+  function renderSpeakers() {
+    speakerChipsEl.innerHTML = "";
+    if (speakers.length === 0) {
+      const hint = document.createElement("span");
+      hint.className = "muted-hint";
+      hint.textContent = "No speakers yet — add one above";
+      speakerChipsEl.appendChild(hint);
+      return;
+    }
+    speakers.forEach(s => {
+      const chip = document.createElement("span");
+      chip.className = "speaker-chip" + (s === activeSpeaker ? " active" : "");
+      chip.textContent = s;
+      chip.addEventListener("click", () => {
+        activeSpeaker = s;
+        console.log("[SPEAKER] active speaker →", activeSpeaker);
+        renderSpeakers();
+        msgInput.focus();
+      });
+      speakerChipsEl.appendChild(chip);
     });
   }
 
+  addSpeakerBtn.addEventListener("click", () => {
+    const name = newSpeakerName.value.trim();
+    console.log("[SPEAKER] add speaker attempted:", name);
+    if (name && !speakers.includes(name)) {
+      speakers.push(name);
+      if (!activeSpeaker) activeSpeaker = name;
+      console.log("[SPEAKER] speakers now:", speakers, "  active:", activeSpeaker);
+      renderSpeakers();
+    }
+    newSpeakerName.value = "";
+    msgInput.focus();
+  });
+
+  newSpeakerName.addEventListener("keydown", e => {
+    if (e.key === "Enter") { e.preventDefault(); addSpeakerBtn.click(); }
+  });
+
+  // ── Chat bubble rendering ──
+  function addBubble(speaker, text) {
+    chatEmpty.style.display = "none";
+    const idx  = speakers.indexOf(speaker);
+    const side = idx % 2 === 0 ? "left" : "right";
+    const wrap = document.createElement("div");
+    wrap.className = `chat-bubble ${side}`;
+    const speakerEl = document.createElement("div");
+    speakerEl.className = "bubble-speaker";
+    speakerEl.textContent = speaker;
+    const bodyEl = document.createElement("div");
+    bodyEl.className = "bubble-body";
+    bodyEl.textContent = text;
+    wrap.appendChild(speakerEl);
+    wrap.appendChild(bodyEl);
+    chatMessages.appendChild(wrap);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  // ── Send message → extract ──
+  async function sendMessage() {
+    const text = msgInput.value.trim();
+    console.log("[SEND] sendMessage called. text:", JSON.stringify(text), "activeSpeaker:", activeSpeaker);
+    if (!text) { console.warn("[SEND] empty text, aborting"); return; }
+    if (!activeSpeaker) {
+      console.warn("[SEND] no active speaker");
+      alert("Please add and select a speaker first.");
+      return;
+    }
+    messages.push({ speaker: activeSpeaker, text });
+    console.log("[SEND] messages now:", messages);
+    addBubble(activeSpeaker, text);
+    msgInput.value = "";
+    autosizeTextarea(msgInput);
+    convTextInput.value = buildRawText(messages);
+    initFieldCards();
+    await runLiveExtraction();
+  }
+
+  // ── Live extraction (/extract/preview) ──
   async function runLiveExtraction() {
-    syncMessagesFromDOM();
     const conversationText = buildRawText(messages);
+    console.log("[EXTRACT] runLiveExtraction. payload text:", JSON.stringify(conversationText));
+
     if (!conversationText.trim()) {
-      extractStatus.textContent = "No conversation text yet.";
-      summaryBox.style.display = "none";
+      console.warn("[EXTRACT] empty conversation, skipping");
+      statusText.textContent = "No conversation text yet.";
+      summaryCard.style.display = "none";
       applyFilledData({});
       return;
     }
 
-    extractStatus.textContent = "Processing conversation so far...";
+    sendBtn.disabled = true;
+    statusDot.style.background = "var(--primary)";
+    statusText.textContent = "Processing conversation so far…";
+
     const body = new URLSearchParams({
-      form_id: "{{ form.id }}",
+      form_id: FORM_ID,
       conversation_text: conversationText
     });
+    console.log("[EXTRACT] POST /extract/preview  body:", body.toString());
 
     try {
       const res = await fetch("/extract/preview", {
@@ -252,60 +539,69 @@
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: body.toString()
       });
+      console.log("[EXTRACT] response status:", res.status, res.statusText);
+
       const raw = await res.text();
+      console.log("[EXTRACT] raw response body:", raw);
+
       let data = {};
       try {
         data = raw ? JSON.parse(raw) : {};
+        console.log("[EXTRACT] parsed data:", data);
       } catch (e) {
+        console.error("[EXTRACT] JSON parse error:", e.message, "  raw was:", raw);
         data = { detail: raw || "Extraction failed" };
       }
-      if (!res.ok) throw new Error(data.detail || "Extraction failed");
 
-      applyFilledData(data.filled_data || {});
-      if (data.summary) {
-        summaryBox.textContent = data.summary;
-        summaryBox.style.display = "block";
-      } else {
-        summaryBox.style.display = "none";
+      if (!res.ok) {
+        console.error("[EXTRACT] non-OK response:", res.status, data.detail);
+        throw new Error(data.detail || "Extraction failed");
       }
-      extractStatus.textContent = "Form filled using conversation up to this point.";
+
+      console.log("[EXTRACT] filled_data:", data.filled_data);
+      applyFilledData(data.filled_data || {});
+
+      if (data.summary) {
+        summaryText.textContent = data.summary;
+        summaryCard.style.display = "block";
+        console.log("[EXTRACT] summary:", data.summary);
+      } else {
+        summaryCard.style.display = "none";
+      }
+
+      statusDot.style.background = "var(--success)";
+      statusText.textContent = `Updated after message ${messages.length} — ${new Date().toLocaleTimeString()}`;
     } catch (err) {
-      extractStatus.textContent = `Extraction error: ${err.message}`;
+      console.error("[EXTRACT] error:", err.message);
+      statusDot.style.background = "var(--danger)";
+      statusText.textContent = `Extraction error: ${err.message}`;
+    } finally {
+      sendBtn.disabled = false;
+      msgInput.focus();
     }
   }
 
-  // ---------- Controls ----------
-  addSpeakerBtn.addEventListener("click", () => {
-    const name = newSpeakerName.value.trim();
-    if (name && !speakers.includes(name)) {
-      speakers.push(name);
-      render();
-    }
-    
-    newSpeakerName.value = "";
-  });
-
-  newSpeakerName.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
+  // ── Textarea auto-size + Enter to send ──
+  msgInput.addEventListener("input", () => autosizeTextarea(msgInput));
+  msgInput.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      addSpeakerBtn.click();
+      sendMessage();
     }
   });
+  sendBtn.addEventListener("click", sendMessage);
 
-  addMsgBtn.addEventListener("click", () => {
-    runLiveExtraction();
-    conversationTextInput.value = buildRawText(messages);
-    const lastSpeaker = messages[messages.length - 1]?.speaker || speakers[0];
-    messages.push({ speaker: lastSpeaker, text: "" });
-    render();
+  // ── Save ──
+  saveBtn.addEventListener("click", () => {
+    convTextInput.value = buildRawText(messages);
+    hiddenConvId.value  = convIdInput ? convIdInput.value.trim() : "";
+    console.log("[SAVE] submitting. conversation_text:", convTextInput.value, "conv_id:", hiddenConvId.value);
+    chatForm.submit();
   });
 
-  chatForm.addEventListener("submit", () => {
-    conversationTextInput.value = buildRawText(messages);
-  });
-
-  // init
-  renderFormFields();
-  render();
+  // ── Init ──
+  console.log("[INIT] page ready. formFields keys:", Object.keys(formFields));
+  renderSpeakers();
 </script>
+
 {% endblock %}
