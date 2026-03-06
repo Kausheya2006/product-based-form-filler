@@ -4,7 +4,8 @@
 
 <div class="page-header">
     <h1>Create New Form</h1>
-    <p class="page-subtitle">Define the form name, description, and the fields you want to extract from conversations.</p>
+    <p class="page-subtitle">Define the form name, description, and the fields you want to extract from conversations.
+    </p>
 </div>
 
 <form id="create-form" method="post" action="/forms">
@@ -30,12 +31,18 @@
 
         <div id="fields-container">
             <div class="field-row">
-                <input type="text" name="field_name[]" required placeholder="Field name (e.g., patient_name)" style="flex:1;" />
-                <select name="field_type[]" style="width:110px;">
+                <input type="text" name="field_name[]" required placeholder="Field name (e.g., patient_name)"
+                    style="flex:1;" />
+                <select name="field_type[]" style="width:130px;">
                     <option value="string">String</option>
                     <option value="int">Integer</option>
+                    <option value="float">Float</option>
+                    <option value="email">Email</option>
+                    <option value="phone">Phone Number</option>
+                    <option value="date">Date</option>
                 </select>
-                <button type="button" class="btn btn-sm btn-danger" onclick="removeField(this)" title="Remove field">Remove</button>
+                <button type="button" class="btn btn-sm btn-danger" onclick="removeField(this)"
+                    title="Remove field">Remove</button>
             </div>
         </div>
 
@@ -54,11 +61,16 @@
 <div id="field-template" style="display:none;">
     <div class="field-row">
         <input type="text" name="field_name[]" required placeholder="Field name (e.g., patient_name)" style="flex:1;" />
-        <select name="field_type[]" style="width:110px;">
+        <select name="field_type[]" style="width:130px;">
             <option value="string">String</option>
             <option value="int">Integer</option>
+            <option value="float">Float</option>
+            <option value="email">Email</option>
+            <option value="phone">Phone Number</option>
+            <option value="date">Date</option>
         </select>
-        <button type="button" class="btn btn-sm btn-danger" onclick="removeField(this)" title="Remove field">Remove</button>
+        <button type="button" class="btn btn-sm btn-danger" onclick="removeField(this)"
+            title="Remove field">Remove</button>
     </div>
 </div>
 

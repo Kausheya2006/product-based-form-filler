@@ -1,9 +1,103 @@
 from uuid import uuid4
 from datetime import datetime
 import json
+import re
 import asyncio 
 from ..domain.domain import ExtractionResult, ExtractionRequest, RunLog
 from ..domain.interfaces import IConversationRepository, IFormRepository, IExtractionModel, IPipeline, IRunLogRepository, ISummarizer
+
+# Regex for basic email validation
+_EMAIL_RE = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
+
+# Regex for phone numbers: optional +, digits, spaces, hyphens, parens  (7-15 digits)
+_PHONE_RE = re.compile(r"^\+?[\d\s\-().]{7,20}$")
+
+# Common date formats to try when parsing date strings
+_DATE_FORMATS = [
+    "%Y-%m-%d",       # 2024-03-07
+    "%d-%m-%Y",       # 07-03-2024
+    "%m/%d/%Y",       # 03/07/2024
+    "%d/%m/%Y",       # 07/03/2024
+    "%Y/%m/%d",       # 2024/03/07
+    "%B %d, %Y",      # March 07, 2024
+    "%b %d, %Y",      # Mar 07, 2024
+    "%d %B %Y",       # 07 March 2024
+    "%d %b %Y",       # 07 Mar 2024
+    "%Y%m%d",         # 20240307
+]
+
+
+def _try_parse_date(value: str) -> str | None:
+    """Try to parse *value* as a date using common formats. Returns ISO date string or None."""
+    value = value.strip()
+    for fmt in _DATE_FORMATS:
+        try:
+            dt = datetime.strptime(value, fmt)
+            return dt.strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+    return None
+
+
+def validate_field_type(value, expected_type: str):
+    """
+    Validate that *value* conforms to *expected_type* (as stored in the form
+    schema, e.g. "string", "int", "float", "email", "phone", "date").
+    Returns the (possibly cast) value on success, or "N/A" when the value
+    cannot be converted.
+    """
+    if value is None or (isinstance(value, str) and value.strip().upper() == "N/A"):
+        return "N/A"
+
+    expected_type = expected_type.strip().lower()
+
+    if expected_type == "int":
+        if isinstance(value, int):
+            return value
+        if isinstance(value, float) and value == int(value):
+            return int(value)
+        if isinstance(value, str):
+            try:
+                return int(value)
+            except (ValueError, TypeError):
+                return "N/A"
+        return "N/A"
+
+    if expected_type == "float":
+        if isinstance(value, (int, float)):
+            return float(value)
+        if isinstance(value, str):
+            try:
+                return float(value)
+            except (ValueError, TypeError):
+                return "N/A"
+        return "N/A"
+
+    if expected_type == "email":
+        s = str(value).strip()
+        if _EMAIL_RE.match(s):
+            return s
+        return "N/A"
+
+    if expected_type == "phone":
+        s = str(value).strip()
+        # Check pattern and that there are at least 7 actual digits
+        if _PHONE_RE.match(s) and len(re.sub(r"\D", "", s)) >= 7:
+            return s
+        return "N/A"
+
+    if expected_type == "date":
+        if isinstance(value, datetime):
+            return value.strftime("%Y-%m-%d")
+        s = str(value).strip()
+        parsed = _try_parse_date(s)
+        return parsed if parsed else "N/A"
+
+    if expected_type == "string":
+        return str(value)
+
+    # Unknown / future types – accept as-is
+    return value
 
 class FormFillingService(IPipeline):
     def __init__(self, conversation_repo: IConversationRepository, form_repo: IFormRepository, extraction_model: IExtractionModel, runlog_repo: IRunLogRepository, summarizer: ISummarizer, model_type="field_process"): 
@@ -47,13 +141,16 @@ class FormFillingService(IPipeline):
                     speaker = " ".join(speaker.split()[:-1])
                 full_convo += speaker + ": " + text + "\n"
 
-            for field_key, question in form.fields.items():
+            field_types = {}  # field_key -> expected type
+            for field_key, field_type in form.fields.items():
                 field_keys.append(field_key)
+                field_types[field_key] = field_type
                 if self.model_type == "field_process":
                     req = ExtractionRequest(
                         context=context,
                         field_name=field_key,
-                        instruction=question
+                        instruction=field_type,
+                        original_type_hint=field_type
                     )
                     requests.append(req)
                 elif self.model_type == "full_process":
@@ -73,9 +170,12 @@ class FormFillingService(IPipeline):
             else:
                 raise Exception 
 
-            # 4. Compile Results
+            # 4. Validate predicted types & compile results
             filled_data = {}
             for key, value in zip(field_keys, answers):
+                expected = field_types.get(key, "string")
+                value = validate_field_type(value, expected)
+
                 if "." in key:
                     parts = key.split(".")
                     current = filled_data
