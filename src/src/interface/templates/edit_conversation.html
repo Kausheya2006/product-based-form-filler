@@ -1,91 +1,322 @@
 {% extends "base.html" %}
+{% block title %}Edit Conversation #{{ convo.id }}{% endblock %}
+
 {% block content %}
-<div class="card">
-  <h2>Edit Conversation #{{ convo.id }}</h2>
-
-  <form method="post" action="/conversations/{{ convo.id }}/update" id="chatForm">
-    <input type="hidden" name="form_id" value="{{ form_id }}" />
-
-    <textarea id="raw_text" style="display:none;">{{ raw_text }}</textarea>
-    <input type="hidden" name="new_content" id="new_content" />
-
-    <div style="display:flex; gap:16px; align-items:flex-end; flex-wrap:wrap; margin-bottom:12px;">
-      <div style="flex:1; min-width:260px;">
-        <label><strong>Speakers</strong></label>
-        <div id="speakerChips" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:6px;"></div>
-      </div>
-
-      <div style="min-width:260px;">
-        <label><strong>Add Speaker</strong></label>
-        <div style="display:flex; gap:8px; margin-top:6px;">
-          <input id="newSpeakerName" class="form-control" placeholder="e.g., Agent" />
-          <button type="button" class="btn" id="addSpeakerBtn">+ Add</button>
-        </div>
-      </div>
-
-      <div>
-        <button type="button" class="btn" id="addMsgBtn" style="margin-top:22px;">+ Add Message</button>
-      </div>
-    </div>
-
-    <div id="bubbleList" style="display:flex; flex-direction:column; gap:10px;"></div>
-
-    <div class="card" style="margin-top:18px;">
-      <h3 style="margin-top:0;">Live Form Extraction</h3>
-      <p class="muted" id="extractStatus">Edit messages, then click outside a message box to reprocess.</p>
-      <div id="summaryBox" style="display:none; margin:12px 0; padding:10px; border-radius:6px; background:#f8fafc; border:1px solid #e2e8f0;"></div>
-      <div id="formFillGrid" style="display:grid; gap:10px;"></div>
-    </div>
-
-    <div style="margin-top:15px;">
-      <button type="submit" class="btn btn-success">Update & Re-Extract</button>
-      <a href="/forms/{{ form_id }}" class="btn">Cancel</a>
-    </div>
-  </form>
-</div>
 
 <style>
-  .bubble-row{
-    display:flex;
-    gap:10px;
-    align-items:flex-start;
-    margin-bottom:8px;
+  html, body { overflow: hidden; height: 100%; margin: 0; }
+
+  /* ── Header ── */
+  .live-header {
+    background: var(--nav-bg); color: var(--nav-text);
+    padding: 8px 20px; display: flex; align-items: center; gap: 10px;
+    flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    z-index: 99; border-radius: 14px 14px 0 0;
   }
-  .bubble-select{
-    width:150px;
-    min-width:150px;
+  .live-header h1 { font-size: 0.95rem; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+  .live-header .pill {
+    background: #d97706; color: #fff;
+    font-size: 0.65rem; font-weight: 600; padding: 2px 8px; border-radius: 999px;
   }
-  .bubble-text{
-    flex:1;
-    border-radius:8px;
-    padding:10px 12px;
-    resize:vertical;
-    min-height:60px;
+  .live-header .form-badge { font-size: 0.75rem; color: #94a3b8; font-weight: 500; }
+  .live-header .header-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .live-header .btn {
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);
+    color: #f1f5f9; box-shadow: none; padding: 5px 12px; font-size: 0.82rem;
+    text-decoration: none; border-radius: var(--radius); font-family: inherit; cursor: pointer;
+    display: inline-flex; align-items: center;
   }
-  .chip{
-    padding:6px 10px;
-    border:1px solid #cfcfcf;
-    border-radius:999px;
-    font-size:12px;
-    background:#fafafa;
+  .live-header .btn:hover { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.35); color: #fff; }
+  .live-header .btn-success { background: var(--success); border-color: var(--success-dark); color: #fff; }
+  .live-header .btn-success:hover { background: var(--success-dark); }
+
+  /* ── Shell ── */
+  .page-shell {
+    position: fixed;
+    top: 100px; left: 220px; right: 220px; bottom: 40px;
+    display: flex; flex-direction: column; overflow: hidden;
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.13), 0 2px 8px rgba(0,0,0,0.07);
   }
-  .muted{
-    opacity:0.75;
-    font-size:12px;
+
+  /* ── Two-panel layout ── */
+  .panels {
+    display: grid; grid-template-columns: 1fr 1fr;
+    flex: 1; min-height: 0; overflow: hidden;
+    border-radius: 0 0 14px 14px;
   }
-  .filled-field{
-    display:flex;
-    flex-direction:column;
-    gap:4px;
+
+  .panel-label {
+    font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em;
+    color: var(--text-muted); text-transform: uppercase;
+    padding: 8px 16px; border-bottom: 1px solid var(--border);
+    background: var(--bg-gray); flex-shrink: 0;
   }
-  .filled-field label{
-    font-size:12px;
-    font-weight:600;
-    color:#334155;
+
+  /* ── Left panel ── */
+  .panel-chat {
+    display: flex; flex-direction: column;
+    border-right: 1px solid var(--border);
+    background: var(--bg-white);
+    min-height: 0; overflow: hidden;
+    border-radius: 0 0 0 14px;
   }
+
+  /* Scrollable bubble area */
+  .chat-messages {
+    flex: 1; min-height: 0; overflow-y: auto;
+    padding: 16px; display: flex; flex-direction: column; gap: 6px;
+  }
+
+  /* ── Editable bubble rows ── */
+  .bubble-row {
+    display: flex; flex-direction: column; gap: 3px;
+    max-width: 68%; animation: bubbleIn 0.16s ease;
+  }
+  /* Add a little extra breathing room between speaker switches */
+  .bubble-row + .bubble-row.left,
+  .bubble-row + .bubble-row.right { margin-top: 4px; }
+
+  @keyframes bubbleIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+  .bubble-row.left  { align-self: flex-start; }
+  .bubble-row.right { align-self: flex-end; align-items: flex-end; }
+
+  /* Speaker selector row */
+  .bubble-speaker-row {
+    display: flex; align-items: center; gap: 5px;
+  }
+  .bubble-row.right .bubble-speaker-row { justify-content: flex-end; }
+
+  /* Speaker avatar chip */
+  .bubble-avatar {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: #475569; color: #fff;
+    font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .bubble-row.right .bubble-avatar { background: #2563eb; }
+
+  /* Speaker dropdown — chevron hint via background */
+  .bubble-select {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em;
+    color: #64748b; text-transform: uppercase;
+    border: none; background: transparent; cursor: pointer;
+    font-family: inherit; padding: 0; outline: none;
+    -webkit-appearance: none; appearance: none;
+    width: auto; max-width: 160px;
+  }
+  .bubble-select:hover { color: #1e293b; }
+
+  /* ── Bubble: contenteditable div, naturally fits its content ── */
+  .bubble-text-wrap {
+    display: inline-block;
+    min-width: 60px;
+    max-width: 100%;
+  }
+  .bubble-text {
+    display: inline-block;
+    width: 100%;
+    padding: 9px 13px; border-radius: 16px;
+    font-size: 0.875rem; line-height: 1.5; word-break: break-word;
+    border: 1.5px solid transparent;
+    font-family: inherit; outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    box-sizing: border-box;
+    cursor: text;
+    white-space: pre-wrap;
+  }
+  .bubble-text:empty:before {
+    content: attr(data-placeholder);
+    color: #94a3b8; pointer-events: none;
+  }
+  .bubble-row.left .bubble-text {
+    border-bottom-left-radius: 4px;
+    background: #f1f5f9; color: #1e293b;
+    border-color: #e2e8f0;
+  }
+  .bubble-row.right .bubble-text {
+    background: #dbeafe; color: #1e40af;
+    border-color: #bfdbfe; border-bottom-right-radius: 4px;
+  }
+  .bubble-text:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+  }
+  .bubble-text:hover:not(:focus) { border-color: #94a3b8 !important; }
+
+  /* ── Add-speaker row ── */
+  .add-speaker-row {
+    display: flex; gap: 6px; padding: 6px 12px;
+    border-top: 1px solid var(--border); background: var(--bg-gray); flex-shrink: 0;
+  }
+  .add-speaker-row input {
+    font-size: 0.8rem; padding: 5px 9px;
+    border: 1px solid var(--border); border-radius: var(--radius);
+    outline: none; flex: 1; background: var(--bg-white); color: var(--text);
+    font-family: inherit; margin-top: 0;
+  }
+  .add-speaker-row input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(37,99,235,0.1); }
+  .add-speaker-row button {
+    background: var(--nav-bg); color: #fff; border: none;
+    border-radius: var(--radius); padding: 5px 11px;
+    font-size: 0.78rem; font-weight: 600; cursor: pointer;
+    font-family: inherit; white-space: nowrap; transition: background 0.12s;
+  }
+  .add-speaker-row button:hover { background: var(--primary); }
+
+  /* ── Bottom toolbar ── */
+  .input-row {
+    display: flex; gap: 8px; padding: 8px 12px;
+    border-top: 1px solid var(--border); background: var(--bg-white);
+    flex-shrink: 0; align-items: center;
+    border-radius: 0 0 0 14px;
+  }
+  .add-msg-btn {
+    background: var(--nav-bg); color: #fff; border: none;
+    border-radius: var(--radius); padding: 6px 14px;
+    font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    font-family: inherit; transition: background 0.12s;
+  }
+  .add-msg-btn:hover { background: var(--primary); }
+  .input-hint { font-size: 0.72rem; color: var(--text-muted); margin-left: 4px; }
+
+  /* ── Right panel ── */
+  .panel-output {
+    display: flex; flex-direction: column;
+    background: var(--bg-gray); min-height: 0; overflow: hidden;
+    border-radius: 0 0 14px 0;
+  }
+  .output-scroll {
+    flex: 1; min-height: 0; overflow-y: auto;
+    padding: 12px 16px; display: flex; flex-direction: column; gap: 8px;
+  }
+
+  .summary-card {
+    background: var(--primary-light); border: 1px solid #93c5fd;
+    border-radius: var(--radius-lg); padding: 10px 14px;
+    font-size: 0.82rem; color: var(--primary-dark); line-height: 1.5;
+    display: none; box-shadow: var(--shadow-sm);
+  }
+  .summary-label {
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--primary); margin-bottom: 4px;
+  }
+
+  .field-card {
+    background: var(--bg-white); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 8px 12px;
+    transition: border-color 0.2s, box-shadow 0.2s; box-shadow: var(--shadow-sm);
+  }
+  .field-card.updated {
+    border-color: var(--success); box-shadow: 0 0 0 3px rgba(22,163,74,0.12);
+    animation: cardPop 0.25s ease;
+  }
+  @keyframes cardPop { 0%{transform:scale(1);} 50%{transform:scale(1.012);} 100%{transform:scale(1);} }
+  .field-key {
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em;
+    color: var(--text-muted); text-transform: uppercase;
+    margin-bottom: 3px; display: flex; align-items: center; gap: 5px;
+  }
+  .field-key .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--border-dark); flex-shrink: 0; transition: background 0.25s;
+  }
+  .field-card.updated .dot { background: var(--success); }
+  .field-value {
+    font-family: 'Monaco','Menlo',monospace; font-size: 0.82rem;
+    color: var(--text); min-height: 1.1em; word-break: break-word;
+  }
+  .field-value.empty { color: var(--text-light); font-style: italic; }
+
+  .status-bar {
+    font-size: 0.68rem; color: var(--text-muted);
+    padding: 6px 16px; border-top: 1px solid var(--border);
+    background: var(--bg-white); display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+    border-radius: 0 0 14px 0;
+  }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); flex-shrink: 0; transition: background 0.2s; }
+
+  .empty-output {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; flex: 1; gap: 10px; padding: 24px; color: var(--text-light);
+  }
+  .empty-output svg { opacity: 0.35; }
+  .empty-output p { font-size: 0.82rem; color: var(--text-muted); margin: 0; }
 </style>
 
+<!-- Hidden form for final submission (unchanged from original) -->
+<form method="post" action="/conversations/{{ convo.id }}/update" id="chatForm" style="display:none;">
+  <input type="hidden" name="form_id" value="{{ form_id }}" />
+  <input type="hidden" name="new_content" id="new_content" />
+</form>
+
+<!-- Raw text seed (unchanged from original) -->
+<textarea id="raw_text" style="display:none;">{{ raw_text }}</textarea>
+
+<div class="page-shell">
+
+  <!-- ── Header ── -->
+  <div class="live-header">
+    <h1>Edit Conversation</h1>
+    <span class="pill">EDIT</span>
+    <span class="form-badge">Conversation #{{ convo.id }}</span>
+    <div class="header-actions">
+      <a href="/forms/{{ form_id }}" class="btn">← Cancel</a>
+      <button type="button" class="btn btn-success" id="submitBtn">Update &amp; Re-Extract</button>
+    </div>
+  </div>
+
+  <div class="panels">
+
+    <!-- ── LEFT: Editable conversation ── -->
+    <div class="panel-chat">
+      <div class="panel-label">Conversation</div>
+
+      <div class="chat-messages" id="bubbleList"></div>
+
+      <div class="add-speaker-row">
+        <input id="newSpeakerName" placeholder="New speaker (e.g. Agent)…" />
+        <button type="button" id="addSpeakerBtn">+ Add Speaker</button>
+      </div>
+
+      <div class="input-row">
+        <button type="button" class="add-msg-btn" id="addMsgBtn">+ Add Message</button>
+        <span class="input-hint">Click any bubble to edit · re-extracts on blur</span>
+      </div>
+    </div>
+
+    <!-- ── RIGHT: Live extracted fields ── -->
+    <div class="panel-output">
+      <div class="panel-label">Live Extracted Fields</div>
+
+      <div class="output-scroll" id="outputScroll">
+
+        <div class="summary-card" id="summaryCard">
+          <div class="summary-label">Summary</div>
+          <div id="summaryText"></div>
+        </div>
+
+        <div class="empty-output" id="outputEmpty">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+          </svg>
+          <p>Fields will appear here as you edit messages.</p>
+        </div>
+
+      </div>
+
+      <div class="status-bar">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Loading…</span>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /.page-shell -->
+
 <script>
+  // ── Helpers (unchanged from original) ──
   function autosizeTextarea(el) {
     el.style.height = "auto";
     el.style.height = (el.scrollHeight + 2) + "px";
@@ -97,7 +328,6 @@
     const speakerSet = new Set();
     const re = /^\s*([^:\n]{1,40})\s*:\s*(.*)\s*$/;
     let current = null;
-
     for (const line of lines) {
       const m = line.match(re);
       if (m) {
@@ -110,7 +340,6 @@
         current.text = (current.text + "\n" + line).replace(/\s+$/, "");
       }
     }
-
     return { messages, speakers: Array.from(speakerSet) };
   }
 
@@ -127,152 +356,177 @@
       const key = prefix ? `${prefix}.${k}` : k;
       if (v && typeof v === "object" && !Array.isArray(v)) {
         flattenObject(v, key, out);
-      } else {
-        out[key] = v;
-      }
+      } else { out[key] = v; }
     });
     return out;
   }
 
-  // ---------- State ----------
-  const speakerChips = document.getElementById("speakerChips");
-  const bubbleList = document.getElementById("bubbleList");
-  const addSpeakerBtn = document.getElementById("addSpeakerBtn");
-  const newSpeakerName = document.getElementById("newSpeakerName");
-  const addMsgBtn = document.getElementById("addMsgBtn");
+  // ── State (unchanged from original) ──
+  const bubbleList      = document.getElementById("bubbleList");
+  const addSpeakerBtn   = document.getElementById("addSpeakerBtn");
+  const newSpeakerName  = document.getElementById("newSpeakerName");
+  const addMsgBtn       = document.getElementById("addMsgBtn");
+  const submitBtn       = document.getElementById("submitBtn");
   const newContentInput = document.getElementById("new_content");
-  const chatForm = document.getElementById("chatForm");
-  const rawTextEl = document.getElementById("raw_text");
-  const formFillGrid = document.getElementById("formFillGrid");
-  const extractStatus = document.getElementById("extractStatus");
-  const summaryBox = document.getElementById("summaryBox");
-  const formFields = {{ form.fields | tojson }};
+  const chatForm        = document.getElementById("chatForm");
+  const rawTextEl       = document.getElementById("raw_text");
+  const outputScroll    = document.getElementById("outputScroll");
+  const outputEmpty     = document.getElementById("outputEmpty");
+  const statusDot       = document.getElementById("statusDot");
+  const statusText      = document.getElementById("statusText");
+  const summaryCard     = document.getElementById("summaryCard");
+  const summaryText     = document.getElementById("summaryText");
+  const formFields      = {{ form.fields | tojson }};
 
-  const parsed = parseChat(rawTextEl.value);
-  let speakers = parsed.speakers.slice();
-  let messages = parsed.messages.slice();
+  const parsed        = parseChat(rawTextEl.value);
+  let speakers        = parsed.speakers.slice();
+  let messages        = parsed.messages.slice();
   let hasPendingEdits = false;
-  const fieldInputs = {};
+  const fieldCards    = {};
 
-  function syncMessagesFromDOM() {
-    const rows = bubbleList.querySelectorAll(".bubble-row");
-    rows.forEach((row, idx) => {
-      const select = row.querySelector("select");
-      const ta = row.querySelector("textarea");
-      if (!messages[idx]) messages[idx] = { speaker: "", text: "" };
-      if (select) messages[idx].speaker = select.value || "";
-      if (ta) messages[idx].text = ta.value || "";
-    });
-  }
-
-  // ---------- Render ----------
-  function renderSpeakers() {
-    speakerChips.innerHTML = "";
-    speakers.forEach((s) => {
-      const chip = document.createElement("span");
-      chip.className = "chip";
-      chip.textContent = s;
-      speakerChips.appendChild(chip);
-    });
-    if (speakers.length === 0) {
-      const hint = document.createElement("span");
-      hint.className = "muted";
-      hint.textContent = "No speakers yet";
-      speakerChips.appendChild(hint);
-    }
-  }
-
-  function renderMessages() {
-    bubbleList.innerHTML = "";
-
-    messages.forEach((msg, idx) => {
-      const row = document.createElement("div");
-      row.className = "bubble-row";
-
-      const select = document.createElement("select");
-      select.className = "form-control bubble-select";
-      speakers.forEach(s => {
-        const opt = document.createElement("option");
-        opt.value = s;
-        opt.textContent = s;
-        select.appendChild(opt);
-      });
-      select.value = msg.speaker || speakers[0] || "Speaker";
-
-      const ta = document.createElement("textarea");
-      ta.className = "form-control bubble-text";
-      ta.value = msg.text || "";
-      ta.placeholder = "Type message...";
-      ta.rows = 3;
-
-      setTimeout(() => autosizeTextarea(ta), 0);
-
-      select.addEventListener("change", () => {
-        messages[idx].speaker = select.value;
-        hasPendingEdits = true;
-      });
-
-      ta.addEventListener("input", () => {
-        messages[idx].text = ta.value;
-        hasPendingEdits = true;
-        autosizeTextarea(ta);
-      });
-
-      ta.addEventListener("focusout", () => {
-        if (hasPendingEdits) runLiveExtraction();
-      });
-
-      row.appendChild(select);
-      row.appendChild(ta);
-      bubbleList.appendChild(row);
-    });
-  }
-
-  function renderFormFields() {
-    formFillGrid.innerHTML = "";
-    Object.keys(formFields).forEach((fieldKey) => {
-      const wrap = document.createElement("div");
-      wrap.className = "filled-field";
-
-      const lbl = document.createElement("label");
-      lbl.textContent = fieldKey;
-
-      const input = document.createElement("input");
-      input.className = "form-control";
-      input.readOnly = true;
-      input.placeholder = "N/A";
-
-      fieldInputs[fieldKey] = input;
-      wrap.appendChild(lbl);
-      wrap.appendChild(input);
-      formFillGrid.appendChild(wrap);
+  // ── Field cards (matches enter_conversation pattern) ──
+  function initFieldCards() {
+    outputEmpty.style.display = "none";
+    Object.keys(formFields).forEach(key => {
+      if (fieldCards[key]) return;
+      const card  = document.createElement("div");
+      card.className = "field-card";
+      const keyEl = document.createElement("div");
+      keyEl.className = "field-key";
+      keyEl.innerHTML = `<span class="dot"></span>${key}`;
+      const valEl = document.createElement("div");
+      valEl.className = "field-value empty";
+      valEl.textContent = "—";
+      card.appendChild(keyEl);
+      card.appendChild(valEl);
+      outputScroll.appendChild(card);
+      fieldCards[key] = { card, valueEl: valEl };
     });
   }
 
   function applyFilledData(filledData) {
     const flat = flattenObject(filledData || {});
-    Object.keys(fieldInputs).forEach((key) => {
+    Object.keys(fieldCards).forEach(key => {
+      const { card, valueEl } = fieldCards[key];
       const val = flat[key];
-      fieldInputs[key].value = val === undefined || val === null ? "N/A" : String(val);
+      const display = (val === undefined || val === null || val === "") ? null : String(val);
+      if (display) {
+        card.classList.add("updated");
+        valueEl.className = "field-value";
+        valueEl.textContent = display;
+        setTimeout(() => card.classList.remove("updated"), 2500);
+      } else {
+        valueEl.className = "field-value empty";
+        valueEl.textContent = "—";
+      }
     });
   }
 
-  function render() {
-    renderSpeakers();
-    renderMessages();
+  // ── Sync messages array from DOM ──
+  function syncMessagesFromDOM() {
+    const rows = bubbleList.querySelectorAll(".bubble-row");
+    rows.forEach((row, idx) => {
+      const select = row.querySelector("select");
+      const ce     = row.querySelector(".bubble-text");
+      if (!messages[idx]) messages[idx] = { speaker: "", text: "" };
+      if (select) messages[idx].speaker = select.value || "";
+      if (ce)     messages[idx].text    = ce.innerText.replace(/\n$/, "") || "";
+    });
   }
 
+  // ── Render all bubbles ──
+  function renderMessages() {
+    bubbleList.innerHTML = "";
+    messages.forEach((msg, idx) => addBubbleRow(msg, idx));
+    bubbleList.scrollTop = bubbleList.scrollHeight;
+  }
+
+  function addBubbleRow(msg, idx) {
+    const sideIdx = speakers.indexOf(msg.speaker);
+    const side    = sideIdx % 2 === 0 ? "left" : "right";
+
+    const row = document.createElement("div");
+    row.className = `bubble-row ${side}`;
+
+    // ── Speaker row (avatar + select) ──
+    const speakerRow = document.createElement("div");
+    speakerRow.className = "bubble-speaker-row";
+
+    const avatar = document.createElement("div");
+    avatar.className = "bubble-avatar";
+    avatar.textContent = (msg.speaker || "?").charAt(0).toUpperCase();
+
+    const select = document.createElement("select");
+    select.className = "bubble-select";
+    speakers.forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = s; opt.textContent = s.toUpperCase();
+      select.appendChild(opt);
+    });
+    select.value = msg.speaker || speakers[0] || "";
+
+    select.addEventListener("change", () => {
+      messages[idx].speaker = select.value;
+      const newSide = speakers.indexOf(select.value) % 2 === 0 ? "left" : "right";
+      row.className = `bubble-row ${newSide}`;
+      avatar.textContent = select.value.charAt(0).toUpperCase();
+      hasPendingEdits = true;
+    });
+
+    if (side === "right") {
+      speakerRow.appendChild(select);
+      speakerRow.appendChild(avatar);
+    } else {
+      speakerRow.appendChild(avatar);
+      speakerRow.appendChild(select);
+    }
+
+    // ── Bubble: contenteditable div naturally sizes to its content ──
+    const wrap = document.createElement("div");
+    wrap.className = "bubble-text-wrap";
+
+    const ce = document.createElement("div");
+    ce.className = "bubble-text";
+    ce.contentEditable = "true";
+    ce.setAttribute("data-placeholder", "Type message…");
+    ce.innerText = msg.text || "";
+
+    ce.addEventListener("input", () => {
+      messages[idx].text = ce.innerText.replace(/\n$/, "");
+      hasPendingEdits = true;
+    });
+
+    ce.addEventListener("focusout", () => {
+      if (hasPendingEdits) runLiveExtraction();
+    });
+
+    // Prevent paste from injecting HTML
+    ce.addEventListener("paste", e => {
+      e.preventDefault();
+      const text = e.clipboardData.getData("text/plain");
+      document.execCommand("insertText", false, text);
+    });
+
+    wrap.appendChild(ce);
+    row.appendChild(speakerRow);
+    row.appendChild(wrap);
+    bubbleList.appendChild(row);
+  }
+
+  // ── Live extraction (unchanged logic from original) ──
   async function runLiveExtraction() {
     syncMessagesFromDOM();
     const conversationText = buildRawText(messages);
     if (!conversationText.trim()) {
-      extractStatus.textContent = "No conversation text yet.";
-      summaryBox.style.display = "none";
+      statusText.textContent = "No conversation text yet.";
+      summaryCard.style.display = "none";
       applyFilledData({});
       return;
     }
 
-    extractStatus.textContent = "Processing conversation so far...";
+    statusDot.style.background = "var(--primary)";
+    statusText.textContent = "Processing conversation…";
+
     const body = new URLSearchParams({
       form_id: "{{ form_id }}",
       conversation_text: conversationText
@@ -286,61 +540,65 @@
       });
       const raw = await res.text();
       let data = {};
-      try {
-        data = raw ? JSON.parse(raw) : {};
-      } catch (e) {
-        data = { detail: raw || "Extraction failed" };
-      }
+      try { data = raw ? JSON.parse(raw) : {}; }
+      catch (e) { data = { detail: raw || "Extraction failed" }; }
       if (!res.ok) throw new Error(data.detail || "Extraction failed");
 
       applyFilledData(data.filled_data || {});
+
       if (data.summary) {
-        summaryBox.textContent = data.summary;
-        summaryBox.style.display = "block";
+        summaryText.textContent = data.summary;
+        summaryCard.style.display = "block";
       } else {
-        summaryBox.style.display = "none";
+        summaryCard.style.display = "none";
       }
+
       hasPendingEdits = false;
-      extractStatus.textContent = "Form filled using conversation up to this point.";
+      statusDot.style.background = "var(--success)";
+      statusText.textContent = `Updated — ${new Date().toLocaleTimeString()}`;
     } catch (err) {
-      extractStatus.textContent = `Extraction error: ${err.message}`;
+      statusDot.style.background = "var(--danger)";
+      statusText.textContent = `Extraction error: ${err.message}`;
     }
   }
 
-  // ---------- Controls ----------
+  // ── Controls (unchanged logic from original) ──
   addSpeakerBtn.addEventListener("click", () => {
     const name = newSpeakerName.value.trim();
     if (name && !speakers.includes(name)) {
       speakers.push(name);
-      render();
+      renderMessages();
       hasPendingEdits = true;
       runLiveExtraction();
     }
     newSpeakerName.value = "";
   });
 
-  newSpeakerName.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      addSpeakerBtn.click();
-    }
+  newSpeakerName.addEventListener("keydown", e => {
+    if (e.key === "Enter") { e.preventDefault(); addSpeakerBtn.click(); }
   });
 
   addMsgBtn.addEventListener("click", () => {
-    const lastSpeaker = messages[messages.length - 1]?.speaker || speakers[0] || "Speaker";
+    const lastSpeaker = messages[messages.length - 1]?.speaker || speakers[0] || "";
     messages.push({ speaker: lastSpeaker, text: "" });
-    render();
+    const idx = messages.length - 1;
+    addBubbleRow(messages[idx], idx);
+    bubbleList.scrollTop = bubbleList.scrollHeight;
+    bubbleList.querySelectorAll(".bubble-row")[idx]?.querySelector(".bubble-text")?.focus();
     hasPendingEdits = true;
   });
 
-  chatForm.addEventListener("submit", () => {
+  // Submit (unchanged from original)
+  submitBtn.addEventListener("click", () => {
     syncMessagesFromDOM();
     newContentInput.value = buildRawText(messages);
+    chatForm.submit();
   });
 
-  // init
-  renderFormFields();
-  render();
+  // ── Init ──
+  initFieldCards();
+  renderMessages();
   runLiveExtraction();
 </script>
+
 {% endblock %}
