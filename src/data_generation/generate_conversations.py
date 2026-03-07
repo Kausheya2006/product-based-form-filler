@@ -77,7 +77,12 @@ Example (2 conversations):
 
 def build_pairs():
     keys = [os.getenv("GEMINI_API_KEY"), os.getenv("GEMINI_API_KEY_2"), os.getenv("GEMINI_API_KEY_3")]
-    models = ["models/gemini-2.5-flash", "models/gemini-2.0-flash", "models/gemini-2.5-flash-lite"]
+    models = [
+        "models/gemini-2.0-flash", 
+        "models/gemini-2.5-flash", 
+        "models/gemini-2.5-flash-lite",
+        "models/gemini-1.5-flash"
+    ]
     return [(k, m) for k in keys if k for m in models]
 
 
