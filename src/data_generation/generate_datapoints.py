@@ -3,6 +3,7 @@ import os
 import json
 import time
 import random
+import re
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -17,108 +18,116 @@ DATAPOINTS_PATH = os.path.join(DATA_DIR, "generated_datapoints.json")
 DATAPOINTS_PER_CONVO = 3
 
 # The curated, foolproof base prompt template to generate structured and varied data points.
-BASE_PROMPT = '''You are an expert AI data annotator and conversation analyst.
-Your goal is to generate high-quality training data for a model that extracts form data and summarizes conversations line-by-line in real-time.
+BASE_PROMPT = '''You are an expert AI data annotator. 
+Your task is to generate EXACTLY {num_datapoints} training datapoints in a STRICT JSON ARRAY format based on the provided conversation and form.
 
-Here is the context:
-Form Name: {form_name}
-Form Description: {form_description}
-Initial Form Fields (all start as "N/A"):
+### CONTEXT
+Form: {form_name}
+Description: {form_description}
+Initial Schema (all values start as "N/A"):
 {schema_fields}
 
-Here is a full conversation (JSON with speaker+timestamp as keys, spoken text as values). Note: Conversations can feature a single speaker (e.g., thinking aloud) or multiple speakers.
+### CONVERSATION
 {conversation}
 
-Task:
-1. Carefully read the conversation.
-2. {focus_instruction}
-3. Pick EXACTLY {num_datapoints} distinct lines from the conversation that fit this focus as your "new_line" targets. Spread them out chronologically if possible.
-4. For each chosen line, imagine an AI model has processed the conversation chronologically from the very first line up to the line JUST BEFORE your chosen line. Determine the `current_form_state` and `current_summary_state` at that exact moment.
-5. Then, determine how processing the chosen `new_line` changes the state to become the `next_form_state` and `new_summary_state` (if at all, depending on the focus).
-6. The form state MUST be split into "Initial fields" (the ones provided above) and "New fields".
-   - "Initial fields": All fields provided above must be present. If a field's value hasn't been established yet up to that point, its value MUST be "N/A".
-   - "New fields": Fields NOT in the initial schema but recommended based on the conversation (use RARELY and wisely, ~10-15% of the time. Only add if the `new_line` explicitly adds to the form's requirements but isn't covered by initial fields). If none, keep it empty `{{}}`.
-7. `10_lines_before`: Extract up to 10 lines immediately preceding the `new_line` in chronological order. If fewer than 10 exist, include all available.
+### TASK
+1. Analyze the conversation. {focus_instruction}
+2. Pick EXACTLY {num_datapoints} target lines (statements).
+3. For each target line:
+   - Identify the `current_form_state` and `current_summary_state` BEFORE this line was spoken.
+   - Extract the `10_lines_before` (if available).
+   - Determine the `next_form_state` and `new_summary_state` AFTER this line is processed.
+   - Use "thinking" to explain the logic briefly.
+   - Split form states into "Initial fields" (all schema fields must exist) and "New fields" (rarely used).
 
-Output EXACTLY a JSON array containing {num_datapoints} objects. Each object MUST strictly follow this exact schema:
+### RESPONSE FORMAT
+Output ONLY a valid JSON array of EXACTLY {num_datapoints} objects. 
+NO markdown (no ```json), NO preamble, NO postamble. 
+The response must start with `[` and end with `]`.
 
-[
-  {{
-    "input": {{
-      "new_line": "<speaker label>: <the exact chosen line text>",
-      "10_lines_before": {{
-         "<speaker label 1>": "<text 1>",
-         "<speaker label 2>": "<text 2>"
-      }},
-      "form_name": "{form_name}",
-      "form_description": "{form_description}",
-      "current_form_state": {{
-        "Initial fields": {{
-           "<field_1>": "<value or N/A>",
-           "<field_2>": "<value or N/A>"
-        }},
-        "New fields": {{}}
-      }},
-      "current_summary_state": "<Summary of all the important things in the conversation up to the line BEFORE new_line>"
-    }},
-    "ideal_output": {{
-      "thinking": "<Brief reasoning buffer (1-3 sentences). Explain how new_line affects (or does not affect) the form state and summary. Keep it snappy.>",
-      "next_form_state": {{
-        "Initial fields": {{
-           "<field_1>": "<value or N/A>",
-           "<field_2>": "<new_value_if_updated or N/A>"
-        }},
-        "New fields": {{}}
-      }},
-      "new_summary_state": "<Updated summary incorporating new_line context, OR identical to current_summary_state if new_line adds no value>"
-    }}
+### OBJECT SCHEMA
+{{
+  "input": {{
+    "new_line": "Speaker: Text",
+    "10_lines_before": {{"Speaker": "Text", ...}},
+    "form_name": "{form_name}",
+    "form_description": "{form_description}",
+    "current_form_state": {{"Initial fields": {{...}}, "New fields": {{}}}},
+    "current_summary_state": "..."
+  }},
+  "ideal_output": {{
+    "thinking": "...",
+    "next_form_state": {{"Initial fields": {{...}}, "New fields": {{}}}},
+    "new_summary_state": "..."
   }}
-]
-
-Important: Ensure the JSON array contains EXACTLY {num_datapoints} objects by repeating the structure above. Do not output any markdown formatting around the JSON, no explanations, no wrappers. Just the raw, valid JSON array.
+}}
 '''
 
 FOCUS_INSTRUCTIONS = [
     {
         "weight": 0.50,
-        "text": "FOCUS: Standard Information Extraction. Pick EXACTLY {num_datapoints} distinct lines where a speaker provides clear, new information that directly answers an empty form field or significantly adds a relevant detail to the summary."
+        "text": "FOCUS: Standard Information Extraction. Pick lines where new information for a form field is provided."
     },
     {
         "weight": 0.25,
-        "text": "FOCUS: Revisions & Corrections. Pick EXACTLY {num_datapoints} distinct lines where a speaker corrects previous information, changes their mind, says 'wait no', or scraps a previous answer. The form state should show a field changing from an old value to a new value or reverting back to 'N/A'. If no such corrections exist in this conversation, pick lines where information is hesitant or partially unclear."
+        "text": "FOCUS: Revisions & Corrections. Pick lines where a speaker corrects, changes, or scraps previous info."
     },
     {
         "weight": 0.25,
-        "text": "FOCUS: No-Change / Filler. Pick EXACTLY {num_datapoints} distinct lines that are purely conversational filler, greetings, simple agreements ('yes', 'okay', 'right'), or off-topic tangents. For these specific lines, the `next_form_state` and `new_summary_state` MUST remain EXACTLY identical to the `current_form_state` and `current_summary_state` because the line adds absolutely no relevant information."
+        "text": "FOCUS: No-Change / Filler. Pick lines that are purely filler or off-topic. `next_form_state` MUST be identical to `current_form_state`."
     }
 ]
 
 def choose_focus_instruction(num_datapoints):
     """Probabilistically chooses a focus instruction based on weights."""
-    choices = [item["text"].format(num_datapoints=num_datapoints) for item in FOCUS_INSTRUCTIONS]
+    choices = [item["text"] for item in FOCUS_INSTRUCTIONS]
     weights = [item["weight"] for item in FOCUS_INSTRUCTIONS]
     return random.choices(choices, weights=weights, k=1)[0]
 
 def parse_json_response(text):
-    """Safely extracts and parses JSON array from the response."""
+    """Robustly extracts and parses JSON array from the response."""
     text = text.strip()
+    
+    # Remove markdown code blocks if present
     if "```" in text:
-        for start_ch, end_ch in [('[', ']'), ('{', '}')]:
-            if start_ch in text:
-                s = text.index(start_ch)
-                e = text.rindex(end_ch) + 1
-                text = text[s:e]
-                break
+        match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", text)
+        if match:
+            text = match.group(1).strip()
+    
+    # If it still doesn't start with [, try to find the first [ and last ]
+    if not text.startswith("["):
+        start = text.find("[")
+        end = text.rfind("]")
+        if start != -1 and end != -1:
+            text = text[start:end+1]
+    
     try:
-        return json.loads(text)
+        data = json.loads(text)
+        if isinstance(data, list):
+            return data
+        if isinstance(data, dict):
+            return [data]
+        return None
     except json.JSONDecodeError:
-        print("Failed to decode JSON from response.")
+        # Last ditch effort: if the model output multiple JSON objects not in an array
+        try:
+            objs = re.findall(r"\{[\s\S]*?\}", text)
+            parsed_objs = []
+            for obj in objs:
+                try:
+                    parsed_objs.append(json.loads(obj))
+                except:
+                    continue
+            if parsed_objs:
+                return parsed_objs
+        except:
+            pass
         return None
 
 def build_pairs():
     """Builds API Key + Model combinations for failover, supporting up to 10 keys."""
     keys = []
-    for i in range(1, 2):
+    for i in range(1, 11):
         key_name = "GEMINI_API_KEY" if i == 1 else f"GEMINI_API_KEY_{i}"
         val = os.getenv(key_name)
         if val:
