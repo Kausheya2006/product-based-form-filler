@@ -7548,5 +7548,1584 @@
       "new_summary_state": "Clerk Peterson is assisting Maria Rodriguez and Javier Rodriguez with a death certificate worksheet for Maria's mother, Isabella Sofia Gomez. Her maiden name is Gomez. Her date of birth was July 14th, 1948. Her date of death was April 5th, 2023. She passed away at home at 123 Meadowbrook Lane, Spring Valley, 10977. Her Social Security number is ***-**-3987. The immediate cause of death was Parkinson's disease and heart failure, as stated by her physician, Dr. Anya Sharma. Contributing conditions include pneumonia and arthritis. Maria Elena Rodriguez is the informant, and she is the daughter. The disposition method will be cremation, as per Isabella's wishes."
     },
     "_conversation_id": "407fb6b9"
+  },
+  {
+    "input": {
+      "new_line": "Aunt: Oh, let me think\u2026 Arthur\u2019s mother\u2026 her maiden name was\u2026 Peterson. Yes, Eleanor Peterson.",
+      "10_lines_before": {
+        "Clerk": "Got it. 14 Willow Creek Lane, Oakhaven. Now, this next part is for the decedent's mother's maiden name. Do you have that readily available?",
+        "Brother": "He passed away at home. In his study. It was peaceful.",
+        "Daughter": "14 Willow Creek Lane, Oakhaven, CA 90210."
+      },
+      "form_name": "Death Certificate Worksheet",
+      "form_description": "A preliminary document used to collect vital information required to complete an official death certificate.",
+      "current_form_state": {
+        "Initial fields": {
+          "decedent_full_name": "Arthur Reginald Abernathy",
+          "decedent_date_of_birth": "February 14th, 1948",
+          "decedent_date_of_death": "October 26th, 2023",
+          "decedent_place_of_death": "14 Willow Creek Lane, Oakhaven, CA 90210",
+          "decedent_mothers_maiden_name": "N/A",
+          "decedent_social_security_number": "N/A",
+          "cause_of_death": "N/A",
+          "contributing_conditions": "N/A",
+          "informant_full_name": "N/A",
+          "disposition_method": "N/A",
+          "funeral_home_name": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The Clerk is collecting information for the death certificate worksheet. The decedent's full name is Arthur Reginald Abernathy, born on February 14th, 1948, and passed away on October 26th, 2023, at home at 14 Willow Creek Lane, Oakhaven, CA 90210. The Clerk is now asking for the decedent's mother's maiden name."
+    },
+    "ideal_output": {
+      "thinking": "The Aunt hesitates while recalling the maiden name, initially saying 'Peterson' and then clarifying it to 'Eleanor Peterson.' This line provides the full maiden name, updating the corresponding form field.",
+      "next_form_state": {
+        "Initial fields": {
+          "decedent_full_name": "Arthur Reginald Abernathy",
+          "decedent_date_of_birth": "February 14th, 1948",
+          "decedent_date_of_death": "October 26th, 2023",
+          "decedent_place_of_death": "14 Willow Creek Lane, Oakhaven, CA 90210",
+          "decedent_mothers_maiden_name": "Eleanor Peterson",
+          "decedent_social_security_number": "N/A",
+          "cause_of_death": "N/A",
+          "contributing_conditions": "N/A",
+          "informant_full_name": "N/A",
+          "disposition_method": "N/A",
+          "funeral_home_name": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The Clerk is collecting information for the death certificate worksheet. The decedent's full name is Arthur Reginald Abernathy, born on February 14th, 1948, and passed away on October 26th, 2023, at home at 14 Willow Creek Lane, Oakhaven, CA 90210. The Aunt hesitantly recalls and then confirms the decedent's mother's full maiden name as Eleanor Peterson."
+    },
+    "_conversation_id": "68d43b1c"
+  },
+  {
+    "input": {
+      "new_line": "Brother: Uh, let me check my phone. I have it written down somewhere\u2026 Ah, here it is. It's 584-21-7982.",
+      "10_lines_before": {
+        "Daughter": "That\u2019s right, Mom\u2019s maiden name was Peterson. Eleanor Peterson.",
+        "Clerk": "Eleanor Peterson. Thank you. And do you know Mr. Abernathy's Social Security Number? We need it for the official certificate.",
+        "Aunt": "Oh, let me think\u2026 Arthur\u2019s mother\u2026 her maiden name was\u2026 Peterson. Yes, Eleanor Peterson."
+      },
+      "form_name": "Death Certificate Worksheet",
+      "form_description": "A preliminary document used to collect vital information required to complete an official death certificate.",
+      "current_form_state": {
+        "Initial fields": {
+          "decedent_full_name": "Arthur Reginald Abernathy",
+          "decedent_date_of_birth": "February 14th, 1948",
+          "decedent_date_of_death": "October 26th, 2023",
+          "decedent_place_of_death": "14 Willow Creek Lane, Oakhaven, CA 90210",
+          "decedent_mothers_maiden_name": "Eleanor Peterson",
+          "decedent_social_security_number": "N/A",
+          "cause_of_death": "N/A",
+          "contributing_conditions": "N/A",
+          "informant_full_name": "N/A",
+          "disposition_method": "N/A",
+          "funeral_home_name": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The Clerk is collecting information for the death certificate worksheet. The decedent's full name is Arthur Reginald Abernathy, born on February 14th, 1948, and passed away on October 26th, 2023, at home at 14 Willow Creek Lane, Oakhaven, CA 90210. His mother's maiden name is Eleanor Peterson. The Clerk is now asking for Mr. Abernathy's Social Security Number."
+    },
+    "ideal_output": {
+      "thinking": "The Brother indicates he needs to check his phone to find the Social Security Number, implying it was not immediately known. He then successfully retrieves and provides the number, updating the `decedent_social_security_number` field.",
+      "next_form_state": {
+        "Initial fields": {
+          "decedent_full_name": "Arthur Reginald Abernathy",
+          "decedent_date_of_birth": "February 14th, 1948",
+          "decedent_date_of_death": "October 26th, 2023",
+          "decedent_place_of_death": "14 Willow Creek Lane, Oakhaven, CA 90210",
+          "decedent_mothers_maiden_name": "Eleanor Peterson",
+          "decedent_social_security_number": "584-21-7982",
+          "cause_of_death": "N/A",
+          "contributing_conditions": "N/A",
+          "informant_full_name": "N/A",
+          "disposition_method": "N/A",
+          "funeral_home_name": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The Clerk is collecting information for the death certificate worksheet. The decedent's full name is Arthur Reginald Abernathy, born on February 14th, 1948, and passed away on October 26th, 2023, at home at 14 Willow Creek Lane, Oakhaven, CA 90210. His mother's maiden name is Eleanor Peterson. The Brother checks his phone and provides Mr. Abernathy's Social Security Number as 584-21-7982."
+    },
+    "_conversation_id": "68d43b1c"
+  },
+  {
+    "input": {
+      "new_line": "Daughter: Yes, Dr. Ramirez was his doctor. She signed off. It was congestive heart failure. Acute congestive heart failure.",
+      "10_lines_before": {
+        "Aunt": "Oh, let me think\u2026 Arthur\u2019s mother\u2026 her maiden name was\u2026 Peterson. Yes, Eleanor Peterson.",
+        "Daughter": "That\u2019s right, Mom\u2019s maiden name was Peterson. Eleanor Peterson.",
+        "Clerk": "584-21-7982. Perfect. Now, for the cause of death. This will be a bit more formal. Did the attending physician provide a primary cause?",
+        "Brother": "Uh, let me check my phone. I have it written down somewhere\u2026 Ah, here it is. It's 584-21-7982."
+      },
+      "form_name": "Death Certificate Worksheet",
+      "form_description": "A preliminary document used to collect vital information required to complete an official death certificate.",
+      "current_form_state": {
+        "Initial fields": {
+          "decedent_full_name": "Arthur Reginald Abernathy",
+          "decedent_date_of_birth": "February 14th, 1948",
+          "decedent_date_of_death": "October 26th, 2023",
+          "decedent_place_of_death": "14 Willow Creek Lane, Oakhaven, CA 90210",
+          "decedent_mothers_maiden_name": "Eleanor Peterson",
+          "decedent_social_security_number": "584-21-7982",
+          "cause_of_death": "N/A",
+          "contributing_conditions": "N/A",
+          "informant_full_name": "N/A",
+          "disposition_method": "N/A",
+          "funeral_home_name": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The Clerk is collecting information for the death certificate worksheet. The decedent's full name is Arthur Reginald Abernathy, born on February 14th, 1948, and passed away on October 26th, 2023, at home at 14 Willow Creek Lane, Oakhaven, CA 90210. His mother's maiden name is Eleanor Peterson, and his Social Security Number is 584-21-7982. The Clerk is now asking for the primary cause of death."
+    },
+    "ideal_output": {
+      "thinking": "The Daughter initially states 'congestive heart failure' and immediately self-corrects or clarifies it to 'Acute congestive heart failure.' This refinement provides a more precise cause of death, updating the `cause_of_death` field.",
+      "next_form_state": {
+        "Initial fields": {
+          "decedent_full_name": "Arthur Reginald Abernathy",
+          "decedent_date_of_birth": "February 14th, 1948",
+          "decedent_date_of_death": "October 26th, 2023",
+          "decedent_place_of_death": "14 Willow Creek Lane, Oakhaven, CA 90210",
+          "decedent_mothers_maiden_name": "Eleanor Peterson",
+          "decedent_social_security_number": "584-21-7982",
+          "cause_of_death": "Acute congestive heart failure",
+          "contributing_conditions": "N/A",
+          "informant_full_name": "N/A",
+          "disposition_method": "N/A",
+          "funeral_home_name": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The Clerk is collecting information for the death certificate worksheet. The decedent's full name is Arthur Reginald Abernathy, born on February 14th, 1948, and passed away on October 26th, 2023, at home at 14 Willow Creek Lane, Oakhaven, CA 90210. His mother's maiden name is Eleanor Peterson, and his Social Security Number is 584-21-7982. The Daughter states the cause of death as Acute congestive heart failure, signed off by Dr. Ramirez."
+    },
+    "_conversation_id": "68d43b1c"
+  },
+  {
+    "input": {
+      "new_line": "Elena Rodriguez 1672531425: Hmm, no other bank interest. I don't have a brokerage account yet. And no refund interest from the IRS or state, I think. I don't remember getting one last year, so probably not.",
+      "10_lines_before": {
+        "David Chen 1672531335": "Yes, I have it right here. Let me just find Box 1... Okay, total wages are $85,500. And federal income tax withheld in Box 2 was $10,200.",
+        "David Chen 1672531350": "Got it. $85,500 for wages, and $10,200 withheld. Perfect. Any other W-2s, maybe from a side gig or a short-term contract job earlier in the year?",
+        "Elena Rodriguez 1672531365": "Nope, just the one W-2 this year. Kept things pretty steady, thankfully. No extra hustles that generated W-2s, just the usual.",
+        "David Chen 1672531380": "Okay, good to know. Now, how about interest income? Do you have any 1099-INT forms? Checking accounts, savings accounts, CDs, that sort of thing?",
+        "Elena Rodriguez 1672531395": "Oh, yes, I have one from Stellar Bank. Let me pull that up. Looks like the interest income, Box 1, is... $185.75. Not exactly hitting the lottery there, but every penny counts, right?",
+        "David Chen 1672531410": "Absolutely, it all adds up. So, $185.75 from Stellar Bank. Any other interest, maybe from a brokerage account, or... did you happen to get any refund interest from the IRS or state last year?"
+      },
+      "form_name": "IRS Form 1040",
+      "form_description": "The primary federal income tax form used by U.S. taxpayers to report their income and calculate their tax liability.",
+      "current_form_state": {
+        "Initial fields": {
+          "first_name": "Elena Sofia",
+          "last_name": "Rodriguez",
+          "ssn": "ending in 5432",
+          "filing_status": "Single",
+          "wages_salaries_tips": "85500",
+          "tax_exempt_interest": "N/A",
+          "total_income": "N/A",
+          "federal_income_tax_withheld": "10200",
+          "dependents_count": "0",
+          "tax_owed_refund": "N/A"
+        },
+        "New fields": {
+          "other_interest_income": "185.75"
+        }
+      },
+      "current_summary_state": "The conversation has established Elena Sofia Rodriguez, SSN ending 5432, filing as Single with no dependents. Her W-2 wages are $85,500 and federal income tax withheld is $10,200. She also reported $185.75 in interest income from Stellar Bank. David is now asking about any other interest income, including refund interest."
+    },
+    "ideal_output": {
+      "thinking": "Elena clarifies that she has no other bank interest, brokerage account, or refund interest from the IRS or state. This confirms no additional interest income, so existing fields are not changed, and no new interest fields are added.",
+      "next_form_state": {
+        "Initial fields": {
+          "first_name": "Elena Sofia",
+          "last_name": "Rodriguez",
+          "ssn": "ending in 5432",
+          "filing_status": "Single",
+          "wages_salaries_tips": "85500",
+          "tax_exempt_interest": "N/A",
+          "total_income": "N/A",
+          "federal_income_tax_withheld": "10200",
+          "dependents_count": "0",
+          "tax_owed_refund": "N/A"
+        },
+        "New fields": {
+          "other_interest_income": "185.75"
+        }
+      },
+      "new_summary_state": "The conversation has established Elena Sofia Rodriguez, SSN ending 5432, filing as Single with no dependents. Her W-2 wages are $85,500 and federal income tax withheld is $10,200. She also reported $185.75 in interest income from Stellar Bank and confirmed no other interest income, including refund interest or from a brokerage account."
+    },
+    "_conversation_id": "5aafb35a"
+  },
+  {
+    "input": {
+      "new_line": "Elena Rodriguez 1672531485: Oh, right! I did sell those old company shares they gave us when I first started. I completely forgot about those. Yes, I have a 1099-B from Vanguard. It was... I think a small gain. Let me just check... Ah, here it is. Box 1d, Net proceeds were $2,100, and the cost basis, Box 1e, was $1,500. So, a $600 gain.",
+      "10_lines_before": {
+        "Elena Rodriguez 1672531365": "Nope, just the one W-2 this year. Kept things pretty steady, thankfully. No extra hustles that generated W-2s, just the usual.",
+        "David Chen 1672531380": "Okay, good to know. Now, how about interest income? Do you have any 1099-INT forms? Checking accounts, savings accounts, CDs, that sort of thing?",
+        "Elena Rodriguez 1672531395": "Oh, yes, I have one from Stellar Bank. Let me pull that up. Looks like the interest income, Box 1, is... $185.75. Not exactly hitting the lottery there, but every penny counts, right?",
+        "David Chen 1672531410": "Absolutely, it all adds up. So, $185.75 from Stellar Bank. Any other interest, maybe from a brokerage account, or... did you happen to get any refund interest from the IRS or state last year?",
+        "Elena Rodriguez 1672531425": "Hmm, no other bank interest. I don't have a brokerage account yet. And no refund interest from the IRS or state, I think. I don't remember getting one last year, so probably not.",
+        "David Chen 1672531440": "Okay, we'll stick with just the Stellar Bank 1099-INT for now then. Next, dividends. Do you have any 1099-DIV forms, typically from investments?",
+        "Elena Rodriguez 1672531455": "No, I don't have any investments that generate dividends yet. Just my 401k through work, which doesn't issue a 1099-DIV. So, no dividend income to report for 2023.",
+        "David Chen 1672531470": "Understood. That simplifies things a bit. How about capital gains or losses? Any stocks, mutual funds, or other assets sold during 2023? That would usually come on a 1099-B."
+      },
+      "form_name": "IRS Form 1040",
+      "form_description": "The primary federal income tax form used by U.S. taxpayers to report their income and calculate their tax liability.",
+      "current_form_state": {
+        "Initial fields": {
+          "first_name": "Elena Sofia",
+          "last_name": "Rodriguez",
+          "ssn": "ending in 5432",
+          "filing_status": "Single",
+          "wages_salaries_tips": "85500",
+          "tax_exempt_interest": "N/A",
+          "total_income": "N/A",
+          "federal_income_tax_withheld": "10200",
+          "dependents_count": "0",
+          "tax_owed_refund": "N/A"
+        },
+        "New fields": {
+          "other_interest_income": "185.75"
+        }
+      },
+      "current_summary_state": "The conversation has established Elena Sofia Rodriguez, SSN ending 5432, filing as Single with no dependents. Her W-2 wages are $85,500 and federal income tax withheld is $10,200. She also reported $185.75 in interest income from Stellar Bank and confirmed no other interest income or dividend income. David is now asking about capital gains or losses."
+    },
+    "ideal_output": {
+      "thinking": "Elena remembers and provides details for a $600 capital gain she initially forgot. This introduces a new income source, so a new field for capital gains is added.",
+      "next_form_state": {
+        "Initial fields": {
+          "first_name": "Elena Sofia",
+          "last_name": "Rodriguez",
+          "ssn": "ending in 5432",
+          "filing_status": "Single",
+          "wages_salaries_tips": "85500",
+          "tax_exempt_interest": "N/A",
+          "total_income": "N/A",
+          "federal_income_tax_withheld": "10200",
+          "dependents_count": "0",
+          "tax_owed_refund": "N/A"
+        },
+        "New fields": {
+          "other_interest_income": "185.75",
+          "capital_gain_loss": "600"
+        }
+      },
+      "new_summary_state": "The conversation has established Elena Sofia Rodriguez, SSN ending 5432, filing as Single with no dependents. Her W-2 wages are $85,500 and federal income tax withheld is $10,200. She also reported $185.75 in interest income from Stellar Bank, confirmed no other interest or dividend income, but then remembered and reported a $600 capital gain from selling old company shares."
+    },
+    "_conversation_id": "5aafb35a"
+  },
+  {
+    "input": {
+      "new_line": "Elena Rodriguez 1672531605: Yes! I almost forgot about that. I have a 1098-E from Great Lakes Servicing. Let me see... Box 1, student loan interest received, is $950. That's a deduction, right?",
+      "10_lines_before": {
+        "Elena Rodriguez 1672531455": "No, I don't have any investments that generate dividends yet. Just my 401k through work, which doesn't issue a 1099-DIV. So, no dividend income to report for 2023.",
+        "David Chen 1672531470": "Understood. That simplifies things a bit. How about capital gains or losses? Any stocks, mutual funds, or other assets sold during 2023? That would usually come on a 1099-B.",
+        "Elena Rodriguez 1672531485": "Oh, right! I did sell those old company shares they gave us when I first started. I completely forgot about those. Yes, I have a 1099-B from Vanguard. It was... I think a small gain. Let me just check... Ah, here it is. Box 1d, Net proceeds were $2,100, and the cost basis, Box 1e, was $1,500. So, a $600 gain.",
+        "David Chen 1672531500": "Okay, so a $600 long-term capital gain from Vanguard. Good catch, that's important. Was this considered long-term or short-term? The 1099-B should indicate that.",
+        "Elena Rodriguez 1672531515": "It says 'Long-Term Covered Security' right here. So, long-term. Held them for years, actually.",
+        "David Chen 1672531530": "Perfect, long-term it is. Any other sources of income to consider? Like unemployment benefits, which would be on a 1099-G? Or maybe Social Security benefits, a 1099-SSA-1099?",
+        "Elena Rodriguez 1672531545": "No unemployment benefits. Thankfully kept my job all year. And no Social Security yet, I'm a bit too young for that! So, no 1099-G or 1099-SSA-1099.",
+        "David Chen 1672531560": "Alright, so income-wise, we have your W-2, the Stellar Bank interest, and the Vanguard capital gain. Sounds pretty straightforward so far. Now, let's talk about adjustments to income. Did you contribute to a traditional IRA that wasn't through your employer?",
+        "Elena Rodriguez 1672531575": "No, just my 401k. I maxed out my contributions there, which is already handled through my employer's payroll. No separate IRA contributions this year.",
+        "David Chen 1672531590": "Okay, that's good. How about student loan interest? Did you pay any interest on qualified student loans?"
+      },
+      "form_name": "IRS Form 1040",
+      "form_description": "The primary federal income tax form used by U.S. taxpayers to report their income and calculate their tax liability.",
+      "current_form_state": {
+        "Initial fields": {
+          "first_name": "Elena Sofia",
+          "last_name": "Rodriguez",
+          "ssn": "ending in 5432",
+          "filing_status": "Single",
+          "wages_salaries_tips": "85500",
+          "tax_exempt_interest": "N/A",
+          "total_income": "N/A",
+          "federal_income_tax_withheld": "10200",
+          "dependents_count": "0",
+          "tax_owed_refund": "N/A"
+        },
+        "New fields": {
+          "other_interest_income": "185.75",
+          "capital_gain_loss": "600",
+          "long_term_capital_gain": "600"
+        }
+      },
+      "current_summary_state": "The conversation has established Elena Sofia Rodriguez, SSN ending 5432, filing as Single with no dependents. Her W-2 wages are $85,500, federal income tax withheld is $10,200, interest income is $185.75, and long-term capital gain is $600. She confirmed no other income sources or traditional IRA contributions. David is now asking about student loan interest."
+    },
+    "ideal_output": {
+      "thinking": "Elena remembers and provides details for $950 in student loan interest she initially forgot. This introduces a new adjustment to income, so a new field for student loan interest deduction is added.",
+      "next_form_state": {
+        "Initial fields": {
+          "first_name": "Elena Sofia",
+          "last_name": "Rodriguez",
+          "ssn": "ending in 5432",
+          "filing_status": "Single",
+          "wages_salaries_tips": "85500",
+          "tax_exempt_interest": "N/A",
+          "total_income": "N/A",
+          "federal_income_tax_withheld": "10200",
+          "dependents_count": "0",
+          "tax_owed_refund": "N/A"
+        },
+        "New fields": {
+          "other_interest_income": "185.75",
+          "capital_gain_loss": "600",
+          "long_term_capital_gain": "600",
+          "student_loan_interest_deduction": "950"
+        }
+      },
+      "new_summary_state": "The conversation has established Elena Sofia Rodriguez, SSN ending 5432, filing as Single with no dependents. Her W-2 wages are $85,500, federal income tax withheld is $10,200, interest income is $185.75, and long-term capital gain is $600. She confirmed no other income sources or traditional IRA contributions, but then remembered and reported $950 in student loan interest."
+    },
+    "_conversation_id": "5aafb35a"
+  },
+  {
+    "input": {
+      "new_line": "Sarah Miller 1672532430: I think so. It says $3,200. But then, there's also the 1099-NEC from that marketing consulting gig I did before... before I got let go. That one's for $7,500.",
+      "10_lines_before": {
+        "Sarah Miller 1672532400": "Mark, I just... I can't. I can't look at this damn IRS Form 1040 anymore. My eyes are blurring, and my head feels like it's going to explode. It's almost midnight, and we still haven't even touched Schedule C. How are we going to finish this by tomorrow?",
+        "Mark Miller 1672532415": "Hey, hey, breathe, Sarah. We'll get through it. We always do. It's just... a lot this year, I know. Everything hitting at once. Losing your dad, and then the job... it's just been a nightmare. But we have to. If we miss this deadline, it's just another problem on top of everything else. Here, let me look at the 1099-MISC from your freelance writing for that tech startup. Did you get it right, Box 7, non-employee compensation?"
+      },
+      "form_name": "IRS Form 1040",
+      "form_description": "The primary federal income tax form used by U.S. taxpayers to report their income and calculate their tax liability.",
+      "current_form_state": {
+        "Initial fields": {
+          "first_name": "N/A",
+          "last_name": "N/A",
+          "ssn": "N/A",
+          "filing_status": "N/A",
+          "wages_salaries_tips": "N/A",
+          "tax_exempt_interest": "N/A",
+          "total_income": "N/A",
+          "federal_income_tax_withheld": "N/A",
+          "dependents_count": "N/A",
+          "tax_owed_refund": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Sarah is stressed about completing IRS Form 1040 by the deadline. Mark is trying to help, asking about her 1099-MISC for freelance writing."
+    },
+    "ideal_output": {
+      "thinking": "This line provides specific amounts for Sarah's self-employment income from two sources. This information is crucial for calculating total income and warrants a new field to track self-employment earnings.",
+      "next_form_state": {
+        "Initial fields": {
+          "first_name": "N/A",
+          "last_name": "N/A",
+          "ssn": "N/A",
+          "filing_status": "N/A",
+          "wages_salaries_tips": "N/A",
+          "tax_exempt_interest": "N/A",
+          "total_income": "N/A",
+          "federal_income_tax_withheld": "N/A",
+          "dependents_count": "N/A",
+          "tax_owed_refund": "N/A"
+        },
+        "New fields": {
+          "self_employment_income": "$10,700"
+        }
+      },
+      "new_summary_state": "Sarah reports $3,200 from a 1099-MISC for freelance writing and $7,500 from a 1099-NEC for marketing consulting, totaling $10,700 in self-employment income."
+    },
+    "_conversation_id": "cd932fa9"
+  },
+  {
+    "input": {
+      "new_line": "Sarah Miller 1672532550: It's... it's right here. Box 1, $45,000. And Box 2, federal income tax withheld, $5,500.",
+      "10_lines_before": {
+        "Sarah Miller 1672532400": "Mark, I just... I can't. I can't look at this damn IRS Form 1040 anymore. My eyes are blurring, and my head feels like it's going to explode. It's almost midnight, and we still haven't even touched Schedule C. How are we going to finish this by tomorrow?",
+        "Mark Miller 1672532415": "Hey, hey, breathe, Sarah. We'll get through it. We always do. It's just... a lot this year, I know. Everything hitting at once. Losing your dad, and then the job... it's just been a nightmare. But we have to. If we miss this deadline, it's just another problem on top of everything else. Here, let me look at the 1099-MISC from your freelance writing for that tech startup. Did you get it right, Box 7, non-employee compensation?",
+        "Sarah Miller 1672532430": "I think so. It says $3,200. But then, there's also the 1099-NEC from that marketing consulting gig I did before... before I got let go. That one's for $7,500. So that's two separate Schedule C forms, right? I just don't even know where to begin with the expenses for each one. I barely tracked anything in those last chaotic months.",
+        "Mark Miller 1672532445": "No, sweetie, one Schedule C for all self-employment income, you just list the different sources. Okay, $3,200 and $7,500. Total of $10,700 for your freelance work. Now, think. Any home office deductions? Did you buy any software? Pay for any subscriptions specifically for those jobs? Even tiny things add up. Remember when we talked about it? Even a portion of your internet if it was used solely for work.",
+        "Sarah Miller 1672532460": "I don't know, Mark! I was barely functioning after Dad... after he passed. I remember buying that new design software, it was like $200. And a subscription to that stock photo site, $50 for the year. But beyond that, it's all a blur. I didn't keep meticulous records like you do for your own business. I was just trying to keep my head above water, paying bills, dealing with the... the funeral arrangements. How can the IRS expect us to keep perfect records when life falls apart?",
+        "Mark Miller 1672532475": "I know, I know. It's not fair, but they do. We just have to do our best. Okay, so $200 software, $50 subscription. Anything else? Think about driving. Did you drive anywhere for those gigs? Client meetings? Even picking up office supplies?",
+        "Sarah Miller 1672532490": "No, everything was remote. Thank god. That's one less thing. Oh, wait. My cell phone bill. I definitely used my phone a lot for client calls. Can we deduct a portion of that? It's like $80 a month, so almost $1,000 for the year.",
+        "Mark Miller 1672532505": "Yes, we can definitely deduct a percentage of that. Let's say... 50% since you use it for personal too? So $480. Okay, that's something. Every little bit helps. So, Schedule C, total income $10,700. Expenses so far: $200 software, $50 subscription, $480 for phone. That's $730 in expenses.",
+        "Sarah Miller 1672532520": "Estimated taxes? Mark, I was barely making ends meet! And then with the severance from Global Corp, I just hoped my withholdings would cover everything. I didn't set aside anything specifically. And now with my W-2 income gone, and your business having a slower year, I'm just terrified we're going to owe thousands. I don't have thousands right now, Mark. We're already dipping into savings to cover the mortgage.",
+        "Mark Miller 1672532535": "I know, honey. I know. That's why we have to try to find every single deduction we can. Let's look at your W-2 from Global Corp, before they laid you off. Box 1, wages. How much did you earn there before... everything?"
+      },
+      "form_name": "IRS Form 1040",
+      "form_description": "The primary federal income tax form used by U.S. taxpayers to report their income and calculate their tax liability.",
+      "current_form_state": {
+        "Initial fields": {
+          "first_name": "N/A",
+          "last_name": "N/A",
+          "ssn": "N/A",
+          "filing_status": "N/A",
+          "wages_salaries_tips": "N/A",
+          "tax_exempt_interest": "N/A",
+          "total_income": "N/A",
+          "federal_income_tax_withheld": "N/A",
+          "dependents_count": "N/A",
+          "tax_owed_refund": "N/A"
+        },
+        "New fields": {
+          "self_employment_income": "$10,700",
+          "self_employment_expenses": "$730"
+        }
+      },
+      "current_summary_state": "Sarah has $10,700 in self-employment income with $730 in expenses. They are concerned about owing taxes and are now looking at Sarah's W-2 from Global Corp."
+    },
+    "ideal_output": {
+      "thinking": "This line provides Sarah's W-2 wages and federal income tax withheld, directly populating the corresponding initial form fields. This is a significant update to the taxpayer's income and payment information.",
+      "next_form_state": {
+        "Initial fields": {
+          "first_name": "N/A",
+          "last_name": "N/A",
+          "ssn": "N/A",
+          "filing_status": "N/A",
+          "wages_salaries_tips": "$45,000",
+          "tax_exempt_interest": "N/A",
+          "total_income": "N/A",
+          "federal_income_tax_withheld": "$5,500",
+          "dependents_count": "N/A",
+          "tax_owed_refund": "N/A"
+        },
+        "New fields": {
+          "self_employment_income": "$10,700",
+          "self_employment_expenses": "$730"
+        }
+      },
+      "new_summary_state": "Sarah reports W-2 wages of $45,000 and federal income tax withheld of $5,500 from Global Corp."
+    },
+    "_conversation_id": "cd932fa9"
+  },
+  {
+    "input": {
+      "new_line": "Mark Miller 1672532805: Yeah, based on a taxable income of $121,270, the tax liability for MFJ is approximately $16,005 (10% on first $22k, 12% on next $67k, 22% on the rest). So $16,005. And we have $19,280 in payments and credits. Sarah! That's a refund of over $3,200! Oh my god, you might be right! We're not owing!",
+      "10_lines_before": {
+        "Mark Miller 1672532655": "So, standard deduction it is. Which means our taxable income is $148,970 minus $27,700... that's $121,270. Ugh. Now, what about credits? Did we have any childcare expenses that we can claim before you were laid off? Remember, we had Mia at the daycare for a few months.",
+        "Sarah Miller 1672532670": "Mia was at Happy Tots for three months, yes. It was $800 a month. So $2,400 total. Do we have the receipt for that? It should be in the kids' folder, right? I packed everything up so fast when I got laid off. It's just sitting in a box somewhere.",
+        "Mark Miller 1672532685": "I think I saw it when I was cleaning up your desk. Let me just check the... yes! Here it is. Happy Tots Daycare, Total Payments $2,400. Okay, that's good. That's a credit, not a deduction, so it directly reduces what we owe. And don't forget the Child Tax Credit for both Mia and Leo. They are both under 17, so that's $2,000 per child, right? So $4,000 total.",
+        "Sarah Miller 1672532700": "Yes, $4,000 for them. Thank god for the kids, at least their credits are a silver lining. And did you make any IRA contributions this year? Or student loan interest?",
+        "Mark Miller 1672532715": "I did my usual SEP IRA contribution for my business, about $5,000, that's already a deduction from my business income on Schedule C. And no student loan interest for either of us this year, we finally paid those off a couple years ago, remember? What a relief that was. This year, though... it just feels like we're constantly on the back foot. I just hate seeing you so stressed out, Sarah.",
+        "Sarah Miller 1672532730": "I'm sorry, Mark. I'm just so... overwhelmed. Dad's passing, then losing my job, the funeral, trying to find new work, and now this giant Form 1040 staring at us, demanding answers we don't have. It feels like the world just keeps piling it on. And now we probably owe money we don't have. What if we can't pay?",
+        "Mark Miller 1672532745": "We'll figure it out. If we owe, we'll look into a payment plan with the IRS. It's not ideal, but it's an option. Let's just focus on getting this done accurately first. We've got combined federal withholding of $5,500 from your W-2 plus $7,800 from mine. That's $13,300. We also had that $1,500 estimated payment I sent in January, remember, for my business?",
+        "Sarah Miller 1672532760": "Oh, right, the $1,500. I did forget that. So total payments are $13,300 + $1,500 = $14,800. And we have $4,000 for the child tax credit, and the dependent care credit for Mia. How much is that usually? It's a percentage, right? Of the $2,400.",
+        "Mark Miller 1672532775": "Yes, for one child, it's typically 20% to 35% depending on our AGI. For $2,400, that would be, at least $480 up to $840. Let's calculate based on our AGI... okay, with our AGI, it's probably around 20%, so $480. So total credits are $4,000 + $480 = $4,480. We add that to our total payments, so $14,800 + $4,480 = $19,280 in total tax payments and credits.",
+        "Sarah Miller 1672532790": "Okay... so, rough calculation. Our taxable income is $121,270. Let's estimate our tax liability... looking at the tax tables for Married Filing Jointly... uh, it looks like it'll be around $16,000 to $17,000 range. If our total payments and credits are $19,280, then... then we might actually get a refund, Mark! Or at least break even!"
+      },
+      "form_name": "IRS Form 1040",
+      "form_description": "The primary federal income tax form used by U.S. taxpayers to report their income and calculate their tax liability.",
+      "current_form_state": {
+        "Initial fields": {
+          "first_name": "N/A",
+          "last_name": "N/A",
+          "ssn": "N/A",
+          "filing_status": "Married Filing Jointly",
+          "wages_salaries_tips": "$107,000",
+          "tax_exempt_interest": "N/A",
+          "total_income": "$148,970",
+          "federal_income_tax_withheld": "$13,300",
+          "dependents_count": "2",
+          "tax_owed_refund": "N/A"
+        },
+        "New fields": {
+          "self_employment_income": "$10,700",
+          "self_employment_expenses": "$730",
+          "net_self_employment_income": "$9,970",
+          "mark_business_net_profit": "$32,000",
+          "standard_deduction": "$27,700",
+          "child_tax_credit": "$4,000",
+          "dependent_care_credit": "$480",
+          "estimated_tax_payments": "$1,500",
+          "total_payments_and_credits": "$19,280",
+          "taxable_income": "$121,270"
+        }
+      },
+      "current_summary_state": "The Millers are filing Married Filing Jointly. Their combined W-2 wages are $107,000, Mark's business profit is $32,000, and Sarah's net self-employment income is $9,970, leading to a total income of $148,970. After a standard deduction of $27,700, their taxable income is $121,270. They are claiming 2 dependents, Mia and Leo, for a $4,000 Child Tax Credit and a $480 Dependent Care Credit. Their combined federal income tax withheld is $13,300, plus $1,500 in estimated tax payments, totaling $19,280 in payments and credits. Sarah estimates a refund or breaking even."
+    },
+    "ideal_output": {
+      "thinking": "This line confirms the exact tax liability based on their taxable income and calculates the final refund amount. It directly updates the `tax_owed_refund` field and adds tax liability as a new field.",
+      "next_form_state": {
+        "Initial fields": {
+          "first_name": "N/A",
+          "last_name": "N/A",
+          "ssn": "N/A",
+          "filing_status": "Married Filing Jointly",
+          "wages_salaries_tips": "$107,000",
+          "tax_exempt_interest": "N/A",
+          "total_income": "$148,970",
+          "federal_income_tax_withheld": "$13,300",
+          "dependents_count": "2",
+          "tax_owed_refund": "Refund of $3,275"
+        },
+        "New fields": {
+          "self_employment_income": "$10,700",
+          "self_employment_expenses": "$730",
+          "net_self_employment_income": "$9,970",
+          "mark_business_net_profit": "$32,000",
+          "standard_deduction": "$27,700",
+          "child_tax_credit": "$4,000",
+          "dependent_care_credit": "$480",
+          "estimated_tax_payments": "$1,500",
+          "total_payments_and_credits": "$19,280",
+          "taxable_income": "$121,270",
+          "tax_liability": "$16,005"
+        }
+      },
+      "new_summary_state": "Mark confirms that based on their taxable income of $121,270, their tax liability is approximately $16,005. With $19,280 in total payments and credits, they are expecting a refund of over $3,200, bringing immense relief to Sarah."
+    },
+    "_conversation_id": "cd932fa9"
+  },
+  {
+    "input": {
+      "new_line": "Benjamin Carter 1672533600: Okay, voice memo for 2023 tax return prep. It's January 25th, and I'm tackling the beast, the IRS Form 1040. Wish me luck. First things first, personal information. Name: Benjamin Alan Carter. SSN: XXX-XX-6789. Address: 789 Oak Avenue, Apt 12C, Metropolis, NY 10001. All the usual. No changes there. Phone number, email... standard stuff. Let's get that down.",
+      "10_lines_before": {},
+      "form_name": "IRS Form 1040",
+      "form_description": "The primary federal income tax form used by U.S. taxpayers to report their income and calculate their tax liability.",
+      "current_form_state": {
+        "Initial fields": {
+          "first_name": "N/A",
+          "last_name": "N/A",
+          "ssn": "N/A",
+          "filing_status": "N/A",
+          "wages_salaries_tips": "N/A",
+          "tax_exempt_interest": "N/A",
+          "total_income": "N/A",
+          "federal_income_tax_withheld": "N/A",
+          "dependents_count": "N/A",
+          "tax_owed_refund": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The conversation has just started, and Benjamin Carter is beginning his 2023 tax return preparation."
+    },
+    "ideal_output": {
+      "thinking": "This line clearly states the taxpayer's first name, last name, and Social Security Number, directly populating these initial form fields. It also establishes the context of preparing the IRS Form 1040.",
+      "next_form_state": {
+        "Initial fields": {
+          "first_name": "Benjamin",
+          "last_name": "Carter",
+          "ssn": "XXX-XX-6789",
+          "filing_status": "N/A",
+          "wages_salaries_tips": "N/A",
+          "tax_exempt_interest": "N/A",
+          "total_income": "N/A",
+          "federal_income_tax_withheld": "N/A",
+          "dependents_count": "N/A",
+          "tax_owed_refund": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Benjamin Carter has started preparing his 2023 IRS Form 1040. He has identified his name as Benjamin Alan Carter and his Social Security Number as XXX-XX-6789, along with his address."
+    },
+    "_conversation_id": "68258ec2"
+  },
+  {
+    "input": {
+      "new_line": "Benjamin Carter 1672533630: Filing status. Still single. No dependents. Haven't adopted a child, gotten married, or had any major life changes in that department. So, check the 'Single' box. Simple enough. Okay, now onto income. This is where it always gets... fun.",
+      "10_lines_before": {
+        "Benjamin Carter 1672533600": "Okay, voice memo for 2023 tax return prep. It's January 25th, and I'm tackling the beast, the IRS Form 1040. Wish me luck. First things first, personal information. Name: Benjamin Alan Carter. SSN: XXX-XX-6789. Address: 789 Oak Avenue, Apt 12C, Metropolis, NY 10001. All the usual. No changes there. Phone number, email... standard stuff. Let's get that down."
+      },
+      "form_name": "IRS Form 1040",
+      "form_description": "The primary federal income tax form used by U.S. taxpayers to report their income and calculate their tax liability.",
+      "current_form_state": {
+        "Initial fields": {
+          "first_name": "Benjamin",
+          "last_name": "Carter",
+          "ssn": "XXX-XX-6789",
+          "filing_status": "N/A",
+          "wages_salaries_tips": "N/A",
+          "tax_exempt_interest": "N/A",
+          "total_income": "N/A",
+          "federal_income_tax_withheld": "N/A",
+          "dependents_count": "N/A",
+          "tax_owed_refund": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Benjamin Carter has started preparing his 2023 IRS Form 1040. He has identified his name as Benjamin Alan Carter and his Social Security Number as XXX-XX-6789, along with his address."
+    },
+    "ideal_output": {
+      "thinking": "This line clearly states Benjamin's filing status as 'Single' and confirms 'No dependents,' directly populating these two key fields on the tax form.",
+      "next_form_state": {
+        "Initial fields": {
+          "first_name": "Benjamin",
+          "last_name": "Carter",
+          "ssn": "XXX-XX-6789",
+          "filing_status": "Single",
+          "wages_salaries_tips": "N/A",
+          "tax_exempt_interest": "N/A",
+          "total_income": "N/A",
+          "federal_income_tax_withheld": "N/A",
+          "dependents_count": "0",
+          "tax_owed_refund": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Benjamin Carter is preparing his 2023 IRS Form 1040. His name is Benjamin Alan Carter, SSN XXX-XX-6789. His filing status is Single, and he is claiming 0 dependents. He is now moving on to income."
+    },
+    "_conversation_id": "68258ec2"
+  },
+  {
+    "input": {
+      "new_line": "Benjamin Carter 1672533660: W-2 first. Got it right here from 'Tech Innovators Inc.' Box 1, wages: $92,000. Box 2, federal income tax withheld: $11,000. Box 17, state income tax withheld: $3,500 for New York. And local withheld, Box 19: $1,200 for Metropolis City. Good. Let's input that. Check. Always good to double-check these numbers, especially the withheld amounts. That directly impacts the refund or amount due.",
+      "10_lines_before": {
+        "Benjamin Carter 1672533600": "Okay, voice memo for 2023 tax return prep. It's January 25th, and I'm tackling the beast, the IRS Form 1040. Wish me luck. First things first, personal information. Name: Benjamin Alan Carter. SSN: XXX-XX-6789. Address: 789 Oak Avenue, Apt 12C, Metropolis, NY 10001. All the usual. No changes there. Phone number, email... standard stuff. Let's get that down.",
+        "Benjamin Carter 1672533630": "Filing status. Still single. No dependents. Haven't adopted a child, gotten married, or had any major life changes in that department. So, check the 'Single' box. Simple enough. Okay, now onto income. This is where it always gets... fun."
+      },
+      "form_name": "IRS Form 1040",
+      "form_description": "The primary federal income tax form used by U.S. taxpayers to report their income and calculate their tax liability.",
+      "current_form_state": {
+        "Initial fields": {
+          "first_name": "Benjamin",
+          "last_name": "Carter",
+          "ssn": "XXX-XX-6789",
+          "filing_status": "Single",
+          "wages_salaries_tips": "N/A",
+          "tax_exempt_interest": "N/A",
+          "total_income": "N/A",
+          "federal_income_tax_withheld": "N/A",
+          "dependents_count": "0",
+          "tax_owed_refund": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Benjamin Carter is preparing his 2023 IRS Form 1040. His name is Benjamin Alan Carter, SSN XXX-XX-6789. His filing status is Single, and he is claiming 0 dependents. He is now moving on to income."
+    },
+    "ideal_output": {
+      "thinking": "This line provides the total wages from a W-2 and the federal income tax withheld, directly populating the `wages_salaries_tips` and `federal_income_tax_withheld` fields.",
+      "next_form_state": {
+        "Initial fields": {
+          "first_name": "Benjamin",
+          "last_name": "Carter",
+          "ssn": "XXX-XX-6789",
+          "filing_status": "Single",
+          "wages_salaries_tips": "$92,000",
+          "tax_exempt_interest": "N/A",
+          "total_income": "N/A",
+          "federal_income_tax_withheld": "$11,000",
+          "dependents_count": "0",
+          "tax_owed_refund": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Benjamin Carter is preparing his 2023 IRS Form 1040. His name is Benjamin Alan Carter, SSN XXX-XX-6789. His filing status is Single, and he is claiming 0 dependents. From his W-2, his total wages are $92,000, and federal income tax withheld is $11,000. He also noted state and local tax withheld."
+    },
+    "_conversation_id": "68258ec2"
+  },
+  {
+    "input": {
+      "new_line": "Ms. Evelyn Hayes: Oh, dear. I distinctly remember entering $1,500. I had just sold some old stock. I did receive a 1099-B from Prosperity, yes. Let me see my copy. [Rifles through her handbag, pulls out a crumpled envelope] Ah, here's my copy of the 1099-B. Oh, my goodness. You're right. It clearly says $3,800 in Box 1d for gross proceeds, and a cost basis of $2,300 in Box 1e. So, a $1,500 gain. Wait, no. Gross proceeds $3,800, cost basis $1,500... so the gain itself was $2,300, not $1,500. I think I got confused. I put the cost basis as the gain!",
+      "10_lines_before": {
+        "Queue Ambience 1672535400": "[Sound of murmuring voices, a child briefly crying, distant phone ringing, chair scraping on linoleum floor]",
+        "Mr. Jenkins 1672535405": "Next, please. Good morning, ma'am. How can I assist you today? Please have a seat.",
+        "Ms. Evelyn Hayes 1672535415": "Good morning, Mr. Jenkins. Thank you. My name is Evelyn Hayes. I received a notice, CP2000 actually, regarding my 2022 tax return, which I filed manually last year. It says there's a discrepancy with investment income. I brought my original Form 1040 and the notice.",
+        "Mr. Jenkins 1672535430": "[Takes the papers, shuffles them slightly] Ah, a CP2000. Not uncommon. Let's see here. Evelyn Hayes... And your Social Security number, for verification, please?",
+        "Ms. Evelyn Hayes 1672535445": "It's XXX-XX-9012. Date of birth is August 14, 1968.",
+        "Mr. Jenkins 1672535455": "Thank you, Ms. Hayes. [Typing briefly, then pauses, still reviewing the documents] Okay, I see your account here. The notice indicates a mismatch with capital gains reported. Specifically, it seems you reported a capital gain of $1,500 on Schedule D, but our records show a 1099-B from 'Prosperity Investments' for $3,800. Is that correct?"
+      },
+      "form_name": "IRS Form 1040",
+      "form_description": "The primary federal income tax form used by U.S. taxpayers to report their income and calculate their tax liability.",
+      "current_form_state": {
+        "Initial fields": {
+          "first_name": "Evelyn",
+          "last_name": "Hayes",
+          "ssn": "XXX-XX-9012",
+          "filing_status": "N/A",
+          "wages_salaries_tips": "N/A",
+          "tax_exempt_interest": "N/A",
+          "total_income": "N/A",
+          "federal_income_tax_withheld": "N/A",
+          "dependents_count": "N/A",
+          "tax_owed_refund": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Evelyn Hayes is at the IRS office regarding a CP2000 notice for her 2022 tax return, showing a discrepancy with investment income. Her SSN is XXX-XX-9012. The notice indicates she reported a capital gain of $1,500, but IRS records show $3,800 in gross proceeds from a 1099-B, suggesting a mismatch."
+    },
+    "ideal_output": {
+      "thinking": "Evelyn reviews her 1099-B, initially miscalculates the capital gain, then corrects herself to the accurate amount of $2,300. This clarifies the actual capital gains value, warranting a new form field.",
+      "next_form_state": {
+        "Initial fields": {
+          "first_name": "Evelyn",
+          "last_name": "Hayes",
+          "ssn": "XXX-XX-9012",
+          "filing_status": "N/A",
+          "wages_salaries_tips": "N/A",
+          "tax_exempt_interest": "N/A",
+          "total_income": "N/A",
+          "federal_income_tax_withheld": "N/A",
+          "dependents_count": "N/A",
+          "tax_owed_refund": "N/A"
+        },
+        "New fields": {
+          "capital_gains": "2,300"
+        }
+      },
+      "new_summary_state": "Evelyn Hayes is at the IRS office regarding a CP2000 notice for her 2022 tax return, showing a discrepancy with investment income. Her SSN is XXX-XX-9012. After reviewing her 1099-B, she corrected her understanding, realizing the actual capital gain was $2,300, not the $1,500 she initially reported."
+    },
+    "_conversation_id": "d233bfe7"
+  },
+  {
+    "input": {
+      "new_line": "Ms. Evelyn Hayes: Oh, dear. An additional $800 in capital gains. That means I'll owe more tax, won't I? I really tried to be careful, but I suppose I mixed up the numbers on the 1099-B. This whole process is so confusing sometimes.",
+      "10_lines_before": {
+        "Queue Ambience 1672535400": "[Sound of murmuring voices, a child briefly crying, distant phone ringing, chair scraping on linoleum floor]",
+        "Mr. Jenkins 1672535405": "Next, please. Good morning, ma'am. How can I assist you today? Please have a seat.",
+        "Ms. Evelyn Hayes 1672535415": "Good morning, Mr. Jenkins. Thank you. My name is Evelyn Hayes. I received a notice, CP2000 actually, regarding my 2022 tax return, which I filed manually last year. It says there's a discrepancy with investment income. I brought my original Form 1040 and the notice.",
+        "Mr. Jenkins 1672535430": "[Takes the papers, shuffles them slightly] Ah, a CP2000. Not uncommon. Let's see here. Evelyn Hayes... And your Social Security number, for verification, please?",
+        "Ms. Evelyn Hayes 1672535445": "It's XXX-XX-9012. Date of birth is August 14, 1968.",
+        "Mr. Jenkins 1672535455": "Thank you, Ms. Hayes. [Typing briefly, then pauses, still reviewing the documents] Okay, I see your account here. The notice indicates a mismatch with capital gains reported. Specifically, it seems you reported a capital gain of $1,500 on Schedule D, but our records show a 1099-B from 'Prosperity Investments' for $3,800. Is that correct?",
+        "Ms. Evelyn Hayes 1672535475": "Oh, dear. I distinctly remember entering $1,500. I had just sold some old stock. I did receive a 1099-B from Prosperity, yes. Let me see my copy. [Rifles through her handbag, pulls out a crumpled envelope] Ah, here's my copy of the 1099-B. Oh, my goodness. You're right. It clearly says $3,800 in Box 1d for gross proceeds, and a cost basis of $2,300 in Box 1e. So, a $1,500 gain. Wait, no. Gross proceeds $3,800, cost basis $1,500... so the gain itself was $2,300, not $1,500. I think I got confused. I put the cost basis as the gain!",
+        "Mr. Jenkins 1672535520": "[Nods slowly, peering at her copy of the 1099-B] Yes, that's a common oversight, Ms. Hayes. The gain would indeed be the proceeds minus the basis. So, $3,800 minus $1,500 equals $2,300. And your original Form 1040, line 7, and Schedule D, showed $1,500. So, it appears you underreported your capital gains by $800. This is an increase to your taxable income."
+      },
+      "form_name": "IRS Form 1040",
+      "form_description": "The primary federal income tax form used by U.S. taxpayers to report their income and calculate their tax liability.",
+      "current_form_state": {
+        "Initial fields": {
+          "first_name": "Evelyn",
+          "last_name": "Hayes",
+          "ssn": "XXX-XX-9012",
+          "filing_status": "N/A",
+          "wages_salaries_tips": "N/A",
+          "tax_exempt_interest": "N/A",
+          "total_income": "Underreported by $800",
+          "federal_income_tax_withheld": "N/A",
+          "dependents_count": "N/A",
+          "tax_owed_refund": "N/A"
+        },
+        "New fields": {
+          "capital_gains": "2,300"
+        }
+      },
+      "current_summary_state": "Evelyn Hayes' SSN is XXX-XX-9012. She initially reported $1,500 in capital gains, but after reviewing her 1099-B, corrected it to $2,300. Mr. Jenkins confirmed she underreported her capital gains by $800, which increases her taxable income."
+    },
+    "ideal_output": {
+      "thinking": "Evelyn's line expresses uncertainty regarding the financial impact of the corrected capital gains on her tax liability. This highlights the 'tax_owed_refund' field as currently unclear to her, prompting further clarification.",
+      "next_form_state": {
+        "Initial fields": {
+          "first_name": "Evelyn",
+          "last_name": "Hayes",
+          "ssn": "XXX-XX-9012",
+          "filing_status": "N/A",
+          "wages_salaries_tips": "N/A",
+          "tax_exempt_interest": "N/A",
+          "total_income": "Underreported by $800",
+          "federal_income_tax_withheld": "N/A",
+          "dependents_count": "N/A",
+          "tax_owed_refund": "Unclear (additional tax likely owed)"
+        },
+        "New fields": {
+          "capital_gains": "2,300"
+        }
+      },
+      "new_summary_state": "Evelyn Hayes' SSN is XXX-XX-9012. She underreported her capital gains by $800, increasing her taxable income. She is now asking if this means she will owe more tax, indicating uncertainty about the impact on her tax liability."
+    },
+    "_conversation_id": "d233bfe7"
+  },
+  {
+    "input": {
+      "new_line": "Ms. Evelyn Hayes: Okay, that's a relief. I was picturing hundreds, maybe thousands. I can certainly afford $130. So, what's the next step? Do I just pay this, or do I need to amend my Form 1040?",
+      "10_lines_before": {
+        "Ms. Evelyn Hayes 1672535445": "It's XXX-XX-9012. Date of birth is August 14, 1968.",
+        "Mr. Jenkins 1672535455": "Thank you, Ms. Hayes. [Typing briefly, then pauses, still reviewing the documents] Okay, I see your account here. The notice indicates a mismatch with capital gains reported. Specifically, it seems you reported a capital gain of $1,500 on Schedule D, but our records show a 1099-B from 'Prosperity Investments' for $3,800. Is that correct?",
+        "Ms. Evelyn Hayes 1672535475": "Oh, dear. I distinctly remember entering $1,500. I had just sold some old stock. I did receive a 1099-B from Prosperity, yes. Let me see my copy. [Rifles through her handbag, pulls out a crumpled envelope] Ah, here's my copy of the 1099-B. Oh, my goodness. You're right. It clearly says $3,800 in Box 1d for gross proceeds, and a cost basis of $2,300 in Box 1e. So, a $1,500 gain. Wait, no. Gross proceeds $3,800, cost basis $1,500... so the gain itself was $2,300, not $1,500. I think I got confused. I put the cost basis as the gain!",
+        "Mr. Jenkins 1672535520": "[Nods slowly, peering at her copy of the 1099-B] Yes, that's a common oversight, Ms. Hayes. The gain would indeed be the proceeds minus the basis. So, $3,800 minus $1,500 equals $2,300. And your original Form 1040, line 7, and Schedule D, showed $1,500. So, it appears you underreported your capital gains by $800. This is an increase to your taxable income.",
+        "Ms. Evelyn Hayes 1672535555": "Oh, dear. An additional $800 in capital gains. That means I'll owe more tax, won't I? I really tried to be careful, but I suppose I mixed up the numbers on the 1099-B. This whole process is so confusing sometimes.",
+        "Mr. Jenkins 1672535570": "It can be, absolutely. Especially with investment forms. So, let's recalculate this. An extra $800 in long-term capital gains, assuming these were long-term gains, correct?",
+        "Ms. Evelyn Hayes 1672535585": "Yes, they were long-term. I'd held those shares for over five years.",
+        "Mr. Jenkins 1672535600": "Understood. So, the $800 will be taxed at your capital gains rate, which based on your other income on file for 2022, I'd estimate around 15%. So, an additional tax liability of roughly $120. Plus, any potential penalties or interest on the underpayment, depending on when your original return was filed and if you paid anything toward the additional tax.",
+        "Ms. Evelyn Hayes 1672535630": "Penalties? Oh, no. I filed on April 10th last year. And I paid what I thought I owed. How much would the penalty be?",
+        "Mr. Jenkins 1672535645": "The penalty for failure to pay is typically 0.5% of the unpaid taxes for each month or part of a month that the taxes remain unpaid, up to 25%. So, for $120, and calculating from April 15th, 2023... that would be roughly 10 months now. About 5% of $120, which is around $6. And interest... it varies, but it's typically 3% over the federal short-term rate. Let's estimate maybe another $3-$5. So, you're looking at an additional amount due of about $120 plus maybe $10-$15 in penalties and interest. Roughly $130-$135 total. It's not a catastrophic amount, thankfully."
+      },
+      "form_name": "IRS Form 1040",
+      "form_description": "The primary federal income tax form used by U.S. taxpayers to report their income and calculate their tax liability.",
+      "current_form_state": {
+        "Initial fields": {
+          "first_name": "Evelyn",
+          "last_name": "Hayes",
+          "ssn": "XXX-XX-9012",
+          "filing_status": "N/A",
+          "wages_salaries_tips": "N/A",
+          "tax_exempt_interest": "N/A",
+          "total_income": "Underreported by $800",
+          "federal_income_tax_withheld": "N/A",
+          "dependents_count": "N/A",
+          "tax_owed_refund": "Owes approximately $130-$135"
+        },
+        "New fields": {
+          "capital_gains": "2,300"
+        }
+      },
+      "current_summary_state": "Evelyn Hayes' SSN is XXX-XX-9012. She underreported capital gains by $800, leading to an additional tax liability of approximately $120. With penalties and interest, the total additional amount due is estimated at $130-$135."
+    },
+    "ideal_output": {
+      "thinking": "Evelyn expresses relief and explicitly accepts the calculated additional tax owed, correcting her previous internal expectation of a much higher amount. This updates the 'tax_owed_refund' field with a confirmed value.",
+      "next_form_state": {
+        "Initial fields": {
+          "first_name": "Evelyn",
+          "last_name": "Hayes",
+          "ssn": "XXX-XX-9012",
+          "filing_status": "N/A",
+          "wages_salaries_tips": "N/A",
+          "tax_exempt_interest": "N/A",
+          "total_income": "Underreported by $800",
+          "federal_income_tax_withheld": "N/A",
+          "dependents_count": "N/A",
+          "tax_owed_refund": "Owes $130"
+        },
+        "New fields": {
+          "capital_gains": "2,300"
+        }
+      },
+      "new_summary_state": "Evelyn Hayes' SSN is XXX-XX-9012. She underreported capital gains by $800, resulting in an additional tax liability of approximately $130-$135. She expresses relief that the amount is not higher and confirms she can afford to pay $130, then asks about the next steps for payment."
+    },
+    "_conversation_id": "d233bfe7"
+  },
+  {
+    "input": {
+      "new_line": "Mr. Arthur Finch 1672536630: Of course, Julia. Let's begin with the personal information on page one. Name: Julia Marie Peterson. Social Security Number: XXX-XX-3456. Date of Birth: October 10, 1978. Address: 456 Summit Drive, Beverly Hills, CA 09210. Is all of that accurate?",
+      "10_lines_before": {
+        "Mr. Arthur Finch 1672536600": "Good morning, Ms. Peterson. Thank you for coming in today. I've compiled the draft of your 2023 IRS Form 1040 based on the documents you provided. We'll go through it line by line, ensure everything is accurate, and discuss any potential optimizations. Please feel free to interject with any questions or clarifications.",
+        "Ms. Julia Peterson 1672536615": "Good morning, Arthur. Please, call me Julia. And thank you. I appreciate your thoroughness. I'm always a bit nervous during tax season, so I'm glad to have your expertise. Let's get started."
+      },
+      "form_name": "IRS Form 1040",
+      "form_description": "The primary federal income tax form used by U.S. taxpayers to report their income and calculate their tax liability.",
+      "current_form_state": {
+        "Initial fields": {
+          "first_name": "N/A",
+          "last_name": "N/A",
+          "ssn": "N/A",
+          "filing_status": "N/A",
+          "wages_salaries_tips": "N/A",
+          "tax_exempt_interest": "N/A",
+          "total_income": "N/A",
+          "federal_income_tax_withheld": "N/A",
+          "dependents_count": "N/A",
+          "tax_owed_refund": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Arthur Finch has prepared a draft 2023 IRS Form 1040 for Ms. Peterson and will review it with her. Ms. Peterson (Julia) is nervous about tax season and wants to start."
+    },
+    "ideal_output": {
+      "thinking": "This line explicitly states the taxpayer's first name, last name, and Social Security Number. These values directly populate the corresponding initial form fields.",
+      "next_form_state": {
+        "Initial fields": {
+          "first_name": "Julia",
+          "last_name": "Peterson",
+          "ssn": "XXX-XX-3456",
+          "filing_status": "N/A",
+          "wages_salaries_tips": "N/A",
+          "tax_exempt_interest": "N/A",
+          "total_income": "N/A",
+          "federal_income_tax_withheld": "N/A",
+          "dependents_count": "N/A",
+          "tax_owed_refund": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Arthur Finch has prepared a draft 2023 IRS Form 1040 for Ms. Peterson (Julia) and is reviewing it with her. Julia is nervous about tax season. Arthur begins reviewing personal information, stating the name is Julia Marie Peterson and SSN is XXX-XX-3456."
+    },
+    "_conversation_id": "7dc5434f"
+  },
+  {
+    "input": {
+      "new_line": "Mr. Arthur Finch 1672536665: Excellent. Filing status, we have you as 'Married Filing Separately.' Your marital status for 2023 was still legally married, but you and Mr. Peterson live apart and maintain separate households, correct? And you're not claiming any dependents.",
+      "10_lines_before": {
+        "Mr. Arthur Finch 1672536600": "Good morning, Ms. Peterson. Thank you for coming in today. I've compiled the draft of your 2023 IRS Form 1040 based on the documents you provided. We'll go through it line by line, ensure everything is accurate, and discuss any potential optimizations. Please feel free to interject with any questions or clarifications.",
+        "Ms. Julia Peterson 1672536615": "Good morning, Arthur. Please, call me Julia. And thank you. I appreciate your thoroughness. I'm always a bit nervous during tax season, so I'm glad to have your expertise. Let's get started.",
+        "Mr. Arthur Finch 1672536630": "Of course, Julia. Let's begin with the personal information on page one. Name: Julia Marie Peterson. Social Security Number: XXX-XX-3456. Date of Birth: October 10, 1978. Address: 456 Summit Drive, Beverly Hills, CA 09210. Is all of that accurate?",
+        "Ms. Julia Peterson 1672536650": "Yes, completely accurate. No changes from last year on any of that."
+      },
+      "form_name": "IRS Form 1040",
+      "form_description": "The primary federal income tax form used by U.S. taxpayers to report their income and calculate their tax liability.",
+      "current_form_state": {
+        "Initial fields": {
+          "first_name": "Julia",
+          "last_name": "Peterson",
+          "ssn": "XXX-XX-3456",
+          "filing_status": "N/A",
+          "wages_salaries_tips": "N/A",
+          "tax_exempt_interest": "N/A",
+          "total_income": "N/A",
+          "federal_income_tax_withheld": "N/A",
+          "dependents_count": "N/A",
+          "tax_owed_refund": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Arthur Finch has prepared a draft 2023 IRS Form 1040 for Ms. Peterson (Julia) and is reviewing it with her. Julia is nervous about tax season. Arthur confirmed Julia's personal information, including name (Julia Marie Peterson) and SSN (XXX-XX-3456)."
+    },
+    "ideal_output": {
+      "thinking": "This line clearly states the filing status as 'Married Filing Separately' and confirms that no dependents are being claimed. This updates the `filing_status` and `dependents_count` fields.",
+      "next_form_state": {
+        "Initial fields": {
+          "first_name": "Julia",
+          "last_name": "Peterson",
+          "ssn": "XXX-XX-3456",
+          "filing_status": "Married Filing Separately",
+          "wages_salaries_tips": "N/A",
+          "tax_exempt_interest": "N/A",
+          "total_income": "N/A",
+          "federal_income_tax_withheld": "N/A",
+          "dependents_count": "0",
+          "tax_owed_refund": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Arthur Finch has prepared a draft 2023 IRS Form 1040 for Ms. Peterson (Julia) and is reviewing it with her. Julia is nervous about tax season. Arthur confirmed Julia's personal information (name: Julia Marie Peterson, SSN: XXX-XX-3456) and states her filing status is 'Married Filing Separately' with no dependents."
+    },
+    "_conversation_id": "7dc5434f"
+  },
+  {
+    "input": {
+      "new_line": "Mr. Arthur Finch 1672537690: Precisely. So, comparing your total tax of $31,580 against your total payments of $35,500, you are due a refund of $3,920. That's a healthy refund, Julia.",
+      "10_lines_before": {
+        "Mr. Arthur Finch 1672537385": "Moving on to mortgage interest. You provided your 1098 from Coastal Home Lending, indicating mortgage interest paid of $18,000. Additionally, real estate taxes of $6,000. The real estate taxes also fall under the SALT cap, which we've already maxed out at $10,000, so we can't deduct that portion separately. But the mortgage interest is fully deductible.",
+        "Ms. Julia Peterson 1672537430": "Okay, $18,000 for mortgage interest. Got it.",
+        "Mr. Arthur Finch 1672537440": "And finally, charitable contributions. You have documentation for $7,500 in cash contributions to your alma mater, and $3,000 in non-cash donations, specifically appreciating stock, to the local arts foundation. Both are fully deductible within their respective AGI limitations, which you are well within. So, a total of $10,500.",
+        "Ms. Julia Peterson 1672537480": "That's correct. I was quite generous this year.",
+        "Mr. Arthur Finch 1672537490": "A commendable effort, Julia. So, let's sum up your itemized deductions: $2,167 (medical) + $10,000 (SALT) + $18,000 (mortgage interest) + $10,500 (charitable contributions) = $40,667. This is significantly higher than the standard deduction, so itemizing is definitely beneficial.",
+        "Ms. Julia Peterson 1672537530": "Excellent. I'm pleased with that total.",
+        "Mr. Arthur Finch 1672537540": "Now, your taxable income: AGI of $211,105 minus itemized deductions of $40,667, which gives us a taxable income of $170,438. Let's look at the tax calculation based on the Married Filing Separately brackets for 2023. At this level, a significant portion will fall into the 24% and 32% brackets. My software calculates your total tax liability, before credits, as $31,580.",
+        "Ms. Julia Peterson 1672537600": "That seems like a reasonable calculation based on the income and deductions. What about credits?",
+        "Mr. Arthur Finch 1672537610": "Good question. You indicated no dependents, no education expenses, no residential energy credits, no clean vehicle credits. The only credit you might have is the credit for prior year minimum tax, if applicable, but looking at your history, that's unlikely. So, it appears no specific tax credits are applicable this year, which means your total tax remains $31,580.",
+        "Ms. Julia Peterson 1672537650": "Okay, that's fair. I didn't expect any major credits. So, total tax of $31,580. And I had $28,000 withheld from my W-2. Plus, I paid $7,500 in estimated taxes for my consulting income throughout the year. So, total payments are $28,000 + $7,500 = $35,500."
+      },
+      "form_name": "IRS Form 1040",
+      "form_description": "The primary federal income tax form used by U.S. taxpayers to report their income and calculate their tax liability.",
+      "current_form_state": {
+        "Initial fields": {
+          "first_name": "Julia",
+          "last_name": "Peterson",
+          "ssn": "XXX-XX-3456",
+          "filing_status": "Married Filing Separately",
+          "wages_salaries_tips": "185000",
+          "tax_exempt_interest": "N/A",
+          "total_income": "218770",
+          "federal_income_tax_withheld": "28000",
+          "dependents_count": "0",
+          "tax_owed_refund": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Arthur Finch is reviewing Julia Peterson's 2023 IRS Form 1040. Julia's personal information (Julia Marie Peterson, SSN XXX-XX-3456) has been confirmed. Her filing status is Married Filing Separately, with no dependents. Her W-2 wages are $185,000, and federal tax withheld is $28,000. Her total gross income is $218,770. After $7,665 in adjustments, her AGI is $211,105. Itemized deductions total $40,667, leading to a taxable income of $170,438. Her total tax liability is $31,580, with no applicable credits. Julia has paid a total of $35,500 ($28,000 withheld from W-2 + $7,500 in estimated taxes)."
+    },
+    "ideal_output": {
+      "thinking": "This line explicitly states the calculated refund amount. This directly updates the `tax_owed_refund` field, indicating a refund of $3,920.",
+      "next_form_state": {
+        "Initial fields": {
+          "first_name": "Julia",
+          "last_name": "Peterson",
+          "ssn": "XXX-XX-3456",
+          "filing_status": "Married Filing Separately",
+          "wages_salaries_tips": "185000",
+          "tax_exempt_interest": "N/A",
+          "total_income": "218770",
+          "federal_income_tax_withheld": "28000",
+          "dependents_count": "0",
+          "tax_owed_refund": "Refund of $3,920"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Arthur Finch is reviewing Julia Peterson's 2023 IRS Form 1040. Julia's personal information (Julia Marie Peterson, SSN XXX-XX-3456) has been confirmed. Her filing status is Married Filing Separately, with no dependents. Her W-2 wages are $185,000, and federal tax withheld is $28,000. Her total gross income is $218,770. After $7,665 in adjustments, her AGI is $211,105. Itemized deductions total $40,667, leading to a taxable income of $170,438. Her total tax liability is $31,580, with no applicable credits. With total payments of $35,500, Julia is due a refund of $3,920."
+    },
+    "_conversation_id": "7dc5434f"
+  },
+  {
+    "input": {
+      "new_line": "Maya 1678886405: Nope, Whiskers doesn't count. Unless you're claiming him as a tax-deductible emotional support animal for your severe W-4 anxiety. Which, tempting as it sounds, is probably an audit trigger. So, 'Single' it is. Check that box.",
+      "10_lines_before": {
+        "Maya 1678886400": "Alright, little brother, operation 'Get Your Tax Stuff Straight' is officially a go. Hand over that W-4 Form. Let's get you set up right for your big fancy Tech Solutions job.",
+        "Liam 1678886400": "Thanks, Maya. It's just... this form always looks like it's written in ancient alien script. 'Determine your withholding,' 'Adjustments,' 'Dependents'... my brain already hurts.",
+        "Maya 1678886401": "Relax, I've done like ten of these. You'll be fine. First things first, Section 1: Personal Information. Easy-peasy. Name, address, Social Security number. Don't tell me you forgot your own SSN.",
+        "Liam 1678886402": "Haha, very funny. No, I got it. *scribbles* Liam Thompson, 123 Maple Street, Anytown, CA 90210. SSN: XXX-XX-1234. Zip code... 90210. Is that really a thing?",
+        "Maya 1678886403": "It is, indeed. Okay, next up, your filing status. This is important. Are you Single, Married Filing Jointly, or Married Filing Separately? Or Head of Household?",
+        "Liam 1678886404": "Uh, Single. Definitely single. Unless my cat, Whiskers, counts as a dependent, which I'm pretty sure he doesn't, despite how much he depends on me for food and shelter."
+      },
+      "form_name": "W-4 Form",
+      "form_description": "An IRS form completed by employees to indicate their tax situation to employers, determining the correct amount of federal income tax to withhold from their paychecks.",
+      "current_form_state": {
+        "Initial fields": {
+          "first_name": "Liam",
+          "last_name": "Thompson",
+          "ssn": "XXX-XX-1234",
+          "street_address": "123 Maple Street",
+          "city_state_zip": "Anytown, CA 90210",
+          "filing_status": "Single",
+          "multiple_jobs_or_spouse_works": "N/A",
+          "dependents_credit_amount": "N/A",
+          "other_income": "N/A",
+          "extra_withholding_per_paycheck": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Maya and Liam are filling out the W-4 form. Liam has provided his personal information: Liam Thompson, 123 Maple Street, Anytown, CA 90210, SSN: XXX-XX-1234. He stated his filing status is \"Single\" but jokingly questioned if his cat, Whiskers, counts as a dependent."
+    },
+    "ideal_output": {
+      "thinking": "Maya explicitly clarifies that Liam's cat, Whiskers, does not count as a dependent, resolving any ambiguity from Liam's previous statement. This confirms the filing status as 'Single' and implies no dependent credit amount.",
+      "next_form_state": {
+        "Initial fields": {
+          "first_name": "Liam",
+          "last_name": "Thompson",
+          "ssn": "XXX-XX-1234",
+          "street_address": "123 Maple Street",
+          "city_state_zip": "Anytown, CA 90210",
+          "filing_status": "Single",
+          "multiple_jobs_or_spouse_works": "N/A",
+          "dependents_credit_amount": "N/A",
+          "other_income": "N/A",
+          "extra_withholding_per_paycheck": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Maya and Liam are filling out the W-4 form. Liam has provided his personal information: Liam Thompson, 123 Maple Street, Anytown, CA 90210, SSN: XXX-XX-1234. He confirmed his filing status is \"Single\", and Maya clarified that his cat, Whiskers, does not count as a dependent."
+    },
+    "_conversation_id": "4abfb761"
+  },
+  {
+    "input": {
+      "new_line": "Maya 1678886415: No, that's fine. We're talking substantial, regular income here. So, leave 'Other income' blank for now. Next, 'Deductions.' This is for things beyond the standard deduction. Like if you're itemizing because you have massive student loan interest, or charitable contributions, or specific tax credits.",
+      "10_lines_before": {
+        "Liam 1678886406": "Done. Okay, Section 2: Multiple Jobs or Spouse Works. I'm assuming this doesn't apply to me since I only have this one job, and no spouse.",
+        "Maya 1678886407": "Correct. If you pick 'Single' here, and you *don't* have a spouse, and you *don't* have another job, you can skip this whole section. Good news, right? One less brain twister.",
+        "Liam 1678886408": "Sweet. Skipping is my favorite form-filling activity. What's Section 3: Claim Dependents?",
+        "Maya 1678886409": "Alright, this is where you'd list any kids or other qualifying dependents. Do you have any mini-Liams running around? Or, you know, actual human dependents?",
+        "Liam 1678886410": "Nope. Still just Whiskers. And my houseplants. Who are doing surprisingly well, actually. Remember that fern I got last year?",
+        "Maya 1678886411": "Focus, Grasshopper. No kids, no dependents. So, put a zero on that line for now. If you ever adopt a child, or like, win the lottery and decide to support a whole orphanage, we'll revisit.",
+        "Liam 1678886412": "Got it. Zero. Moving on to Section 4: Other Adjustments. This sounds tricky. Extra withholding? Other income? Deductions?",
+        "Maya 1678886413": "This is where things can get a little nuanced. 'Other income' would be if you have, say, a side hustle like freelancing or driving for a ride-share app, and you want to account for that tax-wise right away. Do you?",
+        "Liam 1678886414": "Well, I do occasionally fix computers for friends, but it's more like pizza money than actual income. Like, maybe $200 a year, tops. I definitely don't want to get into trouble with the IRS over a few pepperoni slices."
+      },
+      "form_name": "W-4 Form",
+      "form_description": "An IRS form completed by employees to indicate their tax situation to employers, determining the correct amount of federal income tax to withhold from their paychecks.",
+      "current_form_state": {
+        "Initial fields": {
+          "first_name": "Liam",
+          "last_name": "Thompson",
+          "ssn": "XXX-XX-1234",
+          "street_address": "123 Maple Street",
+          "city_state_zip": "Anytown, CA 90210",
+          "filing_status": "Single",
+          "multiple_jobs_or_spouse_works": "No",
+          "dependents_credit_amount": "0",
+          "other_income": "$200",
+          "extra_withholding_per_paycheck": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Liam has provided his personal information, confirmed his filing status as \"Single\", and stated he has no dependents. He also confirmed he has no multiple jobs or a spouse. For \"Other income\", he mentioned occasionally fixing computers for friends, earning about $200 a year."
+    },
+    "ideal_output": {
+      "thinking": "Maya clarifies that Liam's minimal 'pizza money' income is not substantial enough to be considered 'other income' for the W-4, instructing him to leave the field blank. This reverts the `other_income` field from $200 back to 'N/A'.",
+      "next_form_state": {
+        "Initial fields": {
+          "first_name": "Liam",
+          "last_name": "Thompson",
+          "ssn": "XXX-XX-1234",
+          "street_address": "123 Maple Street",
+          "city_state_zip": "Anytown, CA 90210",
+          "filing_status": "Single",
+          "multiple_jobs_or_spouse_works": "No",
+          "dependents_credit_amount": "0",
+          "other_income": "N/A",
+          "extra_withholding_per_paycheck": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Liam has provided his personal information, confirmed his filing status as \"Single\", and stated he has no dependents. He also confirmed he has no multiple jobs or a spouse. Maya clarified that his occasional computer repair income of $200 is not substantial enough to be considered \"other income\" for the W-4, so that field will be left blank."
+    },
+    "_conversation_id": "4abfb761"
+  },
+  {
+    "input": {
+      "new_line": "Maya 1678886423: Exactly. Just make sure you fill in your date of birth, which I think they ask for on the W-4 somewhere sometimes, or maybe that's the I-9. Either way, always good to be thorough. And then sign and date it, of course. Don't forget that part. It's the most important. If you don't sign, it's not valid.",
+      "10_lines_before": {
+        "Liam 1678886414": "Well, I do occasionally fix computers for friends, but it's more like pizza money than actual income. Like, maybe $200 a year, tops. I definitely don't want to get into trouble with the IRS over a few pepperoni slices.",
+        "Maya 1678886415": "No, that's fine. We're talking substantial, regular income here. So, leave 'Other income' blank for now. Next, 'Deductions.' This is for things beyond the standard deduction. Like if you're itemizing because you have massive student loan interest, or charitable contributions, or specific tax credits.",
+        "Liam 1678886416": "I'm pretty sure I just take the standard deduction. My student loans aren't *that* bad. And my charitable contributions usually involve giving Maya leftovers from my fridge.",
+        "Maya 1678886417": "Hey! Those leftovers are delicious. But seriously, for most people, especially starting out, the standard deduction is the way to go. You're unlikely to have enough itemized deductions to exceed it. So, unless you've bought a house recently or have a crazy amount of medical expenses, you can probably skip this too. For now, leave it blank.",
+        "Liam 1678886418": "Okay, so a lot of blanks for me. This is actually easier than I thought. What about 'Extra withholding'? What's that for?",
+        "Maya 1678886419": "That's if you want to have *more* tax taken out of each paycheck. Some people do it to avoid owing money at the end of the year, almost like a forced savings plan for taxes. Or if they had a big tax bill last year and want to prevent that again. Do you want to do that?",
+        "Liam 1678886420": "More money taken out? No way! I want every penny I can get, especially with rent in this city. Is the standard withholding usually enough if I'm just 'Single' with no dependents?",
+        "Maya 1678886421": "For a single person with one job and no other major income or deductions, yes, the standard withholding is usually pretty accurate. The IRS updated the W-4 a few years ago to make it simpler and more accurate for most taxpayers. So, checking 'Single' in Section 1 means your employer will withhold based on that.",
+        "Liam 1678886422": "Phew. That's a relief. So, mostly just Section 1 and then signing it?"
+      },
+      "form_name": "W-4 Form",
+      "form_description": "An IRS form completed by employees to indicate their tax situation to employers, determining the correct amount of federal income tax to withhold from their paychecks.",
+      "current_form_state": {
+        "Initial fields": {
+          "first_name": "Liam",
+          "last_name": "Thompson",
+          "ssn": "XXX-XX-1234",
+          "street_address": "123 Maple Street",
+          "city_state_zip": "Anytown, CA 90210",
+          "filing_status": "Single",
+          "multiple_jobs_or_spouse_works": "No",
+          "dependents_credit_amount": "0",
+          "other_income": "N/A",
+          "extra_withholding_per_paycheck": "0"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Liam has completed his personal information, confirmed his filing status as \"Single\", has no dependents, no multiple jobs or spouse, and no substantial other income. He also decided against extra withholding. The conversation is moving towards completing and signing the form."
+    },
+    "ideal_output": {
+      "thinking": "Maya expresses uncertainty about whether a 'date of birth' is required on the W-4 or I-9. Since the W-4 schema doesn't have a DOB field and the information is unclear, no form field is updated or added.",
+      "next_form_state": {
+        "Initial fields": {
+          "first_name": "Liam",
+          "last_name": "Thompson",
+          "ssn": "XXX-XX-1234",
+          "street_address": "123 Maple Street",
+          "city_state_zip": "Anytown, CA 90210",
+          "filing_status": "Single",
+          "multiple_jobs_or_spouse_works": "No",
+          "dependents_credit_amount": "0",
+          "other_income": "N/A",
+          "extra_withholding_per_paycheck": "0"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Liam has completed his personal information, confirmed his filing status as \"Single\", has no dependents, no multiple jobs or spouse, and no substantial other income. He also decided against extra withholding. Maya reminds him to sign and date the form, and hesitates about whether a date of birth is required on the W-4 or I-9."
+    },
+    "_conversation_id": "4abfb761"
+  },
+  {
+    "input": {
+      "new_line": "Sarah 1678887400: Good morning, David. Please come in. I'm Sarah, your HR representative for today's onboarding. Welcome to Global Dynamics.",
+      "10_lines_before": {},
+      "form_name": "W-4 Form",
+      "form_description": "An IRS form completed by employees to indicate their tax situation to employers, determining the correct amount of federal income tax to withhold from their paychecks.",
+      "current_form_state": {
+        "Initial fields": {
+          "first_name": "N/A",
+          "last_name": "N/A",
+          "ssn": "N/A",
+          "street_address": "N/A",
+          "city_state_zip": "N/A",
+          "filing_status": "N/A",
+          "multiple_jobs_or_spouse_works": "N/A",
+          "dependents_credit_amount": "N/A",
+          "other_income": "N/A",
+          "extra_withholding_per_paycheck": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": ""
+    },
+    "ideal_output": {
+      "thinking": "This line is a pure greeting and introduction to the onboarding session. It contains no information relevant to the W-4 form fields or the summary of W-4 completion. Therefore, both the form state and summary state remain unchanged.",
+      "next_form_state": {
+        "Initial fields": {
+          "first_name": "N/A",
+          "last_name": "N/A",
+          "ssn": "N/A",
+          "street_address": "N/A",
+          "city_state_zip": "N/A",
+          "filing_status": "N/A",
+          "multiple_jobs_or_spouse_works": "N/A",
+          "dependents_credit_amount": "N/A",
+          "other_income": "N/A",
+          "extra_withholding_per_paycheck": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": ""
+    },
+    "_conversation_id": "062264e7"
+  },
+  {
+    "input": {
+      "new_line": "David 1678887422: Got it. So, if I start a successful YouTube channel and make millions, I'll need to fill out a new one. Good to know.",
+      "10_lines_before": {
+        "David 1678887414": "No, I prefer to receive as much of my paycheck as possible upfront. I'm comfortable with the standard withholding for a single person with no dependents.",
+        "Sarah 1678887415": "Understood. That's a common choice. So, to summarize: 'Single' filing status, no dependents, no adjustments for other income, deductions, or extra withholding. This means your withholding will be calculated based on the standard deductions and tax rates for a single individual.",
+        "David 1678887416": "Yes, that's exactly right.",
+        "Sarah 1678887417": "Excellent. Now, please take a moment to review the form one last time. Ensure your name is spelled correctly, your SSN is accurate, and your address is current. Make sure your signature and today's date, April 15th, 2024, are present and legible. It's crucial that the date is current, as tax regulations can change.",
+        "David 1678887418": "Okay. *David reviews the form silently, shuffling papers softly* Everything looks correct. My signature and the date are there.",
+        "Sarah 1678887419": "Perfect. *Sarah takes the form, scans it quickly, then places it in a tray.* And just a note, if your personal or financial situation changes \u2014 for example, you get married, have a child, start a significant side business, or decide to drastically increase your charitable giving \u2014 you should submit a new W-4 Form to HR as soon as possible. This ensures your withholding is always accurate and helps prevent any surprises at tax time.",
+        "David 1678887420": "Absolutely, I'll keep that in mind. Is there an online portal for that, or do I come back to HR?",
+        "Sarah 1678887421": "We do have an employee portal where you can update some personal information, but for tax forms like the W-4, we currently require a physical submission to HR. You can always get a blank form from our internal network or directly from the IRS website. We'll give you a reminder during our annual benefits enrollment, typically in November."
+      },
+      "form_name": "W-4 Form",
+      "form_description": "An IRS form completed by employees to indicate their tax situation to employers, determining the correct amount of federal income tax to withhold from their paychecks.",
+      "current_form_state": {
+        "Initial fields": {
+          "first_name": "David",
+          "last_name": "Miller",
+          "ssn": "XXX-XX-5678",
+          "street_address": "456 Oak Avenue",
+          "city_state_zip": "Springfield, IL 62704",
+          "filing_status": "Single",
+          "multiple_jobs_or_spouse_works": "No",
+          "dependents_credit_amount": "0",
+          "other_income": "0",
+          "extra_withholding_per_paycheck": "0"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "David's W-4 form is confirmed: filing status 'Single', no multiple jobs, no dependents, no other income, and no extra withholding. Sarah provided advice on updating the W-4 for life changes and explained that W-4 updates require physical submission to HR, with an annual reminder during benefits enrollment."
+    },
+    "ideal_output": {
+      "thinking": "This line is a humorous, hypothetical off-topic tangent from David, acknowledging the advice about updating the W-4. It adds no new information to the W-4 form and does not alter the summary of the W-4 completion.",
+      "next_form_state": {
+        "Initial fields": {
+          "first_name": "David",
+          "last_name": "Miller",
+          "ssn": "XXX-XX-5678",
+          "street_address": "456 Oak Avenue",
+          "city_state_zip": "Springfield, IL 62704",
+          "filing_status": "Single",
+          "multiple_jobs_or_spouse_works": "No",
+          "dependents_credit_amount": "0",
+          "other_income": "0",
+          "extra_withholding_per_paycheck": "0"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "David's W-4 form is confirmed: filing status 'Single', no multiple jobs, no dependents, no other income, and no extra withholding. Sarah provided advice on updating the W-4 for life changes and explained that W-4 updates require physical submission to HR, with an annual reminder during benefits enrollment."
+    },
+    "_conversation_id": "062264e7"
+  },
+  {
+    "input": {
+      "new_line": "Sarah 1678887427: You're very welcome, David. Now, let's talk about those health plans...",
+      "10_lines_before": {
+        "David 1678887418": "Okay. *David reviews the form silently, shuffling papers softly* Everything looks correct. My signature and the date are there.",
+        "Sarah 1678887419": "Perfect. *Sarah takes the form, scans it quickly, then places it in a tray.* And just a note, if your personal or financial situation changes \u2014 for example, you get married, have a child, start a significant side business, or decide to drastically increase your charitable giving \u2014 you should submit a new W-4 Form to HR as soon as possible. This ensures your withholding is always accurate and helps prevent any surprises at tax time.",
+        "David 1678887420": "Absolutely, I'll keep that in mind. Is there an online portal for that, or do I come back to HR?",
+        "Sarah 1678887421": "We do have an employee portal where you can update some personal information, but for tax forms like the W-4, we currently require a physical submission to HR. You can always get a blank form from our internal network or directly from the IRS website. We'll give you a reminder during our annual benefits enrollment, typically in November.",
+        "David 1678887422": "Got it. So, if I start a successful YouTube channel and make millions, I'll need to fill out a new one. Good to know.",
+        "Sarah 1678887423": "Haha, precisely! We'll be happy to help you with that if the day comes. So, for the W-4, we are all set. *sound of keyboard typing and a printer whirring softly in the background* Next, we'll go through your benefits enrollment package. This will include your health insurance, dental, vision, and retirement plan options. I have a brochure here for you outlining the different plans available.",
+        "David 1678887424": "Okay, sounds good. Is there anything else about the W-4 I should know? Like, common mistakes people make?",
+        "Sarah 1678887425": "A common mistake, especially for those new to the workforce or who've only had one job, is forgetting to update it when life events occur. For example, getting married and not changing from 'Single' to 'Married Filing Jointly' can lead to under-withholding. Or, if you have a significant amount of capital gains from investments, not adjusting for 'Other income' could result in a tax bill. But given your situation, the single status and standard withholding is generally very straightforward and reliable. We encourage everyone to use the IRS Tax Withholding Estimator tool on their website if they have any doubts or complex situations. It's very user-friendly.",
+        "David 1678887426": "That's good advice. I'll keep that tool in mind. Thank you, Sarah."
+      },
+      "form_name": "W-4 Form",
+      "form_description": "An IRS form completed by employees to indicate their tax situation to employers, determining the correct amount of federal income tax to withhold from their paychecks.",
+      "current_form_state": {
+        "Initial fields": {
+          "first_name": "David",
+          "last_name": "Miller",
+          "ssn": "XXX-XX-5678",
+          "street_address": "456 Oak Avenue",
+          "city_state_zip": "Springfield, IL 62704",
+          "filing_status": "Single",
+          "multiple_jobs_or_spouse_works": "No",
+          "dependents_credit_amount": "0",
+          "other_income": "0",
+          "extra_withholding_per_paycheck": "0"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "David's W-4 form is complete: 'Single' filing status, no multiple jobs, no dependents, no other income, and no extra withholding. Sarah provided advice on updating the W-4 for life changes, explained the physical submission process to HR, and discussed common W-4 mistakes, recommending the IRS Tax Withholding Estimator tool. David acknowledged the advice."
+    },
+    "ideal_output": {
+      "thinking": "This line is a polite closing statement to the W-4 discussion and a clear transition to the next topic (health plans). It contains no information relevant to the W-4 form fields or the summary of W-4 completion.",
+      "next_form_state": {
+        "Initial fields": {
+          "first_name": "David",
+          "last_name": "Miller",
+          "ssn": "XXX-XX-5678",
+          "street_address": "456 Oak Avenue",
+          "city_state_zip": "Springfield, IL 62704",
+          "filing_status": "Single",
+          "multiple_jobs_or_spouse_works": "No",
+          "dependents_credit_amount": "0",
+          "other_income": "0",
+          "extra_withholding_per_paycheck": "0"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "David's W-4 form is complete: 'Single' filing status, no multiple jobs, no dependents, no other income, and no extra withholding. Sarah provided advice on updating the W-4 for life changes, explained the physical submission process to HR, and discussed common W-4 mistakes, recommending the IRS Tax Withholding Estimator tool. David acknowledged the advice."
+    },
+    "_conversation_id": "062264e7"
+  },
+  {
+    "input": {
+      "new_line": "Emily 1678888400: *clears throat* Okay, voice memo, April 15th, 2024, 10:30 AM.",
+      "10_lines_before": {},
+      "form_name": "W-4 Form",
+      "form_description": "An IRS form completed by employees to indicate their tax situation to employers, determining the correct amount of federal income tax to withhold from their paychecks.",
+      "current_form_state": {
+        "Initial fields": {
+          "first_name": "N/A",
+          "last_name": "N/A",
+          "ssn": "N/A",
+          "street_address": "N/A",
+          "city_state_zip": "N/A",
+          "filing_status": "N/A",
+          "multiple_jobs_or_spouse_works": "N/A",
+          "dependents_credit_amount": "N/A",
+          "other_income": "N/A",
+          "extra_withholding_per_paycheck": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": ""
+    },
+    "ideal_output": {
+      "thinking": "This line serves as a conversational opening and metadata about the recording. It does not contain any information relevant to the W-4 form fields or the task's progress, so both the form state and summary remain unchanged.",
+      "next_form_state": {
+        "Initial fields": {
+          "first_name": "N/A",
+          "last_name": "N/A",
+          "ssn": "N/A",
+          "street_address": "N/A",
+          "city_state_zip": "N/A",
+          "filing_status": "N/A",
+          "multiple_jobs_or_spouse_works": "N/A",
+          "dependents_credit_amount": "N/A",
+          "other_income": "N/A",
+          "extra_withholding_per_paycheck": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": ""
+    },
+    "_conversation_id": "6b95aa3d"
+  },
+  {
+    "input": {
+      "new_line": "Emily 1678888404: Phew. Good. Simpler.",
+      "10_lines_before": {
+        "Emily 1678888400": "*clears throat* Okay, voice memo, April 15th, 2024, 10:30 AM. Task: W-4 Form for Zenith Consulting Group. This is going to be my first W-2 job in years, so I need to make sure I get this right. Previously, I was 1099, so it was all estimated taxes. Now, withholding again. Let's see the form.",
+        "Emily 1678888401": "*sound of papers rustling, then keyboard clicks* Alright, IRS Form W-4, Employee's Withholding Certificate. Effective 2020. This is the latest one, good. My full legal name, Emily R. Chen. Address: 789 Pine Lane, Cityville, NY 10001. Social Security number: XXX-XX-9876. Employer's name and address. That's Zenith Consulting Group, 45 Main Street, Cityville, NY. I don't need to fill that out, HR does that. Employee ID number, also HR. Okay, Section 1: Personal Information. Done.",
+        "Emily 1678888402": "Next, filing status. Options are: Single or Married Filing Separately, Married Filing Jointly or Qualifying Widow(er), Head of Household. I am single. No children, no other dependents currently residing with me. So, 'Single or Married Filing Separately' it is. Check.",
+        "Emily 1678888403": "Okay, Section 2: Multiple Jobs or Spouse Works. 'Complete this step if you have more than one job or are married filing jointly and your spouse also works.' Well, I only have this one job. No spouse. So I can skip Steps 2, 3, and 4 and just sign here. Is that the right move? Let me re-read the instructions for Step 2(a) specifically."
+      },
+      "form_name": "W-4 Form",
+      "form_description": "An IRS form completed by employees to indicate their tax situation to employers, determining the correct amount of federal income tax to withhold from their paychecks.",
+      "current_form_state": {
+        "Initial fields": {
+          "first_name": "Emily",
+          "last_name": "Chen",
+          "ssn": "XXX-XX-9876",
+          "street_address": "789 Pine Lane",
+          "city_state_zip": "Cityville, NY 10001",
+          "filing_status": "Single or Married Filing Separately",
+          "multiple_jobs_or_spouse_works": "No, I only have one job and no spouse.",
+          "dependents_credit_amount": "N/A",
+          "other_income": "N/A",
+          "extra_withholding_per_paycheck": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Emily R. Chen is completing a W-4 form for Zenith Consulting Group. She has provided her name (Emily R. Chen), address (789 Pine Lane, Cityville, NY 10001), and Social Security Number (XXX-XX-9876). Her filing status is Single or Married Filing Separately. She has determined she will skip Steps 2, 3, and 4 as she only has one job and no spouse."
+    },
+    "ideal_output": {
+      "thinking": "This line expresses emotional reactions (relief, satisfaction) to the preceding clarification about skipping sections. It does not introduce any new factual information for the W-4 form or alter previous decisions, thus the form state and summary remain unchanged.",
+      "next_form_state": {
+        "Initial fields": {
+          "first_name": "Emily",
+          "last_name": "Chen",
+          "ssn": "XXX-XX-9876",
+          "street_address": "789 Pine Lane",
+          "city_state_zip": "Cityville, NY 10001",
+          "filing_status": "Single or Married Filing Separately",
+          "multiple_jobs_or_spouse_works": "No, I only have one job and no spouse.",
+          "dependents_credit_amount": "N/A",
+          "other_income": "N/A",
+          "extra_withholding_per_paycheck": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Emily R. Chen is completing a W-4 form for Zenith Consulting Group. She has provided her name (Emily R. Chen), address (789 Pine Lane, Cityville, NY 10001), and Social Security Number (XXX-XX-9876). Her filing status is Single or Married Filing Separately. She has determined she will skip Steps 2, 3, and 4 as she only has one job and no spouse."
+    },
+    "_conversation_id": "6b95aa3d"
+  },
+  {
+    "input": {
+      "new_line": "Emily 1678888414: Voice memo end. Time to print, sign, and scan.",
+      "10_lines_before": {
+        "Emily 1678888404": "*pauses, reading aloud* 'If you or your spouse have more than one job total, complete this step.' Right, it's 'you *or* your spouse.' So if it's just me and just one job, I actually skip the whole *section*, not just the options within it. Phew. Good. Simpler.",
+        "Emily 1678888405": "Now, Section 3: Claim Dependents. 'If you expect to claim credits for dependents, complete this step.' I don't. No qualifying children under age 17, no other dependents. So, '0.00' on both lines. Right. So that's blank too, in essence.",
+        "Emily 1678888406": "Section 4: Other Adjustments. This is where it used to get complicated, with allowances and what not. Now it's just: (a) Other income, (b) Deductions, (c) Extra withholding. Let's think this through.",
+        "Emily 1678888407": "(a) 'Other income (not from jobs).' I do have some investment income. Dividends and capital gains from my brokerage account. Last year it was about $3,000. Do I want to include that here? If I add it, more tax will be withheld from my paycheck, reducing a potential tax bill at year-end. If I don't, I might owe. Given my salary is $95,000, and $3,000 in 'other income' isn't huge, I could probably handle it at tax time. But the goal is to break even or get a small refund. Let's estimate.",
+        "Emily 1678888408": "*typing on calculator* Okay, if my total taxable income is $95,000 plus $3,000, that's $98,000. Single standard deduction is currently $13,850 for 2023, let's assume similar for 2024. $98,000 - $13,850 = $84,150 taxable income. Looking at the tax brackets... marginal rate would be 22% for a good chunk of that. If I withhold for the $3,000, it's roughly $3,000 * 0.22 = $660 extra withholding for the year. That's about $55 a month. That feels manageable and proactive. Yes, I'll put $3,000 on line 4(a). This is a good idea.",
+        "Emily 1678888409": "Next, 4(b) 'Deductions.' 'Want to claim deductions other than the standard deduction?' This is where I'd enter estimated itemized deductions that exceed the standard. I'm taking the standard deduction. No home mortgage, no massive medical bills this year, no significant charitable contributions beyond a few small ones. So, I will leave 4(b) blank. That's clear.",
+        "Emily 1678888410": "Finally, 4(c) 'Extra withholding.' 'Enter any additional tax you want withheld from each paycheck.' I've already accounted for my other income on 4(a). I don't generally like to over-withhold just for a bigger refund. I prefer to have the money throughout the year. So, unless I notice I'm under-withholding significantly during the year, I'll leave this blank. The combination of 'Single' status and accounting for my investment income should be quite accurate. I can always adjust it later if I need to. The IRS Withholding Estimator is good for that.",
+        "Emily 1678888411": "Alright, so to recap. Section 1: Personal Info, Single. Section 2: Skip. Section 3: Dependents = 0.00. Section 4(a): $3,000. Section 4(b) & 4(c): Blank. Then, employee signature and date. Today's date is April 15th, 2024. That's also tax day, ironically. Double-check everything.",
+        "Emily 1678888412": "*reads through the form again, quietly* My name, address, SSN are all correct. 'Single or Married Filing Separately' box checked. Steps 2 and 3 correctly left blank. Line 4(a) has '3,000.00'. Line 4(b) and 4(c) are empty. Okay. Looks solid. I've heard stories of people making mistakes on these forms and owing thousands, or getting huge refunds when they needed the money earlier. Aiming for balance here.",
+        "Emily 1678888413": "I should also make a copy of this for my records. This is critical. Always keep copies of tax forms. What if HR loses it? Unlikely with Zenith, they seem pretty buttoned-up, but better safe than sorry. My start date is April 22nd, so this needs to be submitted by then. I'll scan it into my 'Tax Docs 2024' folder."
+      },
+      "form_name": "W-4 Form",
+      "form_description": "An IRS form completed by employees to indicate their tax situation to employers, determining the correct amount of federal income tax to withhold from their paychecks.",
+      "current_form_state": {
+        "Initial fields": {
+          "first_name": "Emily",
+          "last_name": "Chen",
+          "ssn": "XXX-XX-9876",
+          "street_address": "789 Pine Lane",
+          "city_state_zip": "Cityville, NY 10001",
+          "filing_status": "Single or Married Filing Separately",
+          "multiple_jobs_or_spouse_works": "No, I only have one job and no spouse.",
+          "dependents_credit_amount": "0.00",
+          "other_income": "3000.00",
+          "extra_withholding_per_paycheck": "0.00"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Emily R. Chen is completing a W-4 form for Zenith Consulting Group. She has provided her name (Emily R. Chen), address (789 Pine Lane, Cityville, NY 10001), and Social Security Number (XXX-XX-9876). Her filing status is Single or Married Filing Separately. She has confirmed she only has one job and no spouse, skipping Section 2. She will claim $0.00 for dependents. She plans to include $3,000.00 in other income from investments for withholding calculations and will not claim additional deductions or extra withholding per paycheck. She has double-checked the form and will submit it by April 22nd, making a copy for her records."
+    },
+    "ideal_output": {
+      "thinking": "This line contains closing remarks for the voice memo and outlines administrative tasks to be done after the form is completed (printing, signing, scanning). It does not add or alter any W-4 form field information or current decisions, so the form state and summary remain unchanged.",
+      "next_form_state": {
+        "Initial fields": {
+          "first_name": "Emily",
+          "last_name": "Chen",
+          "ssn": "XXX-XX-9876",
+          "street_address": "789 Pine Lane",
+          "city_state_zip": "Cityville, NY 10001",
+          "filing_status": "Single or Married Filing Separately",
+          "multiple_jobs_or_spouse_works": "No, I only have one job and no spouse.",
+          "dependents_credit_amount": "0.00",
+          "other_income": "3000.00",
+          "extra_withholding_per_paycheck": "0.00"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Emily R. Chen is completing a W-4 form for Zenith Consulting Group. She has provided her name (Emily R. Chen), address (789 Pine Lane, Cityville, NY 10001), and Social Security Number (XXX-XX-9876). Her filing status is Single or Married Filing Separately. She has confirmed she only has one job and no spouse, skipping Section 2. She will claim $0.00 for dependents. She plans to include $3,000.00 in other income from investments for withholding calculations and will not claim additional deductions or extra withholding per paycheck. She has double-checked the form and will submit it by April 22nd, making a copy for her records."
+    },
+    "_conversation_id": "6b95aa3d"
+  },
+  {
+    "input": {
+      "new_line": "Ms. Rodriguez 1678889402: Certainly. My full legal name is Maria Elena Rodriguez. My address is 101 Lakeview Drive, Suite 2B, Metropolis, GA 30303. My Social Security number is XXX-XX-7890.",
+      "10_lines_before": {
+        "Mr. Harrison 1678889400": "Good afternoon, Ms. Rodriguez. Welcome to Zenith Corporation. I'm Mr. Harrison, the HR Specialist. We're now going to complete the necessary tax withholding forms for your employment. I have a blank W-4 Form here, and I'll be guiding you through the sections. Do you have any initial questions before we begin?",
+        "Ms. Rodriguez 1678889400": "Good afternoon, Mr. Harrison. No, I don't have any initial questions. I'm ready.",
+        "Mr. Harrison 1678889401": "Excellent. Let's start with Section 1, which covers your personal information and filing status. Could you please state your full legal name, your current mailing address, and your Social Security number?"
+      },
+      "form_name": "W-4 Form",
+      "form_description": "An IRS form completed by employees to indicate their tax situation to employers, determining the correct amount of federal income tax to withhold from their paychecks.",
+      "current_form_state": {
+        "Initial fields": {
+          "first_name": "N/A",
+          "last_name": "N/A",
+          "ssn": "N/A",
+          "street_address": "N/A",
+          "city_state_zip": "N/A",
+          "filing_status": "N/A",
+          "multiple_jobs_or_spouse_works": "N/A",
+          "dependents_credit_amount": "N/A",
+          "other_income": "N/A",
+          "extra_withholding_per_paycheck": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Mr. Harrison, an HR Specialist, welcomes Ms. Rodriguez and explains they will complete tax withholding forms. Ms. Rodriguez is ready to proceed. Mr. Harrison asks for her personal information and filing status."
+    },
+    "ideal_output": {
+      "thinking": "This line provides the employee's full name, address, and SSN, directly filling in multiple initial fields. The summary is updated to reflect this information.",
+      "next_form_state": {
+        "Initial fields": {
+          "first_name": "Maria Elena",
+          "last_name": "Rodriguez",
+          "ssn": "XXX-XX-7890",
+          "street_address": "101 Lakeview Drive, Suite 2B",
+          "city_state_zip": "Metropolis, GA 30303",
+          "filing_status": "N/A",
+          "multiple_jobs_or_spouse_works": "N/A",
+          "dependents_credit_amount": "N/A",
+          "other_income": "N/A",
+          "extra_withholding_per_paycheck": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Mr. Harrison, an HR Specialist, welcomes Ms. Rodriguez and explains they will complete tax withholding forms. Ms. Rodriguez is ready to proceed. Ms. Rodriguez provides her full name (Maria Elena Rodriguez), address (101 Lakeview Drive, Suite 2B, Metropolis, GA 30303), and Social Security number (XXX-XX-7890)."
+    },
+    "_conversation_id": "7b56bb1f"
+  },
+  {
+    "input": {
+      "new_line": "Ms. Rodriguez 1678889404: I will be filing as Single.",
+      "10_lines_before": {
+        "Mr. Harrison 1678889400": "Good afternoon, Ms. Rodriguez. Welcome to Zenith Corporation. I'm Mr. Harrison, the HR Specialist. We're now going to complete the necessary tax withholding forms for your employment. I have a blank W-4 Form here, and I'll be guiding you through the sections. Do you have any initial questions before we begin?",
+        "Ms. Rodriguez 1678889400": "Good afternoon, Mr. Harrison. No, I don't have any initial questions. I'm ready.",
+        "Mr. Harrison 1678889401": "Excellent. Let's start with Section 1, which covers your personal information and filing status. Could you please state your full legal name, your current mailing address, and your Social Security number?",
+        "Ms. Rodriguez 1678889402": "Certainly. My full legal name is Maria Elena Rodriguez. My address is 101 Lakeview Drive, Suite 2B, Metropolis, GA 30303. My Social Security number is XXX-XX-7890.",
+        "Mr. Harrison 1678889403": "Thank you. Now, regarding your federal tax filing status for the current year. Will you be filing as Single, Married Filing Jointly, Married Filing Separately, or Head of of Household?"
+      },
+      "form_name": "W-4 Form",
+      "form_description": "An IRS form completed by employees to indicate their tax situation to employers, determining the correct amount of federal income tax to withhold from their paychecks.",
+      "current_form_state": {
+        "Initial fields": {
+          "first_name": "Maria Elena",
+          "last_name": "Rodriguez",
+          "ssn": "XXX-XX-7890",
+          "street_address": "101 Lakeview Drive, Suite 2B",
+          "city_state_zip": "Metropolis, GA 30303",
+          "filing_status": "N/A",
+          "multiple_jobs_or_spouse_works": "N/A",
+          "dependents_credit_amount": "N/A",
+          "other_income": "N/A",
+          "extra_withholding_per_paycheck": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Mr. Harrison, an HR Specialist, welcomes Ms. Rodriguez and explains they will complete tax withholding forms. Ms. Rodriguez is ready to proceed. Ms. Rodriguez provides her full name (Maria Elena Rodriguez), address (101 Lakeview Drive, Suite 2B, Metropolis, GA 30303), and Social Security number (XXX-XX-7890). Mr. Harrison asks about her federal tax filing status."
+    },
+    "ideal_output": {
+      "thinking": "This line directly answers the filing status question, updating the form state. The summary is updated to include this crucial piece of information.",
+      "next_form_state": {
+        "Initial fields": {
+          "first_name": "Maria Elena",
+          "last_name": "Rodriguez",
+          "ssn": "XXX-XX-7890",
+          "street_address": "101 Lakeview Drive, Suite 2B",
+          "city_state_zip": "Metropolis, GA 30303",
+          "filing_status": "Single",
+          "multiple_jobs_or_spouse_works": "N/A",
+          "dependents_credit_amount": "N/A",
+          "other_income": "N/A",
+          "extra_withholding_per_paycheck": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Mr. Harrison, an HR Specialist, welcomes Ms. Rodriguez and explains they will complete tax withholding forms. Ms. Rodriguez is ready to proceed. Ms. Rodriguez provides her full name (Maria Elena Rodriguez), address (101 Lakeview Drive, Suite 2B, Metropolis, GA 30303), and Social Security number (XXX-XX-7890). She states her filing status is Single. Mr. Harrison asks about multiple jobs or a working spouse."
+    },
+    "_conversation_id": "7b56bb1f"
+  },
+  {
+    "input": {
+      "new_line": "Ms. Rodriguez 1678889410: I have some investment income, approximately $1,500 annually, and I occasionally do some freelance graphic design, earning around $2,000 a year. So, yes, I would like to account for that total of $3,500.",
+      "10_lines_before": {
+        "Mr. Harrison 1678889405": "Understood. Moving on to Section 2, regarding multiple jobs or a working spouse. Do you currently hold any other jobs, or are you married and your spouse is also employed?",
+        "Ms. Rodriguez 1678889406": "No, this will be my sole employment, and I am not married.",
+        "Mr. Harrison 1678889407": "Very well. In that case, we will skip Section 2, as it does not apply to your situation. Next, Section 3, concerning dependents. Do you have any qualifying children under the age of 17, or any other qualifying dependents for whom you intend to claim a tax credit?",
+        "Ms. Rodriguez 1678889408": "No, I do not have any dependents.",
+        "Mr. Harrison 1678889409": "Thank you. So, we will enter zero in the dependent section. Finally, Section 4: Other Adjustments. This section allows for more specific withholding instructions. First, line 4(a) for 'Other income.' Do you anticipate receiving any significant income from non-job sources, such as dividends, interest, or substantial income from a side business, for which you would like to have additional tax withheld from your paychecks?"
+      },
+      "form_name": "W-4 Form",
+      "form_description": "An IRS form completed by employees to indicate their tax situation to employers, determining the correct amount of federal income tax to withhold from their paychecks.",
+      "current_form_state": {
+        "Initial fields": {
+          "first_name": "Maria Elena",
+          "last_name": "Rodriguez",
+          "ssn": "XXX-XX-7890",
+          "street_address": "101 Lakeview Drive, Suite 2B",
+          "city_state_zip": "Metropolis, GA 30303",
+          "filing_status": "Single",
+          "multiple_jobs_or_spouse_works": "No",
+          "dependents_credit_amount": "0",
+          "other_income": "N/A",
+          "extra_withholding_per_paycheck": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Mr. Harrison, an HR Specialist, welcomes Ms. Rodriguez and explains they will complete tax withholding forms. Ms. Rodriguez provides her full name (Maria Elena Rodriguez), address (101 Lakeview Drive, Suite 2B, Metropolis, GA 30303), and Social Security number (XXX-XX-7890). She states her filing status is Single. She confirms she has no other jobs or a working spouse. Ms. Rodriguez states she has no dependents. Mr. Harrison asks about other income."
+    },
+    "ideal_output": {
+      "thinking": "This line provides the specific amount for 'other income,' directly filling a form field. The summary is updated to reflect this estimated income.",
+      "next_form_state": {
+        "Initial fields": {
+          "first_name": "Maria Elena",
+          "last_name": "Rodriguez",
+          "ssn": "XXX-XX-7890",
+          "street_address": "101 Lakeview Drive, Suite 2B",
+          "city_state_zip": "Metropolis, GA 30303",
+          "filing_status": "Single",
+          "multiple_jobs_or_spouse_works": "No",
+          "dependents_credit_amount": "0",
+          "other_income": "$3,500",
+          "extra_withholding_per_paycheck": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Mr. Harrison, an HR Specialist, welcomes Ms. Rodriguez and explains they will complete tax withholding forms. Ms. Rodriguez provides her full name (Maria Elena Rodriguez), address (101 Lakeview Drive, Suite 2B, Metropolis, GA 30303), and Social Security number (XXX-XX-7890). She states her filing status is Single. She confirms she has no other jobs or a working spouse. Ms. Rodriguez states she has no dependents. She reports an estimated total of $3,500 in other income (investment and freelance) and wishes to account for it. Mr. Harrison asks about deductions."
+    },
+    "_conversation_id": "7b56bb1f"
   }
 ]

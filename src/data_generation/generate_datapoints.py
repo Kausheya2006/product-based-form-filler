@@ -118,7 +118,7 @@ def parse_json_response(text):
 def build_pairs():
     """Builds API Key + Model combinations for failover, supporting up to 10 keys."""
     keys = []
-    for i in range(1, 11):
+    for i in range(1, 2):
         key_name = "GEMINI_API_KEY" if i == 1 else f"GEMINI_API_KEY_{i}"
         val = os.getenv(key_name)
         if val:
