@@ -12,7 +12,10 @@
 <div class="card">
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
         <h3 style="margin:0;">Fields</h3>
-        <span class="badge badge-blue">{{ form.fields | length }} field{{ form.fields | length != 1 and 's' or '' }}</span>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <span class="badge badge-blue">{{ form.fields | length }} field{{ form.fields | length != 1 and 's' or '' }}</span>
+            <a href="/forms/{{ form.id }}/edit" class="btn btn-sm">Edit Fields</a>
+        </div>
     </div>
     {% for k, v in form.fields.items() %}
     <div class="field">

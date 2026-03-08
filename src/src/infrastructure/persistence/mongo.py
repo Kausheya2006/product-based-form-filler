@@ -50,6 +50,9 @@ class MongoFormRepository(IFormRepository):
             upsert=True
         )
 
+    async def delete_by_id(self, form_id: str) -> None:
+        await self.collection.delete_one({"form_id": form_id})
+
 class MongoRunLogRepo(IRunLogRepository):
     def __init__(self, connection_string: str, db_name: str):
         self.client = motor.motor_asyncio.AsyncIOMotorClient(connection_string)

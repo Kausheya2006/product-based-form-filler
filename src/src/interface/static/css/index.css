@@ -212,6 +212,24 @@ body {
 .form-card-desc { font-size: 0.82rem; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .form-card-arrow { color: var(--text-light); font-size: 1.1rem; }
 
+.delete-card-btn {
+    background: none;
+    border: none;
+    padding: 6px;
+    border-radius: 6px;
+    color: var(--text-light);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s, background 0.15s;
+    flex-shrink: 0;
+}
+.delete-card-btn:hover {
+    color: var(--danger);
+    background: var(--danger-light);
+}
+
 /* ── Chat Bubbles ── */
 .chat-container { display: flex; flex-direction: column; gap: 4px; padding: 4px 0; }
 

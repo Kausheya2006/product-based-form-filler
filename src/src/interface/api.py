@@ -38,6 +38,49 @@ logger = logging.getLogger(__name__)
 
 templates = Jinja2Templates(directory="src/interface/templates")
 
+def _default_field_question(field_name: str) -> str:
+    """Generate a readable fallback question from a field name."""
+    pretty = field_name.replace(".", " ").replace("_", " ").strip()
+    pretty = " ".join(pretty.split())
+    if not pretty:
+        return "What value should be captured for this field?"
+
+    starts_like_question = (
+        "what", "when", "where", "who", "which", "why", "how",
+        "is", "are", "do", "does", "did", "can", "could", "should",
+        "would", "will", "has", "have", "had"
+    )
+    lowered = pretty.lower()
+    if lowered.startswith(starts_like_question):
+        return pretty if pretty.endswith("?") else f"{pretty}?"
+
+    return f"What is the {lowered}?"
+
+def _build_schema_from_pairs(
+    field_names: List[str],
+    field_values: List[str],
+    *,
+    autogenerate_question: bool = False
+) -> Dict[str, str]:
+    """Build schema map from parallel name/value lists, skipping empty names."""
+    schema: Dict[str, str] = {}
+
+    for raw_name, raw_value in zip(field_names, field_values):
+        name = raw_name.strip()
+        if not name:
+            continue
+
+        value = (raw_value or "").strip()
+        if not value and autogenerate_question:
+            value = _default_field_question(name)
+
+        if not value:
+            continue
+
+        schema[name] = value
+
+    return schema
+
 def _convert_mongo_types(obj):
     """Recursively convert Mongo Extended JSON types to native Python types.
     Handles {'$date': ISOString} -> datetime and {'$oid': id} -> str.
@@ -150,6 +193,78 @@ async def view_form(request: Request, form_id: str):
     if not form:
         raise HTTPException(404, "Form not found")
     return templates.TemplateResponse("view_form.html", {"request": request, "form": form})
+
+@app.get("/forms/{form_id}/edit", response_class=HTMLResponse)
+async def edit_form(request: Request, form_id: str):
+    """Edit an existing form schema."""
+    form = await container.form_repo.get_by_id(form_id)
+    if not form:
+        raise HTTPException(404, "Form not found")
+
+    return templates.TemplateResponse("edit_form.html", {"request": request, "form": form})
+
+@app.post("/forms/{form_id}/edit", response_class=RedirectResponse)
+async def save_form_edits(
+    form_id: str,
+    form_name: str = Form(...),
+    form_description: str = Form(""),
+    field_name: List[str] = Form(..., alias="field_name[]"),
+    field_instruction: List[str] = Form(..., alias="field_instruction[]"),
+    save_mode: str = Form("save")
+):
+    """Save form edits either to the same form or as a new form."""
+    existing = await container.form_repo.get_by_id(form_id)
+    if not existing:
+        raise HTTPException(404, "Form not found")
+
+    schema_dict = _build_schema_from_pairs(
+        field_name,
+        field_instruction,
+        autogenerate_question=True
+    )
+    if not schema_dict:
+        raise HTTPException(400, "At least one valid field is required.")
+
+    requested_name = form_name.strip()
+    cleaned_description = form_description.strip()
+
+    if save_mode == "save":
+        target_form_id = form_id
+        cleaned_name = requested_name or existing.name
+    elif save_mode == "save_as":
+        cleaned_name = requested_name
+        if not cleaned_name:
+            raise HTTPException(400, "Please provide a new form name when using Save As.")
+        if cleaned_name.lower() == existing.name.strip().lower():
+            raise HTTPException(400, "Please change the form name when using Save As.")
+        target_form_id = str(uuid4())[:8]
+    else:
+        raise HTTPException(400, "Invalid save mode.")
+
+    updated_form = FormSchema(
+        form_id=target_form_id,
+        form_name=cleaned_name,
+        description=cleaned_description,
+        schema=schema_dict
+    )
+
+    await container.form_repo.save(updated_form)
+    logger.info(
+        f"Form edit persisted. source_form={form_id}, target_form={target_form_id}, mode={save_mode}"
+    )
+
+    return RedirectResponse(url=f"/forms/{target_form_id}", status_code=303)
+
+@app.post("/forms/{form_id}/delete", response_class=RedirectResponse)
+async def delete_form(form_id: str):
+    """Delete a form from the forms list."""
+    form = await container.form_repo.get_by_id(form_id)
+    if not form:
+        raise HTTPException(404, "Form not found")
+
+    await container.form_repo.delete_by_id(form_id)
+    logger.info(f"Form deleted: {form_id}")
+    return RedirectResponse(url="/", status_code=303)
 
 @app.get("/forms/{form_id}/conversations", response_class=HTMLResponse)
 async def list_conversations(request: Request, form_id: str):

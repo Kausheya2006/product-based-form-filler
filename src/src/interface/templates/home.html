@@ -14,7 +14,7 @@
 {% if forms %}
     <div style="display:flex; flex-direction:column; gap:0;">
         {% for f in forms %}
-        <a href="/forms/{{ f.id }}" class="form-card">
+        <div class="form-card" onclick="window.location='/forms/{{ f.id }}'" style="cursor:pointer; margin-bottom:12px;">
             <div class="form-card-icon"></div>
             <div class="form-card-body">
                 <div class="form-card-name">{{ f.name }}</div>
@@ -25,8 +25,17 @@
                 {% endif %}
             </div>
             <span class="badge badge-blue" style="flex-shrink:0;">{{ f.fields | length }} field{{ f.fields | length != 1 and 's' or '' }}</span>
-            <span class="form-card-arrow">›</span>
-        </a>
+            <button class="delete-card-btn" type="button" title="Delete form"
+                    onclick="event.stopPropagation(); deleteForm('{{ f.id }}')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 6h18"/>
+                    <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/>
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                    <line x1="10" y1="11" x2="10" y2="17"/>
+                    <line x1="14" y1="11" x2="14" y2="17"/>
+                </svg>
+            </button>
+        </div>
         {% endfor %}
     </div>
 {% else %}
@@ -37,5 +46,16 @@
         <a href="/forms/new" class="btn btn-success">＋ Create a Form</a>
     </div>
 {% endif %}
+
+<script>
+function deleteForm(id) {
+    if (!confirm('Delete this form? This cannot be undone.')) return;
+    const f = document.createElement('form');
+    f.method = 'post';
+    f.action = '/forms/' + id + '/delete';
+    document.body.appendChild(f);
+    f.submit();
+}
+</script>
 
 {% endblock %}

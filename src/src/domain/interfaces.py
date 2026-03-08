@@ -17,6 +17,8 @@ class IFormRepository(ABC):
     async def get_by_id(self, form_id: str) -> Optional[FormSchema]: pass
     @abstractmethod
     async def save(self, form: FormSchema) -> None: pass
+    @abstractmethod
+    async def delete_by_id(self, form_id: str) -> None: pass
 
 class IExtractionModel(ABC):
     async def extract_batch(self, requests: List[ExtractionRequest]) -> List[Any]: pass
