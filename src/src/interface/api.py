@@ -217,7 +217,19 @@ def _has_nested_field(source: Dict[str, Any], dotted_key: str) -> bool:
         current = current[part]
     return isinstance(current, dict) and parts[-1] in current
 
-async def _extract_for_conversation_text(form: FormSchema, conversation_text: str) -> Dict[str, Any]:
+def _apply_field_overrides(target: Dict[str, Any], overrides: Dict[str, Any]) -> None:
+    """Apply reviewed field values onto extracted nested data using dotted keys."""
+    for field_key, value in overrides.items():
+        if not isinstance(field_key, str) or not field_key.strip():
+            continue
+        normalized = "" if value is None else str(value)
+        _set_nested_field(target, field_key, normalized)
+
+async def _extract_for_conversation_text(
+    form: FormSchema,
+    conversation_text: str,
+    current_field_state: Dict[str, Any] | None = None
+) -> Dict[str, Any]:
     """Run extraction directly from raw conversation text using full-process prompt."""
     parsed = _parse_conversation_text(conversation_text)
     full_convo = ""
@@ -225,9 +237,17 @@ async def _extract_for_conversation_text(form: FormSchema, conversation_text: st
         clean_speaker = " ".join(speaker.split()[:-1]) if " " in speaker else speaker
         full_convo += clean_speaker + ": " + text + "\n"
 
-    # Keep exact prompt shape used in full_process mode.
-    empty_fields = {k: "N/A" for k in form.fields.keys()}
-    input_str = f"""Extract info from conversation to fill form.\nConversation: {full_convo}Form: {form.name}\nFields: {json.dumps(empty_fields)}"""
+    # Seed prompt fields with latest client-side values so manual edits become context.
+    seeded_fields: Dict[str, Any] = {}
+    for field_key in form.fields.keys():
+        if current_field_state and field_key in current_field_state:
+            candidate = current_field_state[field_key]
+            normalized = "" if candidate is None else str(candidate).strip()
+            seeded_fields[field_key] = normalized if normalized else "N/A"
+        else:
+            seeded_fields[field_key] = "N/A"
+
+    input_str = f"""Extract info from conversation to fill form.\nConversation: {full_convo}Form: {form.name}\nFields: {json.dumps(seeded_fields)}"""
 
     answers_task = container.pipeline.model.process_extraction_request(input_str)
     summary_task = container.pipeline.summarizer.summarize("\n".join([f"{k}: {v}" for k, v in parsed.items()]))
@@ -243,7 +263,11 @@ async def _extract_for_conversation_text(form: FormSchema, conversation_text: st
     return {"filled_data": filled_data, "summary": summary}
 
 @app.post("/extract/preview", response_class=JSONResponse)
-async def preview_extraction(form_id: str = Form(...), conversation_text: str = Form("")):
+async def preview_extraction(
+    form_id: str = Form(...),
+    conversation_text: str = Form(""),
+    field_state_json: str = Form("")
+):
     """Preview extraction in-page without saving runs/conversations."""
     form = await container.form_repo.get_by_id(form_id)
     if not form:
@@ -252,8 +276,24 @@ async def preview_extraction(form_id: str = Form(...), conversation_text: str = 
     if not conversation_text.strip():
         return JSONResponse({"filled_data": {}, "summary": ""})
 
+    current_field_state: Dict[str, Any] = {}
+    if field_state_json.strip():
+        try:
+            parsed_state = json.loads(field_state_json)
+        except json.JSONDecodeError as e:
+            raise HTTPException(400, f"Invalid field state payload: {str(e)}")
+
+        if not isinstance(parsed_state, dict):
+            raise HTTPException(400, "Field state payload must be a JSON object.")
+
+        # Accept only keys that belong to this form.
+        allowed_keys = set(form.fields.keys())
+        for key, value in parsed_state.items():
+            if isinstance(key, str) and key in allowed_keys:
+                current_field_state[key] = "" if value is None else str(value)
+
     try:
-        result = await _extract_for_conversation_text(form, conversation_text)
+        result = await _extract_for_conversation_text(form, conversation_text, current_field_state)
         return JSONResponse(result)
     except Exception as e:
         raise HTTPException(500, str(e))
@@ -263,11 +303,27 @@ async def create_conversation(
     request: Request,
     form_id: str = Form(...),
     conversation_id: str = Form(""), 
+    conversation_name: str = Form(""),
+    field_overrides_json: str = Form(""),
     conversation_text: str = Form(...)
 ):
     """Initializes a new conversation with Version 0 and persists extraction output."""
     if not conversation_id.strip():
         conversation_id = str(uuid4())[:8]
+
+    cleaned_name = conversation_name.strip()
+
+    reviewed_field_overrides: Dict[str, Any] = {}
+    if field_overrides_json.strip():
+        try:
+            parsed_overrides = json.loads(field_overrides_json)
+        except json.JSONDecodeError as e:
+            raise HTTPException(400, f"Invalid reviewed fields payload: {str(e)}")
+
+        if not isinstance(parsed_overrides, dict):
+            raise HTTPException(400, "Reviewed fields payload must be a JSON object.")
+
+        reviewed_field_overrides = parsed_overrides
     
     conversation_dict = _parse_conversation_text(conversation_text)
     
@@ -278,6 +334,7 @@ async def create_conversation(
     convo = Conversation(
         conversation_id=conversation_id,
         form_id=form_id,
+        conversation_name=cleaned_name,
         versions=[ConversationVersion(version_index=0, history=conversation_dict)]
     )
     await container.convo_repo.save(convo)
@@ -286,6 +343,13 @@ async def create_conversation(
     try:
         latest_version = convo.versions[-1]
         result = await container.pipeline.run(conversation_id, form_id, version_index=latest_version.version_index)
+
+        if reviewed_field_overrides:
+            _apply_field_overrides(result.filled_data, reviewed_field_overrides)
+            await container.runlog_repo.update(result.run_id, {
+                "extracted_fields": result.model_dump()
+            })
+
         latest_version.run_id = result.run_id
         await container.convo_repo.save(convo)
         await _save_output(result)

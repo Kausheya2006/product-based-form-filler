@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Conversation #{{ convo.id }} — ProductLabs{% endblock %}
+{% block title %}{{ convo.name if convo.name else 'Conversation #' ~ convo.id }} — ProductLabs{% endblock %}
 
 {% block content %}
 
     <div class="page-header" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
     <div>
-        <h1 style="margin:0 0 4px 0;">Conversation #{{ convo.id }}</h1>
+        <h1 style="margin:0 0 4px 0;">{{ convo.name if convo.name else 'Conversation #' ~ convo.id }}</h1>
         <p class="page-subtitle" style="margin:0;">{{ convo.versions | length }} version{{ convo.versions | length != 1 and 's' or '' }}</p>
     </div>
     <a href="/conversations/{{ convo.id }}/edit?form_id={{ form_id }}" class="btn">Edit / Add Context</a>

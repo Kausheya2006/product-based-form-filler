@@ -208,18 +208,56 @@
   .field-key {
     font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em;
     color: var(--text-muted); text-transform: uppercase;
-    margin-bottom: 3px; display: flex; align-items: center; gap: 5px;
+    margin-bottom: 0; display: flex; align-items: center; gap: 5px;
+  }
+  .field-key-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 6px; gap: 8px;
   }
   .field-key .dot {
     width: 6px; height: 6px; border-radius: 50%;
     background: var(--border-dark); flex-shrink: 0; transition: background 0.25s;
   }
   .field-card.updated .dot { background: var(--success); }
+  .field-edit-btn {
+    border: 1px solid var(--border); background: var(--bg-white); color: var(--text-muted);
+    width: 24px; height: 24px; border-radius: 7px;
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.15s; padding: 0;
+  }
+  .field-edit-btn:hover {
+    border-color: var(--primary); color: var(--primary-dark); background: var(--primary-light);
+  }
+  .field-edit-btn.active {
+    border-color: var(--primary); color: #fff; background: var(--primary);
+  }
+  .field-edit-btn svg {
+    width: 13px; height: 13px;
+  }
   .field-value {
     font-family: 'Monaco','Menlo',monospace; font-size: 0.82rem;
     color: var(--text); min-height: 1.1em; word-break: break-word;
   }
   .field-value.empty { color: var(--text-light); font-style: italic; }
+  .field-input {
+    width: 100%;
+    display: none;
+    margin-top: 0;
+    font-family: 'Monaco','Menlo',monospace;
+    font-size: 0.82rem;
+    padding: 7px 9px;
+    border-radius: 8px;
+  }
+  .field-card.editing .field-value {
+    display: none;
+  }
+  .field-card.editing .field-input {
+    display: block;
+  }
+  .field-card.manual {
+    border-color: #93c5fd;
+    box-shadow: 0 0 0 2px rgba(37,99,235,0.12);
+  }
 
   /* status bar */
   .status-bar {
@@ -236,6 +274,114 @@
   }
   .empty-output svg { opacity: 0.35; }
   .empty-output p { font-size: 0.82rem; color: var(--text-muted); margin: 0; }
+
+  /* save confirmation modal */
+  .save-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.56);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 400;
+    padding: 16px;
+  }
+  .save-modal-backdrop[hidden] {
+    display: none;
+  }
+  .save-modal {
+    width: min(820px, calc(100vw - 32px));
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    border-radius: 14px;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    box-shadow: 0 20px 50px rgba(2, 6, 23, 0.28);
+  }
+  .save-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 16px 18px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .save-modal-header h2 {
+    margin: 0;
+    font-size: 1.05rem;
+    color: var(--text);
+  }
+  .save-modal-header p {
+    margin: 3px 0 0;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+  .save-modal-close {
+    border: 1px solid var(--border);
+    background: var(--bg-white);
+    border-radius: 8px;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1;
+  }
+  .save-modal-close:hover {
+    background: var(--bg-gray);
+    color: var(--text);
+  }
+  .save-modal-body {
+    padding: 14px 18px;
+  }
+  .save-modal-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .save-modal-grid textarea {
+    min-height: 120px;
+    resize: vertical;
+  }
+  .confirm-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 12px;
+  }
+  .confirm-field {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    background: #f8fafc;
+  }
+  .confirm-field label {
+    margin: 0 0 6px;
+    font-size: 0.72rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 700;
+  }
+  .confirm-field input {
+    margin: 0;
+    font-family: 'Monaco','Menlo',monospace;
+    font-size: 0.82rem;
+    background: var(--bg-white);
+  }
+  .save-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px 18px 16px;
+    border-top: 1px solid var(--border);
+    background: #f8fafc;
+  }
+
+  @media (max-width: 900px) {
+    .confirm-fields {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
 
 <!-- Hidden form used only for final submission -->
@@ -244,6 +390,8 @@
   <input type="hidden" name="form_id"           value="{{ form.id }}" />
   <input type="hidden" name="conversation_text" id="conversation_text" />
   <input type="hidden" name="conversation_id"   id="hidden_conv_id" />
+  <input type="hidden" name="conversation_name" id="conversation_name" />
+  <input type="hidden" name="field_overrides_json" id="field_overrides_json" />
 </form>
 
 <!-- ── Header ── -->
@@ -321,48 +469,114 @@
 </div>
 </div><!-- /.page-shell -->
 
-<script>
-  // ── Constants & DOM refs ──
-  const FORM_ID    = "{{ form.id }}";
-  const formFields = {{ form.fields | tojson }};
+<div class="save-modal-backdrop" id="saveModalBackdrop" hidden>
+  <div class="save-modal" role="dialog" aria-modal="true" aria-labelledby="saveModalTitle">
+    <div class="save-modal-header">
+      <div>
+        <h2 id="saveModalTitle">Review Before Saving</h2>
+        <p>Confirm transcript, edit field values, and name this conversation.</p>
+      </div>
+      <button type="button" class="save-modal-close" id="saveModalClose" aria-label="Close">X</button>
+    </div>
 
-  console.log("[INIT] FORM_ID:", FORM_ID);
-  console.log("[INIT] formFields:", formFields);
+    <div class="save-modal-body">
+      <div class="save-modal-grid">
+        <label>
+          Conversation Name
+          <input id="confirmConversationName" placeholder="e.g. Initial Intake Call" />
+        </label>
+
+        <label>
+          Conversation Transcript
+          <textarea id="confirmConversationText" placeholder="Speaker: message"></textarea>
+        </label>
+
+        <div>
+          <label style="margin-bottom:8px;">Reviewed Field Values</label>
+          <div class="confirm-fields" id="confirmFields"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="save-modal-actions">
+      <button type="button" class="btn" id="confirmCancelBtn">Cancel</button>
+      <button type="button" class="btn btn-success" id="confirmSaveBtn">Save Conversation</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const FORM_ID = "{{ form.id }}";
+  const formFields = JSON.parse('{{ form.fields | tojson }}');
+  const DEBUG_LOGS = true;
+
+  function debugLog(...args) {
+    if (DEBUG_LOGS) console.log(...args);
+  }
+
+  function debugWarn(...args) {
+    if (DEBUG_LOGS) console.warn(...args);
+  }
+
+  function debugError(...args) {
+    if (DEBUG_LOGS) console.error(...args);
+  }
+
+  debugLog("[INIT] FORM_ID:", FORM_ID);
+  debugLog("[INIT] formFields:", formFields);
 
   const speakerChipsEl = document.getElementById("speakerChips");
   const newSpeakerName = document.getElementById("newSpeakerName");
-  const addSpeakerBtn  = document.getElementById("addSpeakerBtn");
-  const chatMessages   = document.getElementById("chatMessages");
-  const chatEmpty      = document.getElementById("chatEmpty");
-  const msgInput       = document.getElementById("msgInput");
-  const sendBtn        = document.getElementById("sendBtn");
-  const outputScroll   = document.getElementById("outputScroll");
-  const outputEmpty    = document.getElementById("outputEmpty");
-  const statusDot      = document.getElementById("statusDot");
-  const statusText     = document.getElementById("statusText");
-  const summaryCard    = document.getElementById("summaryCard");
-  const summaryText    = document.getElementById("summaryText");
-  const saveBtn        = document.getElementById("saveBtn");
-  const chatForm       = document.getElementById("conversation-form");
-  const convTextInput  = document.getElementById("conversation_text");
-  const hiddenConvId   = document.getElementById("hidden_conv_id");
-  const convIdInput    = document.getElementById("conv_id_input");
+  const addSpeakerBtn = document.getElementById("addSpeakerBtn");
+  const chatMessages = document.getElementById("chatMessages");
+  const chatEmpty = document.getElementById("chatEmpty");
+  const msgInput = document.getElementById("msgInput");
+  const sendBtn = document.getElementById("sendBtn");
+  const outputScroll = document.getElementById("outputScroll");
+  const outputEmpty = document.getElementById("outputEmpty");
+  const statusDot = document.getElementById("statusDot");
+  const statusText = document.getElementById("statusText");
+  const summaryCard = document.getElementById("summaryCard");
+  const summaryText = document.getElementById("summaryText");
+  const saveBtn = document.getElementById("saveBtn");
+  const chatForm = document.getElementById("conversation-form");
+  const convTextInput = document.getElementById("conversation_text");
+  const hiddenConvId = document.getElementById("hidden_conv_id");
+  const hiddenConversationName = document.getElementById("conversation_name");
+  const hiddenFieldOverrides = document.getElementById("field_overrides_json");
+  const convIdInput = document.getElementById("conv_id_input");
 
-  // Sanity-check all DOM refs
-  const domRefs = { speakerChipsEl, newSpeakerName, addSpeakerBtn, chatMessages, chatEmpty,
+  const saveModalBackdrop = document.getElementById("saveModalBackdrop");
+  const saveModalClose = document.getElementById("saveModalClose");
+  const confirmConversationName = document.getElementById("confirmConversationName");
+  const confirmConversationText = document.getElementById("confirmConversationText");
+  const confirmFields = document.getElementById("confirmFields");
+  const confirmCancelBtn = document.getElementById("confirmCancelBtn");
+  const confirmSaveBtn = document.getElementById("confirmSaveBtn");
+
+  const domRefs = {
+    speakerChipsEl, newSpeakerName, addSpeakerBtn, chatMessages, chatEmpty,
     msgInput, sendBtn, outputScroll, outputEmpty, statusDot, statusText,
-    summaryCard, summaryText, saveBtn, chatForm, convTextInput, hiddenConvId, convIdInput };
+    summaryCard, summaryText, saveBtn, chatForm, convTextInput, hiddenConvId,
+    hiddenConversationName, hiddenFieldOverrides, saveModalBackdrop,
+    confirmConversationName, confirmConversationText, confirmFields
+  };
   Object.entries(domRefs).forEach(([name, el]) => {
-    if (!el) console.error("[DOM] MISSING element:", name);
+    if (!el) {
+      debugError("[DOM] Missing element:", name);
+    }
   });
 
-  // ── State ──
-  let speakers      = [];
+  let speakers = [];
   let activeSpeaker = null;
-  let messages      = [];
-  const fieldCards  = {};
+  let messages = [];
+  const fieldCards = {};
+  const currentFieldValues = {};
+  const lastModelFieldValues = {};
+  const manuallyEditedFields = new Set();
 
-  // ── Helpers ──
+  debugLog("[INIT] DOM refs checked. Ready to render speakers.");
+
   function autosizeTextarea(el) {
     el.style.height = "auto";
     el.style.height = Math.min(el.scrollHeight + 2, 130) + "px";
@@ -388,65 +602,247 @@
     return out;
   }
 
-  // ── Field cards (right panel) ──
+  function normalizeFieldValue(value) {
+    if (value === undefined || value === null) return "";
+    return String(value).trim();
+  }
+
+  function normalizeForMatch(value) {
+    return String(value || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function valueAppearsInText(value, text) {
+    const needle = normalizeForMatch(value);
+    const haystack = normalizeForMatch(text);
+    if (!needle || !haystack) return false;
+    return haystack.includes(needle);
+  }
+
+  function getCurrentFieldValue(key) {
+    return normalizeFieldValue(currentFieldValues[key]);
+  }
+
+  function setFieldCardDisplay(key, value, animate = false) {
+    const refs = fieldCards[key];
+    if (!refs) return;
+
+    const display = normalizeFieldValue(value);
+    if (display) {
+      refs.valueEl.className = "field-value";
+      refs.valueEl.textContent = display;
+      refs.inputEl.value = display;
+      if (animate) {
+        refs.card.classList.add("updated");
+        setTimeout(() => refs.card.classList.remove("updated"), 2200);
+      }
+      return;
+    }
+
+    refs.valueEl.className = "field-value empty";
+    refs.valueEl.textContent = "-";
+    refs.inputEl.value = "";
+  }
+
+  function applyManualClass(key) {
+    const refs = fieldCards[key];
+    if (!refs) return;
+    refs.card.classList.toggle("manual", manuallyEditedFields.has(key));
+  }
+
+  function setFieldEditing(key, editing) {
+    const refs = fieldCards[key];
+    if (!refs) return;
+    refs.editing = editing;
+    refs.card.classList.toggle("editing", editing);
+    refs.editBtn.classList.toggle("active", editing);
+
+    if (editing) {
+      refs.inputEl.value = getCurrentFieldValue(key);
+      refs.inputEl.focus();
+      refs.inputEl.select();
+    }
+  }
+
+  function saveFieldEdit(key) {
+    const refs = fieldCards[key];
+    if (!refs) return;
+
+    const editedValue = normalizeFieldValue(refs.inputEl.value);
+    const modelValue = normalizeFieldValue(lastModelFieldValues[key]);
+    currentFieldValues[key] = editedValue;
+
+    if (editedValue === modelValue) {
+      manuallyEditedFields.delete(key);
+    } else {
+      manuallyEditedFields.add(key);
+    }
+
+    debugLog("[FIELDS] manual edit saved", { key, editedValue, modelValue });
+
+    setFieldCardDisplay(key, editedValue, false);
+    applyManualClass(key);
+    setFieldEditing(key, false);
+    statusDot.style.background = "var(--primary)";
+    statusText.textContent = `Reviewed ${key}`;
+  }
+
+  function cancelFieldEdit(key) {
+    setFieldEditing(key, false);
+  }
+
+  function buildEditIcon() {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z"/></svg>';
+  }
+
   function initFieldCards() {
+    debugLog("[FIELDS] initFieldCards called");
     outputEmpty.style.display = "none";
+
     Object.keys(formFields).forEach(key => {
       if (fieldCards[key]) return;
-      const card  = document.createElement("div");
+      debugLog("[FIELDS] creating card for:", key);
+
+      const card = document.createElement("div");
       card.className = "field-card";
+
+      const keyRow = document.createElement("div");
+      keyRow.className = "field-key-row";
+
       const keyEl = document.createElement("div");
       keyEl.className = "field-key";
       keyEl.innerHTML = `<span class="dot"></span>${key}`;
-      const valEl = document.createElement("div");
-      valEl.className = "field-value empty";
-      valEl.textContent = "—";
-      card.appendChild(keyEl);
-      card.appendChild(valEl);
+
+      const editBtn = document.createElement("button");
+      editBtn.type = "button";
+      editBtn.className = "field-edit-btn";
+      editBtn.title = `Edit ${key}`;
+      editBtn.setAttribute("aria-label", `Edit ${key}`);
+      editBtn.innerHTML = buildEditIcon();
+
+      keyRow.appendChild(keyEl);
+      keyRow.appendChild(editBtn);
+
+      const valueEl = document.createElement("div");
+      valueEl.className = "field-value empty";
+      valueEl.textContent = "-";
+
+      const inputEl = document.createElement("input");
+      inputEl.className = "field-input";
+      inputEl.type = "text";
+      inputEl.placeholder = `Enter ${key}`;
+
+      editBtn.addEventListener("click", () => {
+        const refs = fieldCards[key];
+        setFieldEditing(key, !refs.editing);
+      });
+
+      inputEl.addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          saveFieldEdit(key);
+        }
+        if (e.key === "Escape") {
+          e.preventDefault();
+          cancelFieldEdit(key);
+        }
+      });
+
+      inputEl.addEventListener("blur", () => {
+        if (fieldCards[key].editing) saveFieldEdit(key);
+      });
+
+      card.appendChild(keyRow);
+      card.appendChild(valueEl);
+      card.appendChild(inputEl);
       outputScroll.appendChild(card);
-      fieldCards[key] = { card, valueEl: valEl };
+
+      fieldCards[key] = {
+        card,
+        keyEl,
+        valueEl,
+        inputEl,
+        editBtn,
+        editing: false
+      };
+
+      applyManualClass(key);
+      setFieldCardDisplay(key, getCurrentFieldValue(key));
     });
-    console.log("[FIELDS] initFieldCards — cards created:", Object.keys(fieldCards));
+
+    debugLog("[FIELDS] cards ready:", Object.keys(fieldCards));
   }
 
-  function applyFilledData(filledData) {
-    console.log("[FIELDS] applyFilledData called with:", filledData);
+  function applyFilledData(filledData, latestTurnText = "") {
+    debugLog("[FIELDS] applyFilledData input:", filledData);
     const flat = flattenObject(filledData || {});
-    console.log("[FIELDS] flattened:", flat);
+    debugLog("[FIELDS] flattened data:", flat);
     Object.keys(fieldCards).forEach(key => {
-      const { card, valueEl } = fieldCards[key];
-      const val = flat[key];
-      const display = (val === undefined || val === null || val === "") ? null : String(val);
-      console.log(`[FIELDS]   ${key} → raw="${val}"  display="${display}"`);
-      if (display) {
-        card.classList.add("updated");
-        valueEl.className = "field-value";
-        valueEl.textContent = display;
-        setTimeout(() => card.classList.remove("updated"), 2500);
-      } else {
-        valueEl.className = "field-value empty";
-        valueEl.textContent = "—";
+      const extractedValue = normalizeFieldValue(flat[key]);
+      const currentValue = getCurrentFieldValue(key);
+      const isManual = manuallyEditedFields.has(key);
+
+      lastModelFieldValues[key] = extractedValue;
+
+      if (isManual && extractedValue !== currentValue) {
+        const aiValueIsFromLatestTurn = valueAppearsInText(extractedValue, latestTurnText);
+        if (!aiValueIsFromLatestTurn) {
+          debugLog("[FIELDS] keeping manual value", {
+            key,
+            manual: currentValue,
+            ai: extractedValue,
+            latestTurnText
+          });
+          currentFieldValues[key] = currentValue;
+          setFieldCardDisplay(key, currentValue, false);
+          applyManualClass(key);
+          return;
+        }
+
+        debugLog("[FIELDS] replacing manual value from latest turn", {
+          key,
+          previousManual: currentValue,
+          ai: extractedValue
+        });
       }
+
+      currentFieldValues[key] = extractedValue;
+      manuallyEditedFields.delete(key);
+      debugLog(`[FIELDS] ${key} ->`, extractedValue);
+      setFieldCardDisplay(key, extractedValue, Boolean(extractedValue));
+      applyManualClass(key);
     });
   }
 
-  // ── Speaker management ──
+  function buildCurrentFieldStatePayload() {
+    const payload = {};
+    Object.keys(formFields).forEach(key => {
+      payload[key] = getCurrentFieldValue(key);
+    });
+    debugLog("[EXTRACT] field_state_json payload:", payload);
+    return payload;
+  }
+
   function renderSpeakers() {
+    debugLog("[SPEAKER] renderSpeakers", { speakers, activeSpeaker });
     speakerChipsEl.innerHTML = "";
     if (speakers.length === 0) {
       const hint = document.createElement("span");
       hint.className = "muted-hint";
-      hint.textContent = "No speakers yet — add one above";
+      hint.textContent = "No speakers yet - add one above";
       speakerChipsEl.appendChild(hint);
       return;
     }
-    speakers.forEach(s => {
+
+    speakers.forEach(speaker => {
       const chip = document.createElement("span");
-      chip.className = "speaker-chip" + (s === activeSpeaker ? " active" : "");
-      chip.textContent = s;
+      chip.className = "speaker-chip" + (speaker === activeSpeaker ? " active" : "");
+      chip.textContent = speaker;
       chip.addEventListener("click", () => {
-        activeSpeaker = s;
-        console.log("[SPEAKER] active speaker →", activeSpeaker);
+        activeSpeaker = speaker;
         renderSpeakers();
         msgInput.focus();
       });
@@ -456,67 +852,80 @@
 
   addSpeakerBtn.addEventListener("click", () => {
     const name = newSpeakerName.value.trim();
-    console.log("[SPEAKER] add speaker attempted:", name);
+    debugLog("[SPEAKER] add requested:", name);
     if (name && !speakers.includes(name)) {
       speakers.push(name);
       if (!activeSpeaker) activeSpeaker = name;
-      console.log("[SPEAKER] speakers now:", speakers, "  active:", activeSpeaker);
+      debugLog("[SPEAKER] added", { speakers, activeSpeaker });
       renderSpeakers();
+    } else if (name && speakers.includes(name)) {
+      debugWarn("[SPEAKER] duplicate ignored:", name);
     }
     newSpeakerName.value = "";
     msgInput.focus();
   });
 
   newSpeakerName.addEventListener("keydown", e => {
-    if (e.key === "Enter") { e.preventDefault(); addSpeakerBtn.click(); }
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addSpeakerBtn.click();
+    }
   });
 
-  // ── Chat bubble rendering ──
   function addBubble(speaker, text) {
+    debugLog("[CHAT] addBubble", { speaker, text });
     chatEmpty.style.display = "none";
-    const idx  = speakers.indexOf(speaker);
+    const idx = speakers.indexOf(speaker);
     const side = idx % 2 === 0 ? "left" : "right";
+
     const wrap = document.createElement("div");
     wrap.className = `chat-bubble ${side}`;
+
     const speakerEl = document.createElement("div");
     speakerEl.className = "bubble-speaker";
     speakerEl.textContent = speaker;
+
     const bodyEl = document.createElement("div");
     bodyEl.className = "bubble-body";
     bodyEl.textContent = text;
+
     wrap.appendChild(speakerEl);
     wrap.appendChild(bodyEl);
     chatMessages.appendChild(wrap);
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 
-  // ── Send message → extract ──
   async function sendMessage() {
     const text = msgInput.value.trim();
-    console.log("[SEND] sendMessage called. text:", JSON.stringify(text), "activeSpeaker:", activeSpeaker);
-    if (!text) { console.warn("[SEND] empty text, aborting"); return; }
+    debugLog("[SEND] sendMessage", { activeSpeaker, text });
+    if (!text) {
+      debugWarn("[SEND] empty text ignored");
+      return;
+    }
+
     if (!activeSpeaker) {
-      console.warn("[SEND] no active speaker");
+      debugWarn("[SEND] no active speaker");
       alert("Please add and select a speaker first.");
       return;
     }
+
     messages.push({ speaker: activeSpeaker, text });
-    console.log("[SEND] messages now:", messages);
+    debugLog("[SEND] messages length:", messages.length);
     addBubble(activeSpeaker, text);
     msgInput.value = "";
     autosizeTextarea(msgInput);
     convTextInput.value = buildRawText(messages);
+
     initFieldCards();
     await runLiveExtraction();
   }
 
-  // ── Live extraction (/extract/preview) ──
   async function runLiveExtraction() {
     const conversationText = buildRawText(messages);
-    console.log("[EXTRACT] runLiveExtraction. payload text:", JSON.stringify(conversationText));
+    debugLog("[EXTRACT] start", { messageCount: messages.length, conversationText });
 
     if (!conversationText.trim()) {
-      console.warn("[EXTRACT] empty conversation, skipping");
+      debugWarn("[EXTRACT] skipped empty conversation");
       statusText.textContent = "No conversation text yet.";
       summaryCard.style.display = "none";
       applyFilledData({});
@@ -525,13 +934,14 @@
 
     sendBtn.disabled = true;
     statusDot.style.background = "var(--primary)";
-    statusText.textContent = "Processing conversation so far…";
+    statusText.textContent = "Processing conversation so far...";
 
     const body = new URLSearchParams({
       form_id: FORM_ID,
-      conversation_text: conversationText
+      conversation_text: conversationText,
+      field_state_json: JSON.stringify(buildCurrentFieldStatePayload())
     });
-    console.log("[EXTRACT] POST /extract/preview  body:", body.toString());
+    debugLog("[EXTRACT] POST /extract/preview body:", body.toString());
 
     try {
       const res = await fetch("/extract/preview", {
@@ -539,49 +949,149 @@
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: body.toString()
       });
-      console.log("[EXTRACT] response status:", res.status, res.statusText);
+      debugLog("[EXTRACT] response status:", res.status, res.statusText);
 
-      const raw = await res.text();
-      console.log("[EXTRACT] raw response body:", raw);
-
-      let data = {};
-      try {
-        data = raw ? JSON.parse(raw) : {};
-        console.log("[EXTRACT] parsed data:", data);
-      } catch (e) {
-        console.error("[EXTRACT] JSON parse error:", e.message, "  raw was:", raw);
-        data = { detail: raw || "Extraction failed" };
-      }
-
+      const data = await res.json();
+      debugLog("[EXTRACT] response data:", data);
       if (!res.ok) {
-        console.error("[EXTRACT] non-OK response:", res.status, data.detail);
         throw new Error(data.detail || "Extraction failed");
       }
 
-      console.log("[EXTRACT] filled_data:", data.filled_data);
-      applyFilledData(data.filled_data || {});
+      const latestTurnText = messages.length
+        ? `${messages[messages.length - 1].speaker}: ${messages[messages.length - 1].text}`
+        : "";
+      applyFilledData(data.filled_data || {}, latestTurnText);
 
       if (data.summary) {
         summaryText.textContent = data.summary;
         summaryCard.style.display = "block";
-        console.log("[EXTRACT] summary:", data.summary);
       } else {
         summaryCard.style.display = "none";
       }
 
       statusDot.style.background = "var(--success)";
-      statusText.textContent = `Updated after message ${messages.length} — ${new Date().toLocaleTimeString()}`;
+      statusText.textContent = `Updated after message ${messages.length} at ${new Date().toLocaleTimeString()}`;
+      debugLog("[EXTRACT] success");
     } catch (err) {
-      console.error("[EXTRACT] error:", err.message);
       statusDot.style.background = "var(--danger)";
       statusText.textContent = `Extraction error: ${err.message}`;
+      debugError("[EXTRACT] failure:", err);
     } finally {
       sendBtn.disabled = false;
       msgInput.focus();
     }
   }
 
-  // ── Textarea auto-size + Enter to send ──
+  function renderConfirmFields() {
+    debugLog("[SAVE] renderConfirmFields");
+    confirmFields.innerHTML = "";
+    Object.keys(formFields).forEach(key => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "confirm-field";
+
+      const label = document.createElement("label");
+      label.textContent = key;
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.dataset.fieldKey = key;
+      input.value = getCurrentFieldValue(key);
+
+      wrapper.appendChild(label);
+      wrapper.appendChild(input);
+      confirmFields.appendChild(wrapper);
+    });
+  }
+
+  function openSaveModal() {
+    debugLog("[SAVE] openSaveModal");
+    if (messages.length === 0) {
+      debugWarn("[SAVE] blocked - no messages");
+      alert("Please add at least one message before saving.");
+      return;
+    }
+
+    initFieldCards();
+    renderConfirmFields();
+    confirmConversationText.value = buildRawText(messages);
+
+    saveModalBackdrop.hidden = false;
+    debugLog("[SAVE] modal opened");
+    confirmConversationName.focus();
+  }
+
+  function closeSaveModal() {
+    debugLog("[SAVE] modal closed");
+    saveModalBackdrop.hidden = true;
+  }
+
+  function collectAllReviewedFieldValues() {
+    const reviewed = {};
+    confirmFields.querySelectorAll("input[data-field-key]").forEach(input => {
+      reviewed[input.dataset.fieldKey] = normalizeFieldValue(input.value);
+    });
+    debugLog("[SAVE] reviewed fields collected:", reviewed);
+    return reviewed;
+  }
+
+  function buildOverridePayload(reviewed) {
+    const overrides = {};
+    Object.entries(reviewed).forEach(([key, value]) => {
+      const modelValue = normalizeFieldValue(lastModelFieldValues[key]);
+      if (value !== modelValue) {
+        overrides[key] = value;
+      }
+    });
+    debugLog("[SAVE] override payload:", overrides);
+    return overrides;
+  }
+
+  function syncReviewedFieldsToCards(reviewed) {
+    debugLog("[SAVE] syncing reviewed fields to live cards");
+    Object.entries(reviewed).forEach(([key, value]) => {
+      const normalized = normalizeFieldValue(value);
+      const modelValue = normalizeFieldValue(lastModelFieldValues[key]);
+
+      currentFieldValues[key] = normalized;
+      if (normalized === modelValue) {
+        manuallyEditedFields.delete(key);
+      } else {
+        manuallyEditedFields.add(key);
+      }
+
+      setFieldCardDisplay(key, normalized, false);
+      applyManualClass(key);
+    });
+  }
+
+  function submitConversationWithReview() {
+    debugLog("[SAVE] submitConversationWithReview");
+    const reviewedConversation = confirmConversationText.value.trim();
+    if (!reviewedConversation) {
+      debugWarn("[SAVE] blocked - empty conversation text");
+      alert("Conversation text cannot be empty.");
+      return;
+    }
+
+    const reviewedFields = collectAllReviewedFieldValues();
+    syncReviewedFieldsToCards(reviewedFields);
+    const overridePayload = buildOverridePayload(reviewedFields);
+
+    convTextInput.value = reviewedConversation;
+    hiddenConvId.value = convIdInput ? convIdInput.value.trim() : "";
+    hiddenConversationName.value = confirmConversationName.value.trim();
+    hiddenFieldOverrides.value = JSON.stringify(overridePayload);
+
+    debugLog("[SAVE] final payload", {
+      conversationId: hiddenConvId.value,
+      conversationName: hiddenConversationName.value,
+      conversationTextLength: convTextInput.value.length,
+      overrideCount: Object.keys(overridePayload).length
+    });
+
+    chatForm.submit();
+  }
+
   msgInput.addEventListener("input", () => autosizeTextarea(msgInput));
   msgInput.addEventListener("keydown", e => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -591,16 +1101,23 @@
   });
   sendBtn.addEventListener("click", sendMessage);
 
-  // ── Save ──
-  saveBtn.addEventListener("click", () => {
-    convTextInput.value = buildRawText(messages);
-    hiddenConvId.value  = convIdInput ? convIdInput.value.trim() : "";
-    console.log("[SAVE] submitting. conversation_text:", convTextInput.value, "conv_id:", hiddenConvId.value);
-    chatForm.submit();
+  saveBtn.addEventListener("click", openSaveModal);
+  confirmCancelBtn.addEventListener("click", closeSaveModal);
+  saveModalClose.addEventListener("click", closeSaveModal);
+  confirmSaveBtn.addEventListener("click", submitConversationWithReview);
+
+  saveModalBackdrop.addEventListener("click", e => {
+    if (e.target === saveModalBackdrop) closeSaveModal();
   });
 
-  // ── Init ──
-  console.log("[INIT] page ready. formFields keys:", Object.keys(formFields));
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && !saveModalBackdrop.hidden) {
+      debugLog("[SAVE] modal closed by Escape");
+      closeSaveModal();
+    }
+  });
+
+  debugLog("[INIT] renderSpeakers() initial");
   renderSpeakers();
 </script>
 

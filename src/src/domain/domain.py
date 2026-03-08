@@ -11,6 +11,7 @@ class ConversationVersion(BaseModel):
 class Conversation(BaseModel):
     id: str = Field(alias="conversation_id")
     form_id: str = Field(alias="form_id")
+    name: str = Field(default="", alias="conversation_name")
     versions: List[ConversationVersion] = [] 
 
     @property

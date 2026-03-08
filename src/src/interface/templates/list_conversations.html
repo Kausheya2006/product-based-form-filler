@@ -12,7 +12,7 @@
     <a href="/conversations/{{ c.id }}?form_id={{ form.id }}" class="form-card">
         <div class="form-card-icon">💬</div>
         <div class="form-card-body">
-            <div class="form-card-name">Conversation #{{ c.id }}</div>
+            <div class="form-card-name">{{ c.name if c.name else 'Conversation #' ~ c.id }}</div>
             <div class="form-card-desc">
                 {% if c.versions %}
                     {{ c.versions | length }} version{{ c.versions | length != 1 and 's' or '' }}
