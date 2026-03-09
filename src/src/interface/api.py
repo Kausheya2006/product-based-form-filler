@@ -471,7 +471,7 @@ async def create_conversation(
     except Exception as e:
         raise HTTPException(500, f"Conversation saved, but extraction failed: {str(e)}")
 
-    return RedirectResponse(url=f"/forms/{form_id}/conversations", status_code=303)
+    return RedirectResponse(url=f"/extract/{form_id}/{conversation_id}", status_code=303)
 
 @app.get("/conversations/{convo_id}/edit", response_class=HTMLResponse)
 async def edit_conversation_page(request: Request, convo_id: str, form_id: str):
@@ -614,7 +614,7 @@ async def live_extraction_page(request: Request, form_id: str):
     if not form:
         raise HTTPException(404, "Form not found")
     return templates.TemplateResponse(
-        "live_extract.html",
+        "static_enter_conversation.html",
         {"request": request, "form": form}
     )
 
