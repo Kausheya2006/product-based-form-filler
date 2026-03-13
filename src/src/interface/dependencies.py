@@ -2,8 +2,8 @@
 import logging
 from ..domain.interfaces import IConversationRepository, IFormRepository, IPipeline, IRunLogRepository, ISummarizer
 from ..infrastructure.persistence.mongo import MongoConversationRepository, MongoFormRepository, MongoRunLogRepo
-from ..infrastructure.ai.local_model import LocalHuggingFaceModel, GemmaFunctionalModel
-from ..infrastructure.ai.summarizer import LocalSummarizer
+from ..infrastructure.ai.local_model import LocalHuggingFaceModel, GemmaFunctionalModel, GemmaFormStateModel
+from ..infrastructure.ai.summarizer import LocalSummarizer, GemmaSummarizer
 from ..infrastructure.config import settings
 from ..application.pipeline import FormFillingService
 
@@ -21,8 +21,16 @@ class Container:
         cls.convo_repo = MongoConversationRepository(settings.MONGO_URI, settings.DB_NAME)
         cls.form_repo = MongoFormRepository(settings.MONGO_URI, settings.DB_NAME)
         cls.runlog_repo = MongoRunLogRepo(settings.MONGO_URI, settings.DB_NAME)
-        model = GemmaFunctionalModel(max_input_tokens=512, max_new_tokens=256, temperature=0.0, checkpoint_path="/app/data_generation/models/checkpoint-200")
-        summarizer = LocalSummarizer()
+        if settings.EXTRACTION_MODEL_TYPE == "gemma_form_state":
+            model = GemmaFormStateModel(model_path=settings.FORM_STATE_MODEL_PATH)
+        else:
+            model = GemmaFunctionalModel(max_input_tokens=512, max_new_tokens=256, temperature=0.0, checkpoint_path="/app/data_generation/models/checkpoint-200")
+
+        if settings.SUMMARIZER_TYPE == "gemma":
+            summarizer = GemmaSummarizer(model_path=settings.SUMMARIZER_MODEL_PATH)
+        else:
+            summarizer = LocalSummarizer()
+
         cls.pipeline = FormFillingService(cls.convo_repo, cls.form_repo, model, cls.runlog_repo, summarizer, model_type="full_process")
 
         # Log which Mongo host is being used (mask credentials)

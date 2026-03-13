@@ -13,3 +13,9 @@ sacremoses
 pyyaml
 tqdm
 requests
+torch
+datasets
+trl
+peft
+accelerate
+numpy
