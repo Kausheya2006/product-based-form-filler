@@ -71,8 +71,6 @@ def append_to_json_file(filepath, new_item):
         return
 
     try:
-        # Read the entire file, append, and write back (safest for structured JSON)
-        # For very large files, a more complex file-pointer approach would be needed.
         with open(filepath, 'r', encoding='utf-8') as f:
             data = json.load(f)
         
@@ -106,8 +104,12 @@ def parse_json_response(text, expected_len):
             if len(data) == expected_len:
                 return data
             else:
-                print(f"  Warning: Expected {expected_len} items, got {len(data)}.")
-                return None
+                print(f"  Warning: Expected {expected_len} items, got {len(data)}. Adjusting...")
+                if len(data) < expected_len:
+                    data.extend([{}] * (expected_len - len(data)))
+                else:
+                    data = data[:expected_len]
+                return data
         return None
     except json.JSONDecodeError:
         return None
@@ -122,8 +124,7 @@ def build_pairs():
             keys.append(val)
             
     models = [
-        "models/gemini-2.0-flash", 
-        "models/gemini-2.5-flash", 
+        "models/gemini-2.5-flash",
         "models/gemini-2.5-flash-lite"
     ]
     return [(k, m) for k in keys for m in models]
@@ -144,10 +145,8 @@ def generate_linewise_data():
     conversations = load_json(CONVERSATIONS_PATH)
     forms_list = load_json(FORMS_PATH)
     
-    # Map form_id to form object
     forms = {str(f["form_id"]): f for f in forms_list}
     
-    # Track processed conversations
     existing_data = load_json(OUTPUT_PATH)
     processed_convos = {item["conversation_id"] for item in existing_data}
 
@@ -219,7 +218,7 @@ def generate_linewise_data():
                     print(f"  ✓ Success: Processed {convo_id}")
                     success = True
                 else:
-                    print(f"  ✗ Failed to parse JSON or length mismatch. Retrying...")
+                    print(f"  ✗ Failed to parse JSON. Retrying...")
                     attempts += 1
                     if attempts >= 3:
                         print(f"  Skipping {convo_id} after 3 failed parsing attempts.")
@@ -227,28 +226,26 @@ def generate_linewise_data():
                     time.sleep(2)
             except Exception as e:
                 err_str = str(e)
-                if is_quota_error(err_str):
-                    print(f"  Quota limit on {model_name}. Rotating...")
-                    pair_idx = (pair_idx + 1) % len(pairs)
-                    quota_swaps_this_convo += 1
-                    
-                    if quota_swaps_this_convo >= len(pairs):
-                        print("  All keys hit quota recently. Waiting 60s before trying again...")
-                        time.sleep(60)
-                        quota_swaps_this_convo = 0
-                    
-                    api_key, model_name = pairs[pair_idx]
-                    genai.configure(api_key=api_key)
-                    model = genai.GenerativeModel(model_name)
-                    time.sleep(2)
-                else:
-                    print(f"  ✗ Error: {err_str}")
-                    attempts += 1
-                    if attempts >= 3:
-                        break
-                    time.sleep(5)
+                print(f"  ✗ Error: {err_str}")
+                
+                pair_idx = (pair_idx + 1) % len(pairs)
+                quota_swaps_this_convo += 1
+                
+                if quota_swaps_this_convo >= len(pairs):
+                    print("  All key/model pairs attempted. Waiting 30s...")
+                    time.sleep(30)
+                    quota_swaps_this_convo = 0
+                
+                api_key, model_name = pairs[pair_idx]
+                genai.configure(api_key=api_key)
+                model = genai.GenerativeModel(model_name)
+                
+                attempts += 1
+                if attempts >= 5:
+                    break
+                time.sleep(2)
         
-        time.sleep(1.0) # Small delay
+        time.sleep(0.5)
 
 if __name__ == "__main__":
     generate_linewise_data()
