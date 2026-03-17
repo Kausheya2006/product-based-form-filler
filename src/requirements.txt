@@ -19,3 +19,5 @@ trl
 peft
 accelerate
 numpy
+librosa
+soundfile

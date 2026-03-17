@@ -7,6 +7,10 @@ class ConversationVersion(BaseModel):
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     history: Dict[str, str]
     run_id: str | None = None
+    source_mode: str = "text"
+    input_language: str | None = None
+    raw_transcript: str | None = None
+    translated_transcript: str | None = None
 
 class Conversation(BaseModel):
     id: str = Field(alias="conversation_id")

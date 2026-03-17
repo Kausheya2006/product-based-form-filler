@@ -4,7 +4,7 @@ import json
 import logging
 import asyncio
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, Request, Form
+from fastapi import FastAPI, HTTPException, Request, Form, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -37,6 +37,15 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 templates = Jinja2Templates(directory="src/interface/templates")
+
+SUPPORTED_INPUT_LANGUAGES = [
+    ("en", "English"),
+    ("es", "Spanish"),
+    ("fr", "French"),
+    ("de", "German"),
+    ("it", "Italian"),
+    ("pt", "Portuguese"),
+]
 
 def _default_field_question(field_name: str) -> str:
     """Generate a readable fallback question from a field name."""
@@ -286,6 +295,22 @@ async def enter_conversation(request: Request, form_id: str):
         
     return templates.TemplateResponse("enter_conversation.html", {"request": request, "form": form})
 
+@app.get("/forms/{form_id}/asr", response_class=HTMLResponse)
+async def asr_extraction_page(request: Request, form_id: str):
+    """ASR-assisted static extraction page (language -> English -> extract)."""
+    form = await container.form_repo.get_by_id(form_id)
+    if not form:
+        raise HTTPException(404, "Form not found")
+
+    return templates.TemplateResponse(
+        "asr_enter_conversation.html",
+        {
+            "request": request,
+            "form": form,
+            "input_languages": SUPPORTED_INPUT_LANGUAGES,
+        },
+    )
+
 def _parse_conversation_text(text: str) -> Dict[str, str]:
     """Parse conversation text into dict with timestamp keys"""
     import time
@@ -339,6 +364,60 @@ def _apply_field_overrides(target: Dict[str, Any], overrides: Dict[str, Any]) ->
             continue
         normalized = "" if value is None else str(value)
         _set_nested_field(target, field_key, normalized)
+
+def _transcript_to_conversation_text(transcript: str) -> str:
+    """Convert plain transcript into parser-compatible conversation text."""
+    cleaned = " ".join((transcript or "").split())
+    if not cleaned:
+        return ""
+    return f"Speaker: {cleaned}"
+
+async def _persist_conversation_and_extract(
+    *,
+    form_id: str,
+    conversation_text: str,
+    conversation_id: str = "",
+    conversation_name: str = "",
+    reviewed_field_overrides: Dict[str, Any] | None = None,
+    version_metadata: Dict[str, Any] | None = None,
+) -> str:
+    """Create conversation v0, run extraction, persist output, return conversation id."""
+    if not conversation_id.strip():
+        conversation_id = str(uuid4())[:8]
+
+    conversation_dict = _parse_conversation_text(conversation_text)
+    if not conversation_dict:
+        raise HTTPException(400, "Could not parse conversation.")
+
+    version_payload: Dict[str, Any] = {
+        "version_index": 0,
+        "history": conversation_dict,
+    }
+    if version_metadata:
+        version_payload.update(version_metadata)
+
+    convo = Conversation(
+        conversation_id=conversation_id,
+        form_id=form_id,
+        conversation_name=conversation_name.strip(),
+        versions=[ConversationVersion(**version_payload)]
+    )
+    await container.convo_repo.save(convo)
+
+    result = await container.pipeline.run(conversation_id, form_id, version_index=0)
+
+    if reviewed_field_overrides:
+        _apply_field_overrides(result.filled_data, reviewed_field_overrides)
+        await container.runlog_repo.update(result.run_id, {
+            "extracted_fields": result.model_dump()
+        })
+
+    latest_version = convo.versions[-1]
+    latest_version.run_id = result.run_id
+    await container.convo_repo.save(convo)
+    await _save_output(result)
+
+    return conversation_id
 
 async def _extract_for_conversation_text(
     form: FormSchema,
@@ -423,11 +502,6 @@ async def create_conversation(
     conversation_text: str = Form(...)
 ):
     """Initializes a new conversation with Version 0 and persists extraction output."""
-    if not conversation_id.strip():
-        conversation_id = str(uuid4())[:8]
-
-    cleaned_name = conversation_name.strip()
-
     reviewed_field_overrides: Dict[str, Any] = {}
     if field_overrides_json.strip():
         try:
@@ -439,35 +513,68 @@ async def create_conversation(
             raise HTTPException(400, "Reviewed fields payload must be a JSON object.")
 
         reviewed_field_overrides = parsed_overrides
-    
-    conversation_dict = _parse_conversation_text(conversation_text)
-    
-    if not conversation_dict:
-        raise HTTPException(400, "Could not parse conversation.")
-    
-    # Initialize with the first version
-    convo = Conversation(
-        conversation_id=conversation_id,
-        form_id=form_id,
-        conversation_name=cleaned_name,
-        versions=[ConversationVersion(version_index=0, history=conversation_dict)]
-    )
-    await container.convo_repo.save(convo)
 
-    # Run extraction immediately on save, mirroring /extract behavior for persistence.
     try:
-        latest_version = convo.versions[-1]
-        result = await container.pipeline.run(conversation_id, form_id, version_index=latest_version.version_index)
+        conversation_id = await _persist_conversation_and_extract(
+            form_id=form_id,
+            conversation_text=conversation_text,
+            conversation_id=conversation_id,
+            conversation_name=conversation_name,
+            reviewed_field_overrides=reviewed_field_overrides,
+            version_metadata={"source_mode": "text"},
+        )
+    except Exception as e:
+        raise HTTPException(500, f"Conversation saved, but extraction failed: {str(e)}")
 
-        if reviewed_field_overrides:
-            _apply_field_overrides(result.filled_data, reviewed_field_overrides)
-            await container.runlog_repo.update(result.run_id, {
-                "extracted_fields": result.model_dump()
-            })
+    return RedirectResponse(url=f"/extract/{form_id}/{conversation_id}", status_code=303)
 
-        latest_version.run_id = result.run_id
-        await container.convo_repo.save(convo)
-        await _save_output(result)
+@app.post("/conversations/create-asr", response_class=HTMLResponse)
+async def create_conversation_asr(
+    form_id: str = Form(...),
+    input_language: str = Form("en"),
+    conversation_id: str = Form(""),
+    conversation_name: str = Form(""),
+    conversation_text: str = Form(""),
+    audio_file: UploadFile | None = File(default=None),
+):
+    """Runs static extraction after transcribing audio and translating transcript to English."""
+    transcript_text = ""
+
+    if audio_file is not None and (audio_file.filename or "").strip():
+        raw_audio = await audio_file.read()
+        if not raw_audio:
+            raise HTTPException(400, "Uploaded audio file is empty.")
+
+        transcript_text = await container.asr_transcriber.transcribe_to_text(
+            audio_bytes=raw_audio,
+            filename=audio_file.filename,
+            input_language=input_language,
+        )
+    elif conversation_text.strip():
+        # Fallback for manual text entry if audio is not provided.
+        transcript_text = conversation_text
+    else:
+        raise HTTPException(400, "Please upload an audio file or record audio.")
+
+    translated_text = await container.translator.translate_to_english(transcript_text, input_language)
+    conversation_payload = _transcript_to_conversation_text(translated_text)
+    if not conversation_payload:
+        raise HTTPException(400, "Transcription produced empty text.")
+
+    try:
+        conversation_id = await _persist_conversation_and_extract(
+            form_id=form_id,
+            conversation_text=conversation_payload,
+            conversation_id=conversation_id,
+            conversation_name=conversation_name,
+            reviewed_field_overrides=None,
+            version_metadata={
+                "source_mode": "asr",
+                "input_language": input_language,
+                "raw_transcript": transcript_text,
+                "translated_transcript": translated_text,
+            },
+        )
     except Exception as e:
         raise HTTPException(500, f"Conversation saved, but extraction failed: {str(e)}")
 

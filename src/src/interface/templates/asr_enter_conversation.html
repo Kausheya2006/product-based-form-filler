@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}ASR Extraction — {{ form.name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>ASR + Static Extraction</h1>
+    <p class="page-subtitle">Convert input language to English, then run static extraction.</p>
+</div>
+
+<div class="card">
+    <form method="post" action="/conversations/create-asr" id="asrExtractionForm" enctype="multipart/form-data">
+        <input type="hidden" name="form_id" value="{{ form.id }}">
+
+        <div class="form-group">
+            <label for="input_language">Input Language</label>
+            <select id="input_language" name="input_language" required>
+                {% for code, label in input_languages %}
+                <option value="{{ code }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+            <p class="form-hint">Audio is transcribed first, then translated to English before extraction.</p>
+        </div>
+
+        <div class="form-group">
+            <label for="conversation_name">Conversation Name (optional)</label>
+            <input id="conversation_name" name="conversation_name" placeholder="e.g. Intake call - Spanish">
+        </div>
+
+        <div class="form-group">
+            <label for="conversation_id">Conversation ID (optional)</label>
+            <input id="conversation_id" name="conversation_id" placeholder="auto-generated if blank">
+        </div>
+
+        <div class="form-group">
+            <label for="audio_file">Audio File</label>
+            <input id="audio_file" name="audio_file" type="file" accept="audio/*">
+            <p class="form-hint">Upload an audio file or record directly below.</p>
+        </div>
+
+        <div class="form-group">
+            <label>Record Audio</label>
+            <div class="action-row" style="margin-top:4px;">
+                <button type="button" class="btn" id="startRecordingBtn">Start Recording</button>
+                <button type="button" class="btn" id="stopRecordingBtn" disabled>Stop</button>
+            </div>
+            <p class="form-hint" id="recordingStatus">Not recording</p>
+            <audio id="recordingPreview" controls style="width:100%; display:none; margin-top:8px;"></audio>
+        </div>
+
+        <div class="action-row">
+            <button type="submit" class="btn btn-success" id="asrSubmitBtn">Transcribe, Translate & Run Extraction</button>
+            <a href="/forms/{{ form.id }}" class="btn">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<script src="/static/js/asr_extraction.js"></script>
+{% endblock %}

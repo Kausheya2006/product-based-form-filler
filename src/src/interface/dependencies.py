@@ -4,6 +4,8 @@ from ..domain.interfaces import IConversationRepository, IFormRepository, IPipel
 from ..infrastructure.persistence.mongo import MongoConversationRepository, MongoFormRepository, MongoRunLogRepo
 from ..infrastructure.ai.local_model import LocalHuggingFaceModel, GemmaFunctionalModel, GemmaFormStateModel
 from ..infrastructure.ai.summarizer import LocalSummarizer, GemmaSummarizer
+from ..infrastructure.ai.translator import LocalTranslator
+from ..infrastructure.ai.asr import LocalASRTranscriber
 from ..infrastructure.config import settings
 from ..application.pipeline import FormFillingService
 
@@ -15,6 +17,8 @@ class Container:
     form_repo: IFormRepository = None
     runlog_repo: IRunLogRepository = None 
     pipeline: IPipeline = None
+    translator: LocalTranslator = None
+    asr_transcriber: LocalASRTranscriber = None
 
     @classmethod
     def initialize(cls):
@@ -32,6 +36,8 @@ class Container:
             summarizer = LocalSummarizer()
 
         cls.pipeline = FormFillingService(cls.convo_repo, cls.form_repo, model, cls.runlog_repo, summarizer, model_type="full_process")
+        cls.translator = LocalTranslator()
+        cls.asr_transcriber = LocalASRTranscriber()
 
         # Log which Mongo host is being used (mask credentials)
         uri = settings.MONGO_URI
