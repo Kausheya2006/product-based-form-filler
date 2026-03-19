@@ -8,15 +8,18 @@
         <h1 style="margin:0 0 4px 0;">Run #{{ run.run_id }}</h1>
         <p class="page-subtitle" style="margin:0;">Extraction run details</p>
     </div>
-    {% if run.status == 'completed' or run.status == 'success' %}
-        <span class="badge badge-green" style="font-size:0.85rem; padding:6px 14px;">✓ {{ run.status }}</span>
-    {% elif run.status == 'failed' or run.status == 'error' %}
-        <span class="badge badge-red" style="font-size:0.85rem; padding:6px 14px;">✗ {{ run.status }}</span>
-    {% elif run.status == 'running' %}
-        <span class="badge badge-blue" style="font-size:0.85rem; padding:6px 14px;">⟳ {{ run.status }}</span>
-    {% else %}
-        <span class="badge badge-gray" style="font-size:0.85rem; padding:6px 14px;">{{ run.status }}</span>
-    {% endif %}
+    <div style="display:flex; gap:8px; align-items:center;">
+        <span class="badge badge-yellow" style="font-size:0.78rem; padding:4px 10px;">Admin View</span>
+        {% if run.status == 'completed' or run.status == 'success' %}
+            <span class="badge badge-green" style="font-size:0.85rem; padding:6px 14px;">✓ {{ run.status }}</span>
+        {% elif run.status == 'failed' or run.status == 'error' %}
+            <span class="badge badge-red" style="font-size:0.85rem; padding:6px 14px;">✗ {{ run.status }}</span>
+        {% elif run.status == 'running' %}
+            <span class="badge badge-blue" style="font-size:0.85rem; padding:6px 14px;">⟳ {{ run.status }}</span>
+        {% else %}
+            <span class="badge badge-gray" style="font-size:0.85rem; padding:6px 14px;">{{ run.status }}</span>
+        {% endif %}
+    </div>
 </div>
 
 <div class="card">

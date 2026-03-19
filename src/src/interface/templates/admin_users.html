@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}User Management — ProductLabs{% endblock %}
+{% block nav_admin %}active{% endblock %}
+{% block content %}
+
+<div class="page-header" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+    <div>
+        <h1 style="margin:0 0 4px 0;">User Management</h1>
+        <p class="page-subtitle" style="margin:0;">
+            {{ all_users | length }} registered user{{ all_users | length != 1 and 's' or '' }}
+        </p>
+    </div>
+    <span class="badge badge-yellow" style="font-size:0.8rem; padding:5px 12px;">Admin View</span>
+</div>
+
+{% if all_users %}
+<div class="card" style="padding:0; overflow:hidden;">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Joined</th>
+                <th style="text-align:right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in all_users %}
+            <tr class="{{ 'admin-row' if u.role == 'admin' else '' }}">
+                <td>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span class="nav-avatar" style="width:30px; height:30px; font-size:0.75rem; flex-shrink:0;">
+                            {{ u.username[0].upper() }}
+                        </span>
+                        <span style="font-weight:600; font-size:0.9rem;">{{ u.username }}</span>
+                        {% if u.user_id == current_user.user_id %}
+                            <span class="badge badge-gray" style="font-size:0.68rem;">You</span>
+                        {% endif %}
+                    </div>
+                </td>
+                <td style="color:var(--text-muted); font-size:0.875rem;">{{ u.email }}</td>
+                <td>
+                    {% if u.role == 'admin' %}
+                        <span class="badge badge-yellow">Admin</span>
+                    {% else %}
+                        <span class="badge badge-gray">User</span>
+                    {% endif %}
+                </td>
+                <td style="color:var(--text-muted); font-size:0.82rem;">
+                    {{ u.created_at.strftime('%b %d, %Y') if u.created_at else '—' }}
+                </td>
+                <td>
+                    <div style="display:flex; gap:6px; justify-content:flex-end; flex-wrap:wrap;">
+                        {% if u.user_id != current_user.user_id %}
+                            <!-- Toggle role -->
+                            <form method="post" action="/admin/users/{{ u.user_id }}/set-role" style="margin:0;">
+                                {% if u.role == 'admin' %}
+                                    <input type="hidden" name="role" value="user">
+                                    <button type="submit" class="btn btn-sm"
+                                            onclick="return confirm('Remove admin from {{ u.username }}?')"
+                                            style="color:var(--warning); border-color:var(--warning-light); background:var(--warning-light);">
+                                        Remove Admin
+                                    </button>
+                                {% else %}
+                                    <input type="hidden" name="role" value="admin">
+                                    <button type="submit" class="btn btn-sm btn-primary"
+                                            onclick="return confirm('Make {{ u.username }} an admin?')">
+                                        Make Admin
+                                    </button>
+                                {% endif %}
+                            </form>
+                            <!-- Delete user -->
+                            <form method="post" action="/admin/users/{{ u.user_id }}/delete" style="margin:0;">
+                                <button type="submit" class="btn btn-sm btn-danger"
+                                        onclick="return confirm('Permanently delete user {{ u.username }}? This cannot be undone.')">
+                                    Delete
+                                </button>
+                            </form>
+                        {% else %}
+                            <span style="font-size:0.8rem; color:var(--text-light); padding:5px 4px;">Your account</span>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-state card">
+    <div class="empty-icon"></div>
+    <h3>No users yet</h3>
+    <p>Registered users will appear here.</p>
+</div>
+{% endif %}
+
+<style>
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+.admin-table th {
+    text-align: left;
+    padding: 12px 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: var(--bg-gray);
+    border-bottom: 1px solid var(--border);
+}
+.admin-table td {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+}
+.admin-table tbody tr:last-child td { border-bottom: none; }
+.admin-table tbody tr:hover { background: var(--bg-gray); }
+.admin-row { background: #fffbeb; }
+.admin-row:hover { background: #fef3c7 !important; }
+</style>
+
+{% endblock %}

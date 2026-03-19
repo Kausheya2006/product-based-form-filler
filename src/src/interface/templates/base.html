@@ -18,13 +18,21 @@
         <div class="nav-links">
             <a href="/" class="nav-link {% block nav_home %}{% endblock %}">Forms</a>
             <a href="/outputs" class="nav-link {% block nav_outputs %}{% endblock %}">Outputs</a>
-            <a href="/runs" class="nav-link {% block nav_runs %}{% endblock %}">Run Logs</a>
+            {% if is_admin %}
+                <a href="/runs" class="nav-link {% block nav_runs %}{% endblock %}">Run Logs</a>
+                <a href="/admin/users" class="nav-link {% block nav_admin %}{% endblock %}">
+                    <span class="admin-pill">Admin</span>
+                </a>
+            {% endif %}
         </div>
         {% if current_user %}
         <div class="nav-user">
             <a href="/profile" class="nav-user-btn {% block nav_profile %}{% endblock %}" title="Your profile">
                 <span class="nav-avatar">{{ current_user.username[0].upper() }}</span>
                 <span class="nav-username">{{ current_user.username }}</span>
+                {% if is_admin %}
+                    <span class="nav-role-badge">Admin</span>
+                {% endif %}
             </a>
             <form method="post" action="/logout" style="margin:0;">
                 <button type="submit" class="nav-logout-btn" title="Sign out">

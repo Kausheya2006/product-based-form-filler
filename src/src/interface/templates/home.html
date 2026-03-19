@@ -5,8 +5,16 @@
 
 <div class="page-header" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
     <div>
-        <h1 style="margin:0 0 4px 0;">Your Forms</h1>
-        <p class="page-subtitle">Select a form to begin extraction, or create a new one.</p>
+        <h1 style="margin:0 0 4px 0;">
+            {% if is_admin %}All Forms{% else %}Your Forms{% endif %}
+        </h1>
+        <p class="page-subtitle">
+            {% if is_admin %}
+                Viewing all forms across all users.
+            {% else %}
+                Select a form to begin extraction, or create a new one.
+            {% endif %}
+        </p>
     </div>
     <a href="/forms/new" class="btn btn-success">＋ New Form</a>
 </div>
@@ -24,7 +32,14 @@
                     <div class="form-card-desc" style="font-style:italic;">No description</div>
                 {% endif %}
             </div>
-            <span class="badge badge-blue" style="flex-shrink:0;">{{ f.fields | length }} field{{ f.fields | length != 1 and 's' or '' }}</span>
+            <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+                {% if is_admin and form_owners %}
+                    <span class="badge badge-gray" style="font-size:0.7rem;">
+                        {{ form_owners.get(f.id, 'Global') }}
+                    </span>
+                {% endif %}
+                <span class="badge badge-blue">{{ f.fields | length }} field{{ f.fields | length != 1 and 's' or '' }}</span>
+            </div>
             <button class="delete-card-btn" type="button" title="Delete form"
                     onclick="event.stopPropagation(); deleteForm('{{ f.id }}')">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

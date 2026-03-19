@@ -101,6 +101,25 @@ body {
     background: rgba(255,255,255,0.1);
 }
 
+/* Admin pill inside nav link */
+.admin-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 9px;
+    background: rgba(217,119,6,0.2);
+    color: #fbbf24;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    border: 1px solid rgba(217,119,6,0.3);
+}
+
+.nav-link:hover .admin-pill,
+.nav-link.active .admin-pill {
+    background: rgba(217,119,6,0.35);
+}
+
 /* ── Nav user area ── */
 .nav-user {
     display: flex;
@@ -146,6 +165,21 @@ body {
     max-width: 120px;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Role badge shown next to username in nav */
+.nav-role-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 7px;
+    background: rgba(217,119,6,0.25);
+    color: #fbbf24;
+    border-radius: 999px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    border: 1px solid rgba(217,119,6,0.3);
     white-space: nowrap;
 }
 
@@ -707,4 +741,5 @@ textarea.form-control {
     .run-meta { grid-template-columns: 1fr; }
     .nav-links { display: none; }
     .nav-username { display: none; }
+    .nav-role-badge { display: none; }
 }
