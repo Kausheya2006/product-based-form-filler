@@ -19,3 +19,4 @@ trl
 peft
 accelerate
 numpy
+itsdangerous

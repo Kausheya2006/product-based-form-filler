@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from datetime import datetime
 
 class ConversationVersion(BaseModel):
@@ -13,6 +13,7 @@ class Conversation(BaseModel):
     form_id: str = Field(alias="form_id")
     name: str = Field(default="", alias="conversation_name")
     versions: List[ConversationVersion] = [] 
+    owner_id: Optional[str] = None
 
     @property
     def latest_history(self) -> Dict[str, str]:
@@ -30,6 +31,7 @@ class FormSchema(BaseModel):
     id: str = Field(alias="form_id")
     name: str = Field(alias="form_name")
     description: str = ""
+    owner_id: Optional[str] = None
     # Simplified schema: field_name -> type_description
     # We flattened the address in the JSONL to make parallel extraction easier
     fields: Dict[str, str] = Field(alias="schema")
