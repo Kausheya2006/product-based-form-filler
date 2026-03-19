@@ -17,6 +17,10 @@ services:
     environment:
       - MONGO_URI=${MONGO_URI:-mongodb://mongodb:27017/chat_db}
       - DB_NAME=${DB_NAME:-chat_db}
+      - HF_HOME=/root/.cache/huggingface
+      - TRANSFORMERS_CACHE=/root/.cache/huggingface
+      - HF_HUB_DISABLE_PROGRESS_BARS=0
+      - PYTHONUNBUFFERED=1
     depends_on:
       - mongodb
     ports:
@@ -25,7 +29,10 @@ services:
       - ./data:/app/data
       - ./data_generation:/app/data_generation
       - ./src:/app/src
+      - hf_cache:/root/.cache/huggingface
     command: uvicorn src.interface.api:app --host 0.0.0.0 --port 8000 --reload
+    gpus: all
 
 volumes:
   mongo_data:
+  hf_cache:

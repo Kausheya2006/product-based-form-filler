@@ -3,7 +3,7 @@ import logging
 from ..domain.interfaces import IConversationRepository, IFormRepository, IPipeline, IRunLogRepository, ISummarizer
 from ..infrastructure.persistence.mongo import MongoConversationRepository, MongoFormRepository, MongoRunLogRepo
 from ..infrastructure.ai.local_model import LocalHuggingFaceModel, GemmaFunctionalModel, GemmaFormStateModel
-from ..infrastructure.ai.summarizer import LocalSummarizer, GemmaSummarizer
+from ..infrastructure.ai.summarizer import LocalSummarizer, GemmaSummarizer, QwenSummarizer
 from ..infrastructure.config import settings
 from ..application.pipeline import FormFillingService
 
@@ -28,6 +28,8 @@ class Container:
 
         if settings.SUMMARIZER_TYPE == "gemma":
             summarizer = GemmaSummarizer(model_path=settings.SUMMARIZER_MODEL_PATH)
+        elif settings.SUMMARIZER_TYPE == "qwen":
+            summarizer = QwenSummarizer(model_name=settings.SUMMARIZER_MODEL_PATH)
         else:
             summarizer = LocalSummarizer()
 

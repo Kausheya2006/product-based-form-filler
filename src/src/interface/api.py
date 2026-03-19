@@ -14,8 +14,6 @@ from ..domain.domain import Conversation, FormSchema, ConversationVersion
 from .dependencies import container, Container
 
 from pydantic import BaseModel as PydanticBaseModel
-from ..infrastructure.ai.local_model import LocalHuggingFaceModel
-from ..domain.domain import ExtractionRequest
 
 from .helpers import (
     SESSION_COOKIE, SESSION_MAX_AGE, ADMIN_USERNAME, templates, logger,
@@ -25,14 +23,6 @@ from .helpers import (
     _apply_field_overrides, _extract_for_conversation_text, _format_filled_data, _save_output,
     _load_outputs,
 )
-
-_live_model: LocalHuggingFaceModel | None = None
-
-def get_live_model() -> LocalHuggingFaceModel:
-    global _live_model
-    if _live_model is None:
-        _live_model = LocalHuggingFaceModel()
-    return _live_model
 
 class LiveExtractRequest(PydanticBaseModel):
     form_id: str
@@ -592,11 +582,15 @@ async def preview_extraction(
         for key, value in parsed_state.items():
             if isinstance(key, str) and key in allowed_keys:
                 current_field_state[key] = "" if value is None else str(value)
+    logger.info("[PreviewExtract] form_id=%s", form_id)
+    logger.info("[PreviewExtract] conversation_text=%s", conversation_text)
+    logger.info("[PreviewExtract] current_field_state=%s", current_field_state)
     try:
-        return JSONResponse(
-            await _extract_for_conversation_text(form, conversation_text, current_field_state)
-        )
+        extraction = await _extract_for_conversation_text(form, conversation_text, current_field_state)
+        logger.info("[PreviewExtract] response=%s", extraction)
+        return JSONResponse(extraction)
     except Exception as e:
+        logger.exception("[PreviewExtract] failed")
         raise HTTPException(500, str(e))
 
 @app.post("/api/live-extract")
@@ -610,18 +604,8 @@ async def api_live_extract(request: Request, payload: LiveExtractRequest) -> JSO
     context = payload.conversation.strip()
     if not context:
         raise HTTPException(400, "Conversation text is empty")
-    requests_list: list[ExtractionRequest] = [
-        ExtractionRequest(context=context, field_name=field_key, instruction=question)
-        for field_key, question in form.fields.items()
-    ]
-    model = get_live_model()
-    answers = await model.extract_batch(requests_list)
-    result = {
-        req.field_name: answer
-        for req, answer in zip(requests_list, answers)
-        if answer and answer.strip()
-    }
-    return JSONResponse(content=result)
+    extraction = await _extract_for_conversation_text(form, context)
+    return JSONResponse(content=extraction.get("filled_data", {}))
 
 @app.get("/outputs", response_class=HTMLResponse)
 async def view_outputs(request: Request):

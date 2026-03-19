@@ -258,18 +258,32 @@ async def _extract_for_conversation_text(
         f"Fields: {json.dumps(seeded_fields)}"
     )
 
+    logger.info("[LiveExtract] Form=%s", form.name)
+    logger.info("[LiveExtract] Form fields=%s", list(form.fields.keys()))
+    logger.info("[LiveExtract] Current field state=%s", current_field_state or {})
+    logger.info("[LiveExtract] Seeded fields=%s", seeded_fields)
+    logger.info("[LiveExtract] Parsed conversation=%s", parsed)
+    logger.info("[LiveExtract] Model input=%s", input_str)
+
     answers_task = container.pipeline.model.process_extraction_request(input_str)
     summary_task = container.pipeline.summarizer.summarize(
         "\n".join([f"{k}: {v}" for k, v in parsed.items()])
     )
     answers, summary = await asyncio.gather(answers_task, summary_task)
 
+    logger.info("[LiveExtract] Raw answers=%s", answers)
+    logger.info("[LiveExtract] Summary=%s", summary)
+
     filled_data: Dict[str, Any] = {}
     for field_key, value in zip(form.fields.keys(), answers):
+        logger.info("[LiveExtract] Assigning field %s -> %s", field_key, value)
         _set_nested_field(filled_data, field_key, value)
     for field_key in form.fields.keys():
         if not _has_nested_field(filled_data, field_key):
+            logger.info("[LiveExtract] Missing field after assignment, defaulting %s -> N/A", field_key)
             _set_nested_field(filled_data, field_key, "N/A")
+
+    logger.info("[LiveExtract] Final filled_data=%s", filled_data)
 
     return {"filled_data": filled_data, "summary": summary}
 
