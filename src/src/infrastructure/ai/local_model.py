@@ -640,6 +640,58 @@ class GemmaFormStateModel(IExtractionModel):
         """Not used for this model — delegates to process_extraction_request."""
         raise NotImplementedError("GemmaFormStateModel uses process_extraction_request, not extract_batch")
 
+    async def process_live_update(
+        self,
+        *,
+        conversation_text: str,
+        form_name: str,
+        current_field_state: dict[str, Any],
+        field_keys: list[str],
+    ) -> List[Any]:
+        seeded_fields = {
+            key: self._normalize_state_value(current_field_state.get(key, "N/A"))
+            for key in field_keys
+        }
+        form_state = self._build_form_state(seeded_fields)
+
+        lines = self._split_lines(conversation_text)
+        if not lines:
+            return [self._normalize_state_value(seeded_fields.get(key, "N/A")) for key in field_keys]
+
+        latest_line = lines[-1]
+        lines_before = lines[max(0, len(lines) - 6):-1]
+
+        logger.info("[IncrementalFormState-Live] form_name=%s", form_name)
+        logger.info("[IncrementalFormState-Live] field_keys=%s", field_keys)
+        logger.info("[IncrementalFormState-Live] starting form state=%s", form_state)
+        logger.info("[IncrementalFormState-Live] lines_before=%s", lines_before)
+        logger.info("[IncrementalFormState-Live] latest_line=%s", latest_line)
+
+        messages = self._build_messages(form_name, "", form_state, lines_before, latest_line)
+        logger.info("[IncrementalFormState-Live] Prompt messages=%s", messages)
+        output = self._generate(messages)
+        logger.info("[IncrementalFormState-Live] Output=%s", output)
+
+        payload = self._parse_tool_payload(output)
+        if not payload:
+            extracted_fields = self._extract_fields_from_text(output)
+            if extracted_fields is not None:
+                payload = {"arguments": {"next_form_state": extracted_fields}}
+        logger.info("[IncrementalFormState-Live] Parsed payload=%s", payload)
+
+        new_state, new_summary = self._extract_updated_state(payload)
+        logger.info("[IncrementalFormState-Live] Extracted new_state=%s", new_state)
+        logger.info("[IncrementalFormState-Live] Extracted new_summary=%s", new_summary)
+
+        if new_state:
+            form_state = self._merge_form_state(form_state, new_state, field_keys)
+            logger.info("[IncrementalFormState-Live] Merged form state=%s", form_state)
+
+        flat = self._flatten_state(form_state)
+        final_answers = [self._normalize_state_value(flat.get(key, "N/A")) for key in field_keys]
+        logger.info("[IncrementalFormState-Live] Final answers=%s", final_answers)
+        return final_answers
+
     async def process_extraction_request(self, input_str: str, field_keys: list[str] | None = None) -> List[Any]:
         convo_text, form_name, fields_dict = self._parse_input_request(input_str)
         parsed_keys = list(fields_dict.keys())

@@ -265,7 +265,18 @@ async def _extract_for_conversation_text(
     logger.info("[LiveExtract] Parsed conversation=%s", parsed)
     logger.info("[LiveExtract] Model input=%s", input_str)
 
-    answers_task = container.pipeline.model.process_extraction_request(input_str)
+    model = container.pipeline.model
+    if hasattr(model, "process_live_update"):
+        answers_task = model.process_live_update(
+            conversation_text=full_convo.strip(),
+            form_name=form.name,
+            current_field_state=seeded_fields,
+            field_keys=list(form.fields.keys()),
+        )
+        logger.info("[LiveExtract] Using process_live_update path")
+    else:
+        answers_task = model.process_extraction_request(input_str)
+        logger.info("[LiveExtract] Using full conversation replay path")
     summary_task = container.pipeline.summarizer.summarize(
         "\n".join([f"{k}: {v}" for k, v in parsed.items()])
     )
