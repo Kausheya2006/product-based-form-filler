@@ -19,6 +19,7 @@ from .helpers import (
     SESSION_COOKIE, SESSION_MAX_AGE, ADMIN_USERNAME, templates, logger,
     _hash_password, _verify_password, _make_session_token, _is_admin,
     _get_current_user, _user_repo, _tmpl, _validate_username, seed_data,
+    _is_global, _can_write_form, _can_write_convo,
     _get_form_for_user, _get_convo_for_user, _parse_conversation_text, _build_schema_from_pairs,
     _apply_field_overrides, _extract_for_conversation_text, _format_filled_data, _save_output,
     _load_outputs,
@@ -259,7 +260,18 @@ async def home(request: Request):
         forms = [f for f in all_forms if getattr(f, "owner_id", None) in (None, user["user_id"])]
         form_owners = {}
 
-    return _tmpl("home.html", request, {"forms": forms, "form_owners": form_owners}, user=user)
+    # Set of form IDs the current user is allowed to delete (used by the template).
+    deletable_form_ids = {
+        getattr(f, "form_id", None)
+        for f in forms
+        if _can_write_form(f, user)
+    }
+
+    return _tmpl("home.html", request, {
+        "forms": forms,
+        "form_owners": form_owners,
+        "deletable_form_ids": deletable_form_ids,
+    }, user=user)
 
 @app.post("/forms", response_class=RedirectResponse)
 async def handle_create_form(
@@ -310,7 +322,10 @@ async def edit_form(request: Request, form_id: str):
     form = await _get_form_for_user(form_id, user)
     if not form:
         raise HTTPException(404, "Form not found")
-    return _tmpl("edit_form.html", request, {"form": form}, user=user)
+    # Regular users can only edit forms they own; global forms are read-only.
+    # They are still allowed to reach the edit page to use "Save As New Form".
+    can_save_in_place = _can_write_form(form, user)
+    return _tmpl("edit_form.html", request, {"form": form, "can_save_in_place": can_save_in_place}, user=user)
 
 @app.post("/forms/{form_id}/edit", response_class=RedirectResponse)
 async def save_form_edits(
@@ -328,6 +343,10 @@ async def save_form_edits(
     existing = await _get_form_for_user(form_id, user)
     if not existing:
         raise HTTPException(404, "Form not found")
+
+    # Regular users cannot overwrite a global or another user's form in-place.
+    if save_mode == "save" and not _can_write_form(existing, user):
+        raise HTTPException(403, "You can only save a copy of this form using 'Save As New Form'.")
 
     schema_dict = _build_schema_from_pairs(field_name, field_instruction, autogenerate_question=True)
     if not schema_dict:
@@ -368,8 +387,7 @@ async def delete_form(request: Request, form_id: str):
     form = await container.form_repo.get_by_id(form_id)
     if not form:
         raise HTTPException(404, "Form not found")
-    form_owner = getattr(form, "owner_id", None)
-    if not _is_admin(user) and form_owner is not None and form_owner != user["user_id"]:
+    if not _can_write_form(form, user):
         raise HTTPException(403, "You don't have permission to delete this form.")
     await container.form_repo.delete_by_id(form_id)
     logger.info(f"Form deleted: {form_id} by {user['username']}")
@@ -383,8 +401,7 @@ async def delete_form_api(request: Request, form_id: str):
     form = await container.form_repo.get_by_id(form_id)
     if not form:
         raise HTTPException(404, "Form not found")
-    form_owner = getattr(form, "owner_id", None)
-    if not _is_admin(user) and form_owner is not None and form_owner != user["user_id"]:
+    if not _can_write_form(form, user):
         raise HTTPException(403, "You don't have permission to delete this form.")
     await container.form_repo.delete_by_id(form_id)
     return JSONResponse({"ok": True})

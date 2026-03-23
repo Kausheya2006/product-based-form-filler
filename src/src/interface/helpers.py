@@ -165,8 +165,44 @@ async def seed_data():
                 await container.form_repo.save(FormSchema(**data))
         logger.info("Forms seeded.")
 
+def _is_global(obj) -> bool:
+    """Return True if the object is a global/shared starter (owner_id is None)."""
+    return getattr(obj, "owner_id", None) is None
+
+
+def _can_write_form(form, user: dict) -> bool:
+    """
+    A user may EDIT or DELETE a form only if:
+      - they are admin, OR
+      - they own it (owner_id == user_id).
+    Global forms (owner_id=None) are read-only for regular users.
+    """
+    if _is_admin(user):
+        return True
+    owner = getattr(form, "owner_id", None)
+    return owner is not None and owner == user["user_id"]
+
+
+def _can_write_convo(convo, user: dict) -> bool:
+    """
+    A user may EDIT or DELETE a conversation only if:
+      - they are admin, OR
+      - they own it (owner_id == user_id).
+    Global conversations (owner_id=None) are read-only for regular users.
+    """
+    if _is_admin(user):
+        return True
+    owner = getattr(convo, "owner_id", None)
+    return owner is not None and owner == user["user_id"]
+
+
 async def _get_form_for_user(form_id: str, user: dict):
-    """Admin sees all. Others see global (owner_id=None) or their own."""
+    """
+    Return the form for READ access, or None if the user has no visibility.
+    Regular users can see: global forms (owner_id=None) + their own forms.
+    Admins can see everything.
+    Use _can_write_form() separately before allowing edits or deletes.
+    """
     form = await container.form_repo.get_by_id(form_id)
     if not form:
         return None
@@ -177,8 +213,14 @@ async def _get_form_for_user(form_id: str, user: dict):
         return form
     return None
 
+
 async def _get_convo_for_user(convo_id: str, user: dict):
-    """Admin sees all. Others see global (owner_id=None) or their own."""
+    """
+    Return the conversation for READ access, or None if the user has no visibility.
+    Regular users can see: global conversations (owner_id=None) + their own.
+    Admins can see everything.
+    Use _can_write_convo() separately before allowing edits or deletes.
+    """
     convo = await container.convo_repo.get_by_id(convo_id)
     if not convo:
         return None

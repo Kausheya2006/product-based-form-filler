@@ -22,10 +22,17 @@
 {% if forms %}
     <div style="display:flex; flex-direction:column; gap:0;">
         {% for f in forms %}
+        {% set is_deletable = f.id in deletable_form_ids %}
+        {% set is_global_form = f.owner_id is none %}
         <div class="form-card" onclick="window.location='/forms/{{ f.id }}'" style="cursor:pointer; margin-bottom:12px;">
             <div class="form-card-icon"></div>
             <div class="form-card-body">
-                <div class="form-card-name">{{ f.name }}</div>
+                <div class="form-card-name">
+                    {{ f.name }}
+                    {% if is_global_form %}
+                        <span class="badge badge-yellow" style="font-size:0.65rem; margin-left:6px; vertical-align:middle;">Global</span>
+                    {% endif %}
+                </div>
                 {% if f.description %}
                     <div class="form-card-desc">{{ f.description }}</div>
                 {% else %}
@@ -40,16 +47,26 @@
                 {% endif %}
                 <span class="badge badge-blue">{{ f.fields | length }} field{{ f.fields | length != 1 and 's' or '' }}</span>
             </div>
-            <button class="delete-card-btn" type="button" title="Delete form"
-                    onclick="event.stopPropagation(); deleteForm('{{ f.id }}')">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 6h18"/>
-                    <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/>
-                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                    <line x1="10" y1="11" x2="10" y2="17"/>
-                    <line x1="14" y1="11" x2="14" y2="17"/>
-                </svg>
-            </button>
+            {% if is_deletable %}
+                <button class="delete-card-btn" type="button" title="Delete form"
+                        onclick="event.stopPropagation(); deleteForm('{{ f.id }}')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 6h18"/>
+                        <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/>
+                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                        <line x1="10" y1="11" x2="10" y2="17"/>
+                        <line x1="14" y1="11" x2="14" y2="17"/>
+                    </svg>
+                </button>
+            {% else %}
+                {# Non-deletable forms get a lock icon so the user knows they're read-only #}
+                <span class="delete-card-btn" title="Global form — read only" style="cursor:default; opacity:0.35;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                </span>
+            {% endif %}
         </div>
         {% endfor %}
     </div>

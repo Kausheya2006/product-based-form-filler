@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     FORM_STATE_MODEL_PATH: str = "/app/data_generation/monomodel/model"
     SUMMARIZER_TYPE: str = "qwen"  # "gemma", "qwen", or "distilbart"
     SUMMARIZER_MODEL_PATH: str = "Qwen/Qwen2.5-1.5B-Instruct"
+    ADMIN_USERNAME: str = "PLadmin"
+    MOCK_MODELS: bool = False
 
     class Config:
         env_file = ".env"
