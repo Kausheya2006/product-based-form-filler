@@ -16,6 +16,26 @@ except ImportError:  # pragma: no cover
 logger = logging.getLogger(__name__)
 
 
+def _is_mps_available() -> bool:
+    return bool(getattr(torch.backends, "mps", None)) and torch.backends.mps.is_available()
+
+
+def _preferred_device() -> str:
+    if torch.cuda.is_available():
+        return "cuda"
+    if _is_mps_available():
+        return "mps"
+    return "cpu"
+
+
+def _preferred_dtype(device: str) -> torch.dtype:
+    if device == "cuda":
+        return torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
+    if device == "mps":
+        return torch.float16
+    return torch.float32
+
+
 def _enable_model_download_progress() -> None:
     os.environ.setdefault("HF_HUB_DISABLE_PROGRESS_BARS", "0")
     os.environ.setdefault("HF_HUB_ENABLE_HF_TRANSFER", "1")
@@ -65,13 +85,13 @@ class GemmaSummarizer(ISummarizer):
 
     def __init__(self, model_path: str, max_new_tokens: int = 256, device: str | None = None):
         self.max_new_tokens = max_new_tokens
-        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = device or _preferred_device()
 
         logger.info("Loading GemmaSummarizer from %s (device=%s)", model_path, self.device)
         self.tokenizer = AutoTokenizer.from_pretrained(model_path)
         self.model = AutoModelForCausalLM.from_pretrained(
             model_path,
-            torch_dtype=torch.bfloat16 if self.device == "cuda" else torch.float32,
+            torch_dtype=_preferred_dtype(self.device),
         ).to(self.device)
         self.model.eval()
 
@@ -153,7 +173,7 @@ class QwenSummarizer(ISummarizer):
         _enable_model_download_progress()
         self.model_name = model_name
         self.max_new_tokens = max_new_tokens
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = _preferred_device()
 
         logger.info("Loading QwenSummarizer from %s (device=%s)", self.model_name, self.device)
         logger.info("Loading tokenizer...")
@@ -168,9 +188,7 @@ class QwenSummarizer(ISummarizer):
         logger.info("Model ready")
 
     def _load_model(self):
-        dtype = torch.bfloat16 if self.device == "cuda" and torch.cuda.is_bf16_supported() else (
-            torch.float16 if self.device == "cuda" else torch.float32
-        )
+        dtype = _preferred_dtype(self.device)
 
         attempts = []
         if self.device == "cuda" and BitsAndBytesConfig is not None:
@@ -194,17 +212,22 @@ class QwenSummarizer(ISummarizer):
         last_error = None
         for kwargs in attempts:
             try:
-                return AutoModelForCausalLM.from_pretrained(
+                model = AutoModelForCausalLM.from_pretrained(
                     self.model_name,
                     trust_remote_code=True,
                     **kwargs,
                 )
+                if self.device != "cuda":
+                    model = model.to(self.device)
+                return model
             except Exception as exc:  # pragma: no cover
                 last_error = exc
                 logger.warning("QwenSummarizer load attempt failed for %s: %s", self.model_name, exc)
         raise RuntimeError(f"Unable to load summarizer model {self.model_name}") from last_error
 
     async def summarize(self, text: str) -> str:
+        import asyncio # Ensure asyncio is imported
+
         conversation = text.strip()
         if not conversation:
             return ""
@@ -232,14 +255,20 @@ class QwenSummarizer(ISummarizer):
             for key, value in inputs.items()
         }
 
-        with torch.no_grad():
-            output_ids = self.model.generate(
-                **inputs,
-                max_new_tokens=self.max_new_tokens,
-                do_sample=False,
-                pad_token_id=self.tokenizer.pad_token_id,
-                eos_token_id=self.tokenizer.eos_token_id,
-            )
+        # Define a synchronous wrapper for generation
+        def _do_generate():
+            with torch.no_grad():
+                return self.model.generate(
+                    **inputs,
+                    max_new_tokens=self.max_new_tokens,
+                    do_sample=False,
+                    pad_token_id=self.tokenizer.pad_token_id,
+                    eos_token_id=self.tokenizer.eos_token_id,
+                )
+
+        # Run the generation in a background thread
+        loop = asyncio.get_running_loop()
+        output_ids = await loop.run_in_executor(None, _do_generate)
 
         prompt_length = inputs["input_ids"].shape[1]
         new_tokens = output_ids[0][prompt_length:]

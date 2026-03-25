@@ -30,6 +30,29 @@ except ImportError:  # pragma: no cover
 
 logger = logging.getLogger(__name__)
 
+# Keep tokenizer internals single-threaded before any tokenizer/model is created.
+os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
+
+
+def _is_mps_available() -> bool:
+    return bool(getattr(torch.backends, "mps", None)) and torch.backends.mps.is_available()
+
+
+def _preferred_device() -> str:
+    if torch.cuda.is_available():
+        return "cuda"
+    if _is_mps_available():
+        return "mps"
+    return "cpu"
+
+
+def _preferred_dtype(device: str) -> torch.dtype:
+    if device == "cuda":
+        return torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
+    if device == "mps":
+        return torch.float16
+    return torch.float32
+
 
 def _enable_model_download_progress() -> None:
     os.environ.setdefault("HF_HUB_DISABLE_PROGRESS_BARS", "0")
@@ -84,6 +107,7 @@ class GemmaFunctionalModel(IExtractionModel):
     def __init__(self, max_input_tokens=512, max_new_tokens=256, temperature=0.0, checkpoint_path="data_generation/models/checkpoint-200"):
         _enable_model_download_progress()
         print(f"Loading local model: Gemma Functional ")
+        self.device = _preferred_device()
         self.max_input_tokens = max_input_tokens
         self.max_new_tokens = max_new_tokens
         self.temperature = temperature
@@ -94,12 +118,12 @@ class GemmaFunctionalModel(IExtractionModel):
 
         self.model = AutoModelForCausalLM.from_pretrained(
             resolved_checkpoint_path,
-            torch_dtype=torch.bfloat16 if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else (
-                torch.float16 if torch.cuda.is_available() else torch.float32
-            ),
-            device_map="auto" if torch.cuda.is_available() else None,
+            torch_dtype=_preferred_dtype(self.device),
+            device_map="auto" if self.device == "cuda" else None,
             trust_remote_code=True,
         )
+        if self.device != "cuda":
+            self.model = self.model.to(self.device)
 
     def _resolve_checkpoint_path(self, checkpoint_path: str) -> str:
         candidate = Path(checkpoint_path).expanduser()
@@ -134,8 +158,8 @@ class GemmaFunctionalModel(IExtractionModel):
             truncation=True,
             max_length=self.max_input_tokens,
         )
-        if torch.cuda.is_available():
-            inputs = {k: v.to(self.model.device) for k, v in inputs.items()}
+        target_device = self.model.device if hasattr(self.model, "device") else self.device
+        inputs = {k: v.to(target_device) for k, v in inputs.items()}
 
         with torch.no_grad():
             outputs = self.model.generate(
@@ -188,7 +212,8 @@ class GemmaFormStateModel(IExtractionModel):
     def __init__(self, model_path: str, max_new_tokens: int = 256, device: str | None = None):
         _enable_model_download_progress()
         self.max_new_tokens = max_new_tokens
-        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = device or _preferred_device()
+        self.generation_timeout_seconds = 45
 
         logger.info("Loading incremental form-state model from %s (device=%s)", model_path, self.device)
         resolved = self._resolve_path(model_path)
@@ -203,6 +228,8 @@ class GemmaFormStateModel(IExtractionModel):
         self.model = self._load_model()
         self.model.eval()
         logger.info("Model ready")
+
+        self.executor = ThreadPoolExecutor(max_workers=1)
 
     @staticmethod
     def _resolve_path(model_path: str) -> str:
@@ -240,9 +267,7 @@ class GemmaFormStateModel(IExtractionModel):
         return fallback
 
     def _load_model(self):
-        dtype = torch.bfloat16 if self.device == "cuda" and torch.cuda.is_bf16_supported() else (
-            torch.float16 if self.device == "cuda" else torch.float32
-        )
+        dtype = _preferred_dtype(self.device)
 
         attempts = []
         if self.device == "cuda" and BitsAndBytesConfig is not None:
@@ -272,6 +297,8 @@ class GemmaFormStateModel(IExtractionModel):
                     trust_remote_code=True,
                     **kwargs,
                 )
+                if self.device != "cuda":
+                    base_model = base_model.to(self.device)
                 logger.info("Base model loaded")
                 if (Path(self.adapter_path) / "adapter_config.json").is_file():
                     if PeftModel is None:
@@ -668,8 +695,18 @@ class GemmaFormStateModel(IExtractionModel):
         logger.info("[IncrementalFormState-Live] latest_line=%s", latest_line)
 
         messages = self._build_messages(form_name, "", form_state, lines_before, latest_line)
+
         logger.info("[IncrementalFormState-Live] Prompt messages=%s", messages)
-        output = self._generate(messages)
+        loop = asyncio.get_running_loop()
+        # Offload the heavy generation to a background thread
+        try:
+            output = await asyncio.wait_for(
+                loop.run_in_executor(self.executor, self._generate, messages),
+                timeout=self.generation_timeout_seconds,
+            )
+        except asyncio.TimeoutError:
+            logger.error("[IncrementalFormState-Live] generation timed out after %ss", self.generation_timeout_seconds)
+            return [self._normalize_state_value(seeded_fields.get(key, "N/A")) for key in field_keys]
         logger.info("[IncrementalFormState-Live] Output=%s", output)
 
         payload = self._parse_tool_payload(output)
@@ -721,7 +758,20 @@ class GemmaFormStateModel(IExtractionModel):
             lines_before = lines[max(0, i - 5):i]
             messages = self._build_messages(form_name, summary_state, form_state, lines_before, line)
             logger.info("[IncrementalFormState] Prompt messages for line %d=%s", i + 1, messages)
-            output = self._generate(messages)
+            loop = asyncio.get_running_loop()
+            try:
+                output = await asyncio.wait_for(
+                    loop.run_in_executor(self.executor, self._generate, messages),
+                    timeout=self.generation_timeout_seconds,
+                )
+            except asyncio.TimeoutError:
+                logger.error(
+                    "[IncrementalFormState] generation timed out for line %d/%d after %ss",
+                    i + 1,
+                    len(lines),
+                    self.generation_timeout_seconds,
+                )
+                continue
 
             logger.info("[IncrementalFormState] Line %d/%d: %s", i + 1, len(lines), line)
             logger.info("[IncrementalFormState] Output: %s", output)

@@ -8,6 +8,10 @@ class Settings(BaseSettings):
     FORM_STATE_MODEL_PATH: str = "/app/data_generation/monomodel/model"
     SUMMARIZER_TYPE: str = "qwen"  # "gemma", "qwen", or "distilbart"
     SUMMARIZER_MODEL_PATH: str = "Qwen/Qwen2.5-1.5B-Instruct"
+    USE_OLLAMA: bool = False
+    OLLAMA_BASE_URL: str = "http://localhost:11434"
+    OLLAMA_EXTRACT_MODEL: str = "qwen2.5:1.5b"
+    OLLAMA_SUMMARIZER_MODEL: str = "qwen2.5:1.5b"
     ADMIN_USERNAME: str = "PLadmin"
     MOCK_MODELS: bool = False
 

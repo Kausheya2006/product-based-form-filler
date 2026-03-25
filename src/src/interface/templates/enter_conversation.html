@@ -124,6 +124,18 @@
     white-space: nowrap; transition: background 0.12s;
   }
   .add-speaker-row button:hover { background: var(--primary); }
+  .add-speaker-row input:disabled {
+    background: #f1f5f9;
+    color: var(--text-light);
+    cursor: not-allowed;
+  }
+  .add-speaker-row button:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+  }
+  .add-speaker-row.locked {
+    opacity: 0.92;
+  }
 
   /* ── Speaker strip ── */
   .speaker-strip {
@@ -149,8 +161,126 @@
   .input-row {
     display: flex; gap: 8px; padding: 8px 12px;
     border-top: 1px solid var(--border); background: var(--bg-white);
-    flex-shrink: 0; align-items: flex-end;
+    flex-shrink: 0; align-items: center;
     border-radius: 0 0 0 14px;
+  }
+  .voice-btn {
+    background: var(--nav-bg); color: #fff; border: none; border-radius: var(--radius);
+    min-width: 36px; height: 36px; padding: 0 10px; cursor: pointer;
+    font-size: 0.85rem; font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .voice-btn.active {
+    background: #dc2626;
+  }
+  .icon-btn {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .btn-icon-svg {
+    width: 16px;
+    height: 16px;
+    display: block;
+  }
+  .lang-select {
+    margin-top: 0; height: 36px; min-width: 72px; width: 72px !important;
+    flex: 0 0 auto;
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 0 8px; font-size: 0.78rem;
+  }
+
+  .session-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-top: 1px solid var(--border);
+    background: #f8fafc;
+    flex-wrap: wrap;
+  }
+  .session-row .hint {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+  }
+  .session-chip {
+    padding: 3px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 0.72rem;
+    color: var(--text);
+    background: #fff;
+    white-space: nowrap;
+  }
+  .session-chip.active {
+    background: #dcfce7;
+    border-color: #86efac;
+    color: #166534;
+  }
+  .session-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .session-controls[hidden] {
+    display: none;
+  }
+  .session-order-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .session-order-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .session-order-strip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 180px;
+    flex-wrap: wrap;
+  }
+  .order-chip {
+    padding: 3px 10px;
+    border: 1px solid var(--border-dark);
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: var(--bg-white);
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.12s;
+    display: inline-flex;
+    align-items: center;
+  }
+  .order-chip:hover {
+    background: var(--primary-light);
+    border-color: var(--primary);
+    color: var(--primary-dark);
+  }
+  .order-chip.selected {
+    background: var(--nav-bg);
+    color: #fff;
+    border-color: var(--nav-bg);
+  }
+  .session-order-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
   }
   .input-row textarea {
     flex: 1; font-family: inherit; font-size: 0.875rem;
@@ -433,9 +563,51 @@
       <div id="speakerChips"></div>
     </div>
 
+    <div class="session-row">
+      <button type="button" class="btn" id="toggleSessionControlsBtn">Enable Full Session Mic</button>
+      <div id="sessionControls" class="session-controls" hidden>
+        <div class="session-order-wrap">
+          <span class="session-order-label">Speaker order</span>
+          <div id="sessionOrderChips" class="session-order-strip"></div>
+          <div class="session-order-actions">
+            <button type="button" class="btn icon-btn" id="moveOrderLeftBtn" title="Move selected speaker left" aria-label="Move selected speaker left">
+              <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+            <button type="button" class="btn icon-btn" id="moveOrderRightBtn" title="Move selected speaker right" aria-label="Move selected speaker right">
+              <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <button type="button" class="btn" id="sessionRecordBtn">Start Session Mic</button>
+        <button type="button" class="btn" id="sessionStopBtn" disabled>Stop Session Mic</button>
+        <span id="sessionSpeakerChip" class="session-chip">Session speaker: -</span>
+        <span class="hint">Press <b>S</b> while recording to switch to next speaker.</span>
+      </div>
+    </div>
+
     <!-- Message input -->
     <div class="input-row">
+      <select id="sttLanguage" class="lang-select" title="Speech language">
+        <option value="en">EN</option>
+        <option value="es">ES</option>
+        <option value="fr">FR</option>
+        <option value="de">DE</option>
+        <option value="it">IT</option>
+        <option value="pt">PT</option>
+      </select>
       <textarea id="msgInput" rows="1" placeholder="Type a message and press Enter…"></textarea>
+      <button type="button" class="voice-btn icon-btn" id="msgVoiceBtn" title="Record one message" aria-label="Record one message">
+        <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="9" y="2" width="6" height="12" rx="3" ry="3" />
+          <path d="M5 10a7 7 0 0 0 14 0" />
+          <line x1="12" y1="17" x2="12" y2="22" />
+          <line x1="8" y1="22" x2="16" y2="22" />
+        </svg>
+      </button>
       <button class="send-btn" id="sendBtn" title="Send (Enter)">↑</button>
     </div>
   </div>
@@ -522,16 +694,43 @@
     if (DEBUG_LOGS) console.error(...args);
   }
 
+  function micIconMarkup() {
+    return '<svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3" ry="3" /><path d="M5 10a7 7 0 0 0 14 0" /><line x1="12" y1="17" x2="12" y2="22" /><line x1="8" y1="22" x2="16" y2="22" /></svg>';
+  }
+
+  function stopIconMarkup() {
+    return '<svg class="btn-icon-svg" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2" ry="2" /></svg>';
+  }
+
+  function setMicButtonVisual(isRecording) {
+    if (!msgVoiceBtn) return;
+    msgVoiceBtn.classList.toggle("active", isRecording);
+    msgVoiceBtn.innerHTML = isRecording ? stopIconMarkup() : micIconMarkup();
+    msgVoiceBtn.title = isRecording ? "Stop recording" : "Record one message";
+    msgVoiceBtn.setAttribute("aria-label", isRecording ? "Stop recording" : "Record one message");
+  }
+
   debugLog("[INIT] FORM_ID:", FORM_ID);
   debugLog("[INIT] formFields:", formFields);
 
   const speakerChipsEl = document.getElementById("speakerChips");
+  const addSpeakerRow = document.querySelector(".add-speaker-row");
   const newSpeakerName = document.getElementById("newSpeakerName");
   const addSpeakerBtn = document.getElementById("addSpeakerBtn");
   const chatMessages = document.getElementById("chatMessages");
   const chatEmpty = document.getElementById("chatEmpty");
   const msgInput = document.getElementById("msgInput");
   const sendBtn = document.getElementById("sendBtn");
+  const msgVoiceBtn = document.getElementById("msgVoiceBtn");
+  const sttLanguage = document.getElementById("sttLanguage");
+  const toggleSessionControlsBtn = document.getElementById("toggleSessionControlsBtn");
+  const sessionControls = document.getElementById("sessionControls");
+  const sessionOrderChips = document.getElementById("sessionOrderChips");
+  const moveOrderLeftBtn = document.getElementById("moveOrderLeftBtn");
+  const moveOrderRightBtn = document.getElementById("moveOrderRightBtn");
+  const sessionRecordBtn = document.getElementById("sessionRecordBtn");
+  const sessionStopBtn = document.getElementById("sessionStopBtn");
+  const sessionSpeakerChip = document.getElementById("sessionSpeakerChip");
   const outputScroll = document.getElementById("outputScroll");
   const outputEmpty = document.getElementById("outputEmpty");
   const statusDot = document.getElementById("statusDot");
@@ -570,6 +769,33 @@
   let speakers = [];
   let activeSpeaker = null;
   let messages = [];
+  let extractionInFlight = false;
+  let extractionQueued = false;
+  let extractionDebounce = null;
+  let incomingMessageQueue = Promise.resolve();
+  let backendSttDisabled = false;
+
+  let singleRecorder = null;
+  let singleRecorderStream = null;
+  let singleRecorderChunks = [];
+
+  let sessionRecorder = null;
+  let sessionStream = null;
+  let sessionRecording = false;
+  let sessionControlsEnabled = false;
+  let sessionSpeakerIndex = 0;
+  let selectedOrderSpeaker = null;
+  let sessionChunkSpeaker = null;
+  let pendingSessionSpeaker = null;
+  let sessionChunkQueue = Promise.resolve();
+  let sessionBackendChunkFailures = 0;
+  let sessionUsingBrowserFallback = false;
+  let sessionFallbackSwitching = false;
+  let sessionRecorderDataHandler = null;
+  let sessionLiveExtractionTimer = null;
+  const sessionLiveExtractionIntervalMs = 5000;
+  let lastSessionExtractionMessageCount = 0;
+  let browserSessionRecognition = null;
   const fieldCards = {};
   const currentFieldValues = {};
   const lastModelFieldValues = {};
@@ -848,6 +1074,245 @@
       });
       speakerChipsEl.appendChild(chip);
     });
+
+    renderSessionOrderChips();
+    refreshSessionControlStates();
+  }
+
+  function updateSessionSpeakerChip() {
+    if (!sessionSpeakerChip) return;
+    const current = speakers[sessionSpeakerIndex] || "-";
+    sessionSpeakerChip.textContent = `Session speaker: ${current}`;
+    sessionSpeakerChip.classList.toggle("active", sessionRecording && current !== "-");
+  }
+
+  function setSessionControlsEnabled(enabled) {
+    sessionControlsEnabled = enabled;
+    if (sessionControls) {
+      sessionControls.hidden = !enabled;
+    }
+    if (toggleSessionControlsBtn) {
+      toggleSessionControlsBtn.textContent = enabled ? "Hide Full Session Mic" : "Enable Full Session Mic";
+    }
+    updateSpeakerManagementState();
+    renderSessionOrderChips();
+    refreshSessionControlStates();
+  }
+
+  function renderSessionOrderChips() {
+    if (!sessionOrderChips) return;
+    sessionOrderChips.innerHTML = "";
+
+    if (speakers.length === 0) {
+      selectedOrderSpeaker = null;
+      const hint = document.createElement("span");
+      hint.className = "muted-hint";
+      hint.textContent = "Add speakers to set session order";
+      sessionOrderChips.appendChild(hint);
+      return;
+    }
+
+    if (!selectedOrderSpeaker || !speakers.includes(selectedOrderSpeaker)) {
+      selectedOrderSpeaker = speakers[0];
+    }
+
+    speakers.forEach(speaker => {
+      const chip = document.createElement("span");
+      chip.className = "order-chip" + (speaker === selectedOrderSpeaker ? " selected" : "");
+      chip.textContent = speaker;
+      chip.addEventListener("click", () => {
+        selectedOrderSpeaker = speaker;
+        renderSessionOrderChips();
+        refreshSessionControlStates();
+      });
+      sessionOrderChips.appendChild(chip);
+    });
+  }
+
+  function moveSelectedSpeaker(direction) {
+    if (!selectedOrderSpeaker) return;
+    const fromIdx = speakers.indexOf(selectedOrderSpeaker);
+    if (fromIdx < 0) return;
+    const toIdx = fromIdx + direction;
+    if (toIdx < 0 || toIdx >= speakers.length) return;
+
+    const moving = speakers[fromIdx];
+    speakers[fromIdx] = speakers[toIdx];
+    speakers[toIdx] = moving;
+
+    const activeStillExists = activeSpeaker && speakers.includes(activeSpeaker);
+    activeSpeaker = activeStillExists ? activeSpeaker : speakers[0] || null;
+    sessionSpeakerIndex = Math.max(0, speakers.indexOf(activeSpeaker));
+
+    renderSpeakers();
+    updateSessionSpeakerChip();
+    statusDot.style.background = "var(--success)";
+    statusText.textContent = `Session order updated (${speakers.join(" -> ")})`;
+  }
+
+  function updateSpeakerManagementState() {
+    const locked = sessionControlsEnabled || sessionRecording;
+    if (newSpeakerName) {
+      newSpeakerName.disabled = locked;
+    }
+    if (addSpeakerBtn) {
+      addSpeakerBtn.disabled = locked;
+    }
+    if (addSpeakerRow) {
+      addSpeakerRow.classList.toggle("locked", locked);
+    }
+  }
+
+  function refreshSessionControlStates() {
+    const hasSpeakers = speakers.length > 0;
+    const selectedIdx = speakers.indexOf(selectedOrderSpeaker);
+    const canMoveLeft = sessionControlsEnabled && !sessionRecording && selectedIdx > 0;
+    const canMoveRight = sessionControlsEnabled && !sessionRecording && selectedIdx >= 0 && selectedIdx < speakers.length - 1;
+
+    if (sessionRecordBtn) {
+      sessionRecordBtn.disabled = !sessionControlsEnabled || sessionRecording || !hasSpeakers;
+    }
+    if (sessionStopBtn) {
+      sessionStopBtn.disabled = !sessionRecording;
+    }
+    if (moveOrderLeftBtn) {
+      moveOrderLeftBtn.disabled = !canMoveLeft;
+    }
+    if (moveOrderRightBtn) {
+      moveOrderRightBtn.disabled = !canMoveRight;
+    }
+  }
+
+  function getSpeechRecognitionCtor() {
+    return window.SpeechRecognition || window.webkitSpeechRecognition || null;
+  }
+
+  function createBrowserRecognition({ continuous = false } = {}) {
+    const Ctor = getSpeechRecognitionCtor();
+    if (!Ctor) return null;
+    const recognition = new Ctor();
+    recognition.lang = sttLanguage?.value || "en";
+    recognition.interimResults = false;
+    recognition.continuous = continuous;
+    return recognition;
+  }
+
+  async function browserSingleDictation() {
+    const recognition = createBrowserRecognition({ continuous: false });
+    if (!recognition) {
+      throw new Error("Browser speech recognition not supported.");
+    }
+    return await new Promise((resolve, reject) => {
+      let settled = false;
+      recognition.onresult = (event) => {
+        const transcript = Array.from(event.results)
+          .map(r => r?.[0]?.transcript || "")
+          .join(" ")
+          .trim();
+        if (!settled) {
+          settled = true;
+          resolve(transcript);
+        }
+      };
+      recognition.onerror = (event) => {
+        if (!settled) {
+          settled = true;
+          reject(new Error(`Browser STT error: ${event.error || "unknown"}`));
+        }
+      };
+      recognition.onend = () => {
+        if (!settled) {
+          settled = true;
+          resolve("");
+        }
+      };
+      recognition.start();
+    });
+  }
+
+ function startBrowserSessionDictation() {
+    const recognition = createBrowserRecognition({ continuous: true });
+    if (!recognition) {
+      throw new Error("Browser speech recognition not supported.");
+    }
+    browserSessionRecognition = recognition;
+
+    recognition.onresult = async (event) => {
+      for (let i = event.resultIndex; i < event.results.length; i += 1) {
+        const result = event.results[i];
+        if (!result.isFinal) continue;
+        const text = (result[0]?.transcript || "").trim();
+        if (!text) continue;
+
+        // [FIX]: Apply pending speaker switch immediately 
+        if (pendingSessionSpeaker) {
+          activeSpeaker = pendingSessionSpeaker;
+          sessionChunkSpeaker = pendingSessionSpeaker;
+          pendingSessionSpeaker = null;
+          renderSpeakers();
+          updateSessionSpeakerChip();
+        }
+
+        const speakerForLine = activeSpeaker;
+        await queueIncomingMessage(text, speakerForLine, { deferExtraction: true });
+        statusDot.style.background = "var(--success)";
+        statusText.textContent = `Session transcript added for ${speakerForLine}`;
+      }
+    };
+
+    recognition.onerror = (event) => {
+      debugError("[STT] browser session error", event);
+      statusDot.style.background = "var(--danger)";
+      const code = event.error || "unknown";
+      if (code === "not-allowed" || code === "service-not-allowed") {
+        statusText.textContent = "Microphone permission denied. Enable mic access in browser settings.";
+        return;
+      }
+      statusText.textContent = `Browser STT error: ${code}`;
+    };
+
+    recognition.onend = () => {
+      if (sessionRecording) {
+        try {
+          recognition.start();
+        } catch (_) {
+          // no-op; browser may reject immediate restart in some cases
+        }
+      }
+    };
+
+    recognition.start();
+  }
+  
+  async function transcribeAudioBlob(blob) {
+    const ext = (blob.type || "").includes("ogg") ? "ogg" : "webm";
+    const file = new File([blob], `snippet.${ext}`, { type: blob.type || "audio/webm" });
+    const formData = new FormData();
+    formData.append("input_language", sttLanguage?.value || "en");
+    formData.append("audio_file", file);
+
+    const res = await fetch("/stt/transcribe", {
+      method: "POST",
+      body: formData,
+    });
+    const raw = await res.text();
+    let data = {};
+    try {
+      data = raw ? JSON.parse(raw) : {};
+    } catch (_) {
+      data = { detail: raw || "Transcription failed" };
+    }
+    if (!res.ok) {
+      if (res.status === 503 && String(data.detail || "").includes("Whisper STT is temporarily disabled")) {
+        backendSttDisabled = true;
+      }
+      throw new Error(data.detail || data.error || "Transcription failed");
+    }
+    return {
+      text: String(data.text || "").trim(),
+      rawText: String(data.raw_text || "").trim(),
+      warning: String(data.warning || "").trim(),
+    };
   }
 
   addSpeakerBtn.addEventListener("click", () => {
@@ -856,8 +1321,10 @@
     if (name && !speakers.includes(name)) {
       speakers.push(name);
       if (!activeSpeaker) activeSpeaker = name;
+      if (!selectedOrderSpeaker) selectedOrderSpeaker = name;
       debugLog("[SPEAKER] added", { speakers, activeSpeaker });
       renderSpeakers();
+      updateSessionSpeakerChip();
     } else if (name && speakers.includes(name)) {
       debugWarn("[SPEAKER] duplicate ignored:", name);
     }
@@ -895,32 +1362,100 @@
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 
-  async function sendMessage() {
-    const text = msgInput.value.trim();
-    debugLog("[SEND] sendMessage", { activeSpeaker, text });
+  async function sendMessage(textOverride = null, options = {}) {
+    const text = (textOverride ?? msgInput.value).trim();
+    const speakerToUse = options.speakerOverride || activeSpeaker;
+    debugLog("[SEND] sendMessage", { activeSpeaker: speakerToUse, text });
     if (!text) {
       debugWarn("[SEND] empty text ignored");
       return;
     }
 
-    if (!activeSpeaker) {
+    if (!speakerToUse) {
       debugWarn("[SEND] no active speaker");
       alert("Please add and select a speaker first.");
       return;
     }
 
-    messages.push({ speaker: activeSpeaker, text });
+    messages.push({ speaker: speakerToUse, text });
     debugLog("[SEND] messages length:", messages.length);
-    addBubble(activeSpeaker, text);
-    msgInput.value = "";
+    addBubble(speakerToUse, text);
+    if (!textOverride) msgInput.value = "";
     autosizeTextarea(msgInput);
     convTextInput.value = buildRawText(messages);
 
     initFieldCards();
-    await runLiveExtraction();
+    
+    // [FIX]: Respect the deferExtraction flag! 
+    // This stops Gemma from freezing your CPU while the STT mic is recording.
+    if (!options.deferExtraction) {
+      queueLiveExtraction();
+    } else {
+      debugLog("[SEND] message queued while session mic is active.");
+      statusDot.style.background = "var(--primary)";
+      statusText.textContent = sessionRecording
+        ? "Message added. Live extraction running in background."
+        : "Message added.";
+    }
+  }
+
+  function queueLiveExtraction() {
+    extractionQueued = true;
+    if (extractionDebounce) clearTimeout(extractionDebounce);
+    extractionDebounce = setTimeout(async () => {
+      if (extractionInFlight) return;
+      if (!extractionQueued) return;
+      extractionQueued = false;
+      await runLiveExtraction();
+    }, 1200);
+  }
+
+  function startSessionLiveExtractionLoop() {
+    stopSessionLiveExtractionLoop();
+    lastSessionExtractionMessageCount = messages.length;
+    sessionLiveExtractionTimer = setInterval(() => {
+      if (!sessionRecording) return;
+      if (messages.length === 0) return;
+      if (messages.length <= lastSessionExtractionMessageCount && !extractionInFlight) return;
+      lastSessionExtractionMessageCount = messages.length;
+      debugLog("[EXTRACT] periodic session extraction tick", { messages: messages.length });
+      queueLiveExtraction();
+    }, sessionLiveExtractionIntervalMs);
+  }
+
+  function stopSessionLiveExtractionLoop() {
+    if (sessionLiveExtractionTimer) {
+      clearInterval(sessionLiveExtractionTimer);
+      sessionLiveExtractionTimer = null;
+    }
+  }
+
+  function queueIncomingMessage(text, speaker, options = {}) {
+    const normalized = String(text || "").trim();
+    if (!normalized) return Promise.resolve();
+
+    incomingMessageQueue = incomingMessageQueue
+      .then(async () => {
+        await sendMessage(normalized, {
+          deferExtraction: options.deferExtraction !== false,
+          speakerOverride: speaker,
+        });
+      })
+      .catch(err => {
+        debugError("[QUEUE] incoming message failed", { text: normalized, speaker, err });
+        statusDot.style.background = "var(--danger)";
+        statusText.textContent = `Message queue error: ${err.message}`;
+      });
+
+    return incomingMessageQueue;
   }
 
   async function runLiveExtraction() {
+    if (extractionInFlight) {
+      extractionQueued = true;
+      return;
+    }
+
     const conversationText = buildRawText(messages);
     debugLog("[EXTRACT] start", { messageCount: messages.length, conversationText });
 
@@ -932,6 +1467,7 @@
       return;
     }
 
+    extractionInFlight = true;
     sendBtn.disabled = true;
     statusDot.style.background = "var(--primary)";
     statusText.textContent = "Processing conversation so far...";
@@ -977,9 +1513,250 @@
       statusText.textContent = `Extraction error: ${err.message}`;
       debugError("[EXTRACT] failure:", err);
     } finally {
+      extractionInFlight = false;
       sendBtn.disabled = false;
       msgInput.focus();
+      if (extractionQueued) {
+        extractionQueued = false;
+        await runLiveExtraction();
+      }
     }
+  }
+
+  async function startSingleMessageRecording() {
+    if (!activeSpeaker) {
+      alert("Add/select a speaker first.");
+      return;
+    }
+    if (singleRecorder && singleRecorder.state !== "inactive") {
+      return;
+    }
+    if (backendSttDisabled) {
+      try {
+        statusDot.style.background = "var(--primary)";
+        statusText.textContent = "Using browser speech recognition...";
+        const speakerAtRecordStart = activeSpeaker;
+        const text = await browserSingleDictation();
+        if (text) {
+          await queueIncomingMessage(text, speakerAtRecordStart, { deferExtraction: false });
+        } else {
+          statusDot.style.background = "var(--danger)";
+          statusText.textContent = "No speech captured. Please speak clearly and try again.";
+        }
+      } catch (err) {
+        debugError("[STT] browser single-message failed", err);
+        statusDot.style.background = "var(--danger)";
+        statusText.textContent = `STT error: ${err.message}`;
+      }
+      return;
+    }
+    try {
+      const speakerAtRecordStart = activeSpeaker;
+      singleRecorderStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      singleRecorder = new MediaRecorder(singleRecorderStream);
+      singleRecorderChunks = [];
+      singleRecorder.addEventListener("dataavailable", (event) => {
+        if (event.data && event.data.size > 0) singleRecorderChunks.push(event.data);
+      });
+      singleRecorder.addEventListener("stop", async () => {
+        try {
+          const blob = new Blob(singleRecorderChunks, { type: singleRecorderChunks[0]?.type || "audio/webm" });
+          statusDot.style.background = "var(--primary)";
+          statusText.textContent = "Transcribing recorded message...";
+          const sttResult = await transcribeAudioBlob(blob);
+          const text = sttResult.text;
+          if (text) {
+            await queueIncomingMessage(text, speakerAtRecordStart, { deferExtraction: false });
+            return;
+          }
+
+          if (sttResult.warning) {
+            debugWarn("[STT] single-message warning", sttResult.warning);
+            backendSttDisabled = true;
+            statusDot.style.background = "var(--primary)";
+            statusText.textContent = "Backend STT decode failed. Switching to browser STT...";
+            try {
+              const fallbackText = await browserSingleDictation();
+              if (fallbackText) {
+                await queueIncomingMessage(fallbackText, speakerAtRecordStart, { deferExtraction: false });
+              } else {
+                statusDot.style.background = "var(--danger)";
+                statusText.textContent = "No speech captured. Please speak clearly and try again.";
+              }
+              return;
+            } catch (fallbackErr) {
+              debugError("[STT] browser fallback failed", fallbackErr);
+              statusDot.style.background = "var(--danger)";
+              statusText.textContent = `STT fallback error: ${fallbackErr.message}`;
+              return;
+            }
+          }
+
+          statusDot.style.background = "var(--danger)";
+          statusText.textContent = "No speech captured. Please speak clearly and try again.";
+        } catch (err) {
+          debugError("[STT] single-message failed", err);
+          if (String(err.message || "").includes("Whisper STT is temporarily disabled")) {
+            backendSttDisabled = true;
+            try {
+              statusText.textContent = "Backend STT disabled. Switching to browser STT...";
+              const text = await browserSingleDictation();
+              if (text) {
+                await queueIncomingMessage(text, speakerAtRecordStart, { deferExtraction: false });
+              } else {
+                statusDot.style.background = "var(--danger)";
+                statusText.textContent = "No speech captured. Please speak clearly and try again.";
+              }
+              return;
+            } catch (fallbackErr) {
+              debugError("[STT] browser fallback failed", fallbackErr);
+            }
+          }
+          statusDot.style.background = "var(--danger)";
+          statusText.textContent = `STT error: ${err.message}`;
+        } finally {
+          setMicButtonVisual(false);
+          if (singleRecorderStream) {
+            singleRecorderStream.getTracks().forEach(track => track.stop());
+            singleRecorderStream = null;
+          }
+        }
+      });
+
+      setMicButtonVisual(true);
+      statusText.textContent = "Recording one message... click Stop when done.";
+      statusDot.style.background = "var(--primary)";
+      singleRecorder.start();
+    } catch (err) {
+      debugError("[STT] mic start failed", err);
+      statusDot.style.background = "var(--danger)";
+      statusText.textContent = `Mic error: ${err.message}`;
+    }
+  }
+
+  function stopSingleMessageRecording() {
+    if (singleRecorder && singleRecorder.state !== "inactive") {
+      singleRecorder.stop();
+    }
+  }
+
+  async function switchSessionToBrowserFallback(reason = "", options = {}) {
+    const waitForQueue = options.waitForQueue !== false;
+    if (!sessionRecording || sessionUsingBrowserFallback || sessionFallbackSwitching) return;
+    sessionFallbackSwitching = true;
+    sessionUsingBrowserFallback = true;
+    backendSttDisabled = true;
+
+    if (sessionRecorder && sessionRecorder.state !== "inactive") {
+      try {
+        if (sessionRecorderDataHandler) {
+          sessionRecorder.removeEventListener("dataavailable", sessionRecorderDataHandler);
+        }
+        sessionRecorder.stop();
+      } catch (_) {
+        // no-op
+      }
+    }
+    sessionRecorder = null;
+
+    if (sessionStream) {
+      sessionStream.getTracks().forEach(track => track.stop());
+      sessionStream = null;
+    }
+
+    if (waitForQueue) {
+      await sessionChunkQueue;
+    }
+
+    try {
+      startBrowserSessionDictation();
+      statusDot.style.background = "var(--primary)";
+      statusText.textContent = reason || "Switched to browser session STT due to backend chunk decode issues.";
+      sessionFallbackSwitching = false;
+    } catch (err) {
+      debugError("[STT] browser fallback session start failed", err);
+      sessionUsingBrowserFallback = false;
+      sessionFallbackSwitching = false;
+      backendSttDisabled = false;
+      statusDot.style.background = "var(--danger)";
+      statusText.textContent = `Session fallback failed: ${err.message}`;
+    }
+  }
+
+  async function startSessionRecording() {
+    if (!sessionControlsEnabled) {
+      alert("Enable Full Session Mic first.");
+      return;
+    }
+    if (sessionRecording) return;
+
+    if (speakers.length === 0) {
+      statusDot.style.background = "var(--danger)";
+      statusText.textContent = "Add at least one speaker before starting session mic.";
+      alert("Add at least one speaker first, then start session mic.");
+      newSpeakerName.focus();
+      return;
+    }
+
+    // [FIX]: Force the application to ALWAYS use Client-Side Browser STT
+    // No more sending binary audio files to the backend. It only sends text!
+    try {
+      sessionRecording = true;
+      sessionSpeakerIndex = 0;
+      activeSpeaker = speakers[sessionSpeakerIndex];
+      renderSpeakers();
+      updateSessionSpeakerChip();
+      refreshSessionControlStates();
+      
+      // Starts the continuous browser text buffer
+      startBrowserSessionDictation();
+      startSessionLiveExtractionLoop();
+      
+      statusDot.style.background = "var(--primary)";
+      statusText.textContent = "Browser session STT active. Press S to switch speaker. Live extraction runs every 5s.";
+    } catch (err) {
+      debugError("[STT] browser session start failed", err);
+      sessionRecording = false;
+      stopSessionLiveExtractionLoop();
+      refreshSessionControlStates();
+      statusDot.style.background = "var(--danger)";
+      statusText.textContent = `Session mic error: ${err.message}`;
+    }
+  }
+
+  async function stopSessionRecording() {
+    if (!sessionRecording) return;
+    sessionRecording = false;
+    stopSessionLiveExtractionLoop();
+    sessionFallbackSwitching = false;
+    refreshSessionControlStates();
+    if (browserSessionRecognition) {
+      try {
+        browserSessionRecognition.onend = null;
+        browserSessionRecognition.stop();
+      } catch (_) {
+        // no-op
+      }
+      browserSessionRecognition = null;
+    }
+    if (sessionRecorder && sessionRecorder.state !== "inactive") {
+      if (sessionRecorderDataHandler) {
+        sessionRecorder.removeEventListener("dataavailable", sessionRecorderDataHandler);
+      }
+      sessionRecorder.stop();
+    }
+    sessionRecorderDataHandler = null;
+    if (sessionStream) {
+      sessionStream.getTracks().forEach(track => track.stop());
+      sessionStream = null;
+    }
+    await sessionChunkQueue;
+    queueLiveExtraction();
+    pendingSessionSpeaker = null;
+    updateSessionSpeakerChip();
+    refreshSessionControlStates();
+    statusDot.style.background = "var(--success)";
+    statusText.textContent = "Session recording stopped.";
   }
 
   function renderConfirmFields() {
@@ -1100,6 +1877,23 @@
     }
   });
   sendBtn.addEventListener("click", sendMessage);
+  msgVoiceBtn.addEventListener("click", () => {
+    if (singleRecorder && singleRecorder.state !== "inactive") {
+      stopSingleMessageRecording();
+      return;
+    }
+    startSingleMessageRecording();
+  });
+
+  toggleSessionControlsBtn.addEventListener("click", () => {
+    if (sessionRecording) return;
+    setSessionControlsEnabled(!sessionControlsEnabled);
+  });
+
+  moveOrderLeftBtn.addEventListener("click", () => moveSelectedSpeaker(-1));
+  moveOrderRightBtn.addEventListener("click", () => moveSelectedSpeaker(1));
+  sessionRecordBtn.addEventListener("click", startSessionRecording);
+  sessionStopBtn.addEventListener("click", stopSessionRecording);
 
   saveBtn.addEventListener("click", openSaveModal);
   confirmCancelBtn.addEventListener("click", closeSaveModal);
@@ -1111,6 +1905,22 @@
   });
 
   document.addEventListener("keydown", e => {
+    if (sessionRecording && (e.key === "s" || e.key === "S")) {
+      e.preventDefault();
+      if (speakers.length > 0) {
+        const nextIndex = (sessionSpeakerIndex + 1) % speakers.length;
+        const nextSpeaker = speakers[nextIndex];
+        pendingSessionSpeaker = nextSpeaker;
+        sessionSpeakerIndex = nextIndex;
+        if (sessionRecorder && sessionRecorder.state === "recording") {
+          sessionRecorder.requestData();
+        }
+        statusDot.style.background = "var(--primary)";
+        statusText.textContent = `Switch queued to ${nextSpeaker}`;
+      }
+      return;
+    }
+
     if (e.key === "Escape" && !saveModalBackdrop.hidden) {
       debugLog("[SAVE] modal closed by Escape");
       closeSaveModal();
@@ -1118,7 +1928,12 @@
   });
 
   debugLog("[INIT] renderSpeakers() initial");
+  setMicButtonVisual(false);
   renderSpeakers();
+  setSessionControlsEnabled(false);
+  updateSessionSpeakerChip();
+  renderSessionOrderChips();
+  refreshSessionControlStates();
 </script>
 
 {% endblock %}

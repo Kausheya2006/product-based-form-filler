@@ -4,7 +4,11 @@ from ..domain.interfaces import IConversationRepository, IFormRepository, IPipel
 from ..infrastructure.persistence.mongo import MongoConversationRepository, MongoFormRepository, MongoRunLogRepo
 from ..infrastructure.ai.local_model import LocalHuggingFaceModel, GemmaFunctionalModel, GemmaFormStateModel
 from ..infrastructure.ai.summarizer import LocalSummarizer, GemmaSummarizer, QwenSummarizer
+from ..infrastructure.ai.ollama_model import OllamaFormStateModel, OllamaSummarizer
 from ..infrastructure.ai.mock_models import MockExtractionModel, MockSummarizer
+from ..infrastructure.ai.translator import LocalTranslator
+from ..infrastructure.ai.asr import LocalASRTranscriber
+from ..infrastructure.ai.stt import LocalSpeechToText
 from ..infrastructure.config import settings
 from ..application.pipeline import FormFillingService
 
@@ -16,6 +20,9 @@ class Container:
     form_repo: IFormRepository = None
     runlog_repo: IRunLogRepository = None 
     pipeline: IPipeline = None
+    translator: LocalTranslator = None
+    asr_transcriber: LocalASRTranscriber = None
+    stt_service: LocalSpeechToText = None
 
     @classmethod
     def initialize(cls):
@@ -26,6 +33,19 @@ class Container:
             logger.info("MOCK_MODELS=true — skipping ML model loading (no GPU required)")
             model = MockExtractionModel()
             summarizer = MockSummarizer()
+        elif settings.USE_OLLAMA:
+            logger.info(
+                "USE_OLLAMA=true — routing extraction/summarization to Ollama (%s)",
+                settings.OLLAMA_BASE_URL,
+            )
+            model = OllamaFormStateModel(
+                model_name=settings.OLLAMA_EXTRACT_MODEL,
+                base_url=settings.OLLAMA_BASE_URL,
+            )
+            summarizer = OllamaSummarizer(
+                model_name=settings.OLLAMA_SUMMARIZER_MODEL,
+                base_url=settings.OLLAMA_BASE_URL,
+            )
         else:
             if settings.EXTRACTION_MODEL_TYPE == "gemma_form_state":
                 model = GemmaFormStateModel(model_path=settings.FORM_STATE_MODEL_PATH)
@@ -40,6 +60,9 @@ class Container:
                 summarizer = LocalSummarizer()
 
         cls.pipeline = FormFillingService(cls.convo_repo, cls.form_repo, model, cls.runlog_repo, summarizer, model_type="full_process")
+        cls.translator = LocalTranslator()
+        cls.asr_transcriber = LocalASRTranscriber()
+        cls.stt_service = LocalSpeechToText()
 
         # Log which Mongo host is being used (mask credentials)
         uri = settings.MONGO_URI

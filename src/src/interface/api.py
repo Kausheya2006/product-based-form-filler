@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from uuid import uuid4
 from datetime import datetime
 
-from fastapi import FastAPI, HTTPException, Request, Form
+from fastapi import FastAPI, HTTPException, Request, Form, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -28,6 +28,68 @@ from .helpers import (
 class LiveExtractRequest(PydanticBaseModel):
     form_id: str
     conversation: str
+
+
+SUPPORTED_INPUT_LANGUAGES = [
+    ("en", "English"),
+    ("es", "Spanish"),
+    ("fr", "French"),
+    ("de", "German"),
+    ("it", "Italian"),
+    ("pt", "Portuguese"),
+]
+
+
+def _transcript_to_conversation_text(transcript: str) -> str:
+    cleaned = " ".join((transcript or "").split())
+    if not cleaned:
+        return ""
+    return f"Speaker: {cleaned}"
+
+
+async def _persist_conversation_and_extract(
+    *,
+    form_id: str,
+    conversation_text: str,
+    owner_id: str,
+    conversation_id: str = "",
+    conversation_name: str = "",
+    reviewed_field_overrides: Dict[str, Any] | None = None,
+    version_metadata: Dict[str, Any] | None = None,
+) -> str:
+    if not conversation_id.strip():
+        conversation_id = str(uuid4())[:8]
+
+    conversation_dict = _parse_conversation_text(conversation_text)
+    if not conversation_dict:
+        raise HTTPException(400, "Could not parse conversation.")
+
+    version_payload: Dict[str, Any] = {
+        "version_index": 0,
+        "history": conversation_dict,
+    }
+    if version_metadata:
+        version_payload.update(version_metadata)
+
+    convo = Conversation(
+        conversation_id=conversation_id,
+        form_id=form_id,
+        conversation_name=conversation_name.strip(),
+        versions=[ConversationVersion(**version_payload)],
+        owner_id=owner_id,
+    )
+    await container.convo_repo.save(convo)
+
+    result = await container.pipeline.run(conversation_id, form_id, version_index=0)
+    if reviewed_field_overrides:
+        _apply_field_overrides(result.filled_data, reviewed_field_overrides)
+        await container.runlog_repo.update(result.run_id, {"extracted_fields": result.model_dump()})
+
+    latest_version = convo.versions[-1]
+    latest_version.run_id = result.run_id
+    await container.convo_repo.save(convo)
+    await _save_output(result, owner_id=owner_id)
+    return conversation_id
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -441,6 +503,20 @@ async def live_extraction_page(request: Request, form_id: str):
         raise HTTPException(404, "Form not found")
     return _tmpl("static_enter_conversation.html", request, {"form": form}, user=user)
 
+
+@app.get("/forms/{form_id}/asr", response_class=HTMLResponse)
+async def asr_extraction_page(request: Request, form_id: str):
+    user = await _get_current_user(request)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+    form = await _get_form_for_user(form_id, user)
+    if not form:
+        raise HTTPException(404, "Form not found")
+    return _tmpl("asr_enter_conversation.html", request, {
+        "form": form,
+        "input_languages": SUPPORTED_INPUT_LANGUAGES,
+    }, user=user)
+
 @app.get("/conversations/{convo_id}/edit", response_class=HTMLResponse)
 async def edit_conversation_page(request: Request, convo_id: str, form_id: str):
     user = await _get_current_user(request)
@@ -514,30 +590,75 @@ async def create_conversation(
             raise HTTPException(400, "Reviewed fields payload must be a JSON object.")
         reviewed_field_overrides = parsed_overrides
 
-    conversation_dict = _parse_conversation_text(conversation_text)
-    if not conversation_dict:
-        raise HTTPException(400, "Could not parse conversation.")
+    try:
+        conversation_id = await _persist_conversation_and_extract(
+            form_id=form_id,
+            conversation_text=conversation_text,
+            owner_id=user["user_id"],
+            conversation_id=conversation_id,
+            conversation_name=conversation_name,
+            reviewed_field_overrides=reviewed_field_overrides,
+            version_metadata={"source_mode": "text"},
+        )
+    except Exception as e:
+        raise HTTPException(500, f"Conversation saved, but extraction failed: {str(e)}")
 
-    convo = Conversation(
-        conversation_id=conversation_id,
-        form_id=form_id,
-        conversation_name=conversation_name.strip(),
-        versions=[ConversationVersion(version_index=0, history=conversation_dict)],
-        owner_id=user["user_id"],
-    )
-    await container.convo_repo.save(convo)
+    return RedirectResponse(url=f"/extract/{form_id}/{conversation_id}", status_code=303)
+
+
+@app.post("/conversations/create-asr", response_class=HTMLResponse)
+async def create_conversation_asr(
+    request: Request,
+    form_id: str = Form(...),
+    input_language: str = Form("en"),
+    conversation_id: str = Form(""),
+    conversation_name: str = Form(""),
+    conversation_text: str = Form(""),
+    audio_file: UploadFile | None = File(default=None),
+):
+    user = await _get_current_user(request)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+
+    form = await _get_form_for_user(form_id, user)
+    if not form:
+        raise HTTPException(404, "Form not found")
+
+    transcript_text = ""
+    if audio_file is not None and (audio_file.filename or "").strip():
+        raw_audio = await audio_file.read()
+        if not raw_audio:
+            raise HTTPException(400, "Uploaded audio file is empty.")
+        transcript_text = await container.asr_transcriber.transcribe_to_text(
+            audio_bytes=raw_audio,
+            filename=audio_file.filename,
+            input_language=input_language,
+        )
+    elif conversation_text.strip():
+        transcript_text = conversation_text
+    else:
+        raise HTTPException(400, "Please upload an audio file or record audio.")
+
+    translated_text = await container.translator.translate_to_english(transcript_text, input_language)
+    conversation_payload = _transcript_to_conversation_text(translated_text)
+    if not conversation_payload:
+        raise HTTPException(400, "Transcription produced empty text.")
 
     try:
-        latest_version = convo.versions[-1]
-        result = await container.pipeline.run(
-            conversation_id, form_id, version_index=latest_version.version_index
+        conversation_id = await _persist_conversation_and_extract(
+            form_id=form_id,
+            conversation_text=conversation_payload,
+            owner_id=user["user_id"],
+            conversation_id=conversation_id,
+            conversation_name=conversation_name,
+            reviewed_field_overrides=None,
+            version_metadata={
+                "source_mode": "asr",
+                "input_language": input_language,
+                "raw_transcript": transcript_text,
+                "translated_transcript": translated_text,
+            },
         )
-        if reviewed_field_overrides:
-            _apply_field_overrides(result.filled_data, reviewed_field_overrides)
-            await container.runlog_repo.update(result.run_id, {"extracted_fields": result.model_dump()})
-        latest_version.run_id = result.run_id
-        await container.convo_repo.save(convo)
-        await _save_output(result, owner_id=user["user_id"])
     except Exception as e:
         raise HTTPException(500, f"Conversation saved, but extraction failed: {str(e)}")
 
@@ -609,6 +730,64 @@ async def preview_extraction(
     except Exception as e:
         logger.exception("[PreviewExtract] failed")
         raise HTTPException(500, str(e))
+
+
+@app.post("/stt/transcribe", response_class=JSONResponse)
+async def transcribe_live_audio(
+    request: Request,
+    input_language: str = Form("en"),
+    audio_file: UploadFile | None = File(default=None),
+):
+    user = await _get_current_user(request)
+    if not user:
+        return JSONResponse({"error": "Not authenticated"}, status_code=401)
+
+    if audio_file is None or not (audio_file.filename or "").strip():
+        raise HTTPException(400, "Audio file is required.")
+
+    raw_audio = await audio_file.read()
+    if not raw_audio:
+        raise HTTPException(400, "Uploaded audio file is empty.")
+
+    try:
+        transcript_text = await container.stt_service.transcribe_to_text(
+            audio_bytes=raw_audio,
+            filename=audio_file.filename,
+            input_language=input_language,
+        )
+    except RuntimeError as exc:
+        message = str(exc)
+        logger.warning("[STT] Runtime issue: %s", message)
+        if "Whisper STT is temporarily disabled" in message:
+            raise HTTPException(503, message) from exc
+        recoverable_markers = (
+            "audio preprocessing failed",
+            "audio decode failed",
+            "speechrecognition decode failed",
+            "unknown format",
+            "cannot read",
+            "file does not start",
+        )
+        if any(marker in message.lower() for marker in recoverable_markers):
+            return JSONResponse({
+                "text": "",
+                "raw_text": "",
+                "warning": message,
+            })
+        raise HTTPException(500, message) from exc
+    except Exception as exc:
+        logger.exception("[STT] Unexpected transcription failure")
+        raise HTTPException(500, f"STT failed: {str(exc)}") from exc
+
+    try:
+        translated_text = await container.translator.translate_to_english(transcript_text, input_language)
+    except Exception as exc:
+        logger.exception("[STT] Translation step failed")
+        raise HTTPException(500, f"STT translation failed: {str(exc)}") from exc
+    return JSONResponse({
+        "text": translated_text.strip(),
+        "raw_text": transcript_text.strip(),
+    })
 
 @app.post("/api/live-extract")
 async def api_live_extract(request: Request, payload: LiveExtractRequest) -> JSONResponse:

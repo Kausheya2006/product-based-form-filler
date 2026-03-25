@@ -20,3 +20,9 @@ peft
 accelerate
 numpy
 itsdangerous
+librosa
+soundfile
+# faster-whisper
+noisereduce
+SpeechRecognition
+httpx
