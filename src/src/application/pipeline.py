@@ -5,6 +5,7 @@ import re
 import asyncio 
 from ..domain.domain import ExtractionResult, ExtractionRequest, RunLog
 from ..domain.interfaces import IConversationRepository, IFormRepository, IExtractionModel, IPipeline, IRunLogRepository, ISummarizer
+from ..domain.speakers import render_history_for_model
 
 # Regex for basic email validation
 _EMAIL_RE = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
@@ -134,12 +135,7 @@ class FormFillingService(IPipeline):
             requests = []
             field_keys = []
             empty_fields = {}
-            full_convo = ""
-
-            for speaker, text in convo.latest_history.items():
-                if " " in speaker:
-                    speaker = " ".join(speaker.split()[:-1])
-                full_convo += speaker + ": " + text + "\n"
+            full_convo = render_history_for_model(convo.latest_history)
 
             field_types = {}  # field_key -> expected type
             for field_key, field_type in form.fields.items():
@@ -164,7 +160,12 @@ class FormFillingService(IPipeline):
                 extraction_task = self.model.extract_batch(requests) 
                 answers, summary = await asyncio.gather(extraction_task, summarization_task)
             elif self.model_type == "full_process":
-                input_str = f"""Extract info from conversation to fill form.\nConversation: {full_convo}Form: {form.name}\nFields: {json.dumps(empty_fields)}"""
+                input_str = (
+                    "Extract info from conversation to fill form.\n"
+                    f"Conversation: {full_convo}\n"
+                    f"Form: {form.name}\n"
+                    f"Fields: {json.dumps(empty_fields)}"
+                )
                 extraction_task = self.model.process_extraction_request(input_str) 
                 answers, summary = await asyncio.gather(extraction_task, summarization_task)
             else:

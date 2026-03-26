@@ -2,7 +2,7 @@
 import logging
 from ..domain.interfaces import IConversationRepository, IFormRepository, IPipeline, IRunLogRepository, ISummarizer
 from ..infrastructure.persistence.mongo import MongoConversationRepository, MongoFormRepository, MongoRunLogRepo
-from ..infrastructure.ai.local_model import LocalHuggingFaceModel, GemmaFunctionalModel, GemmaFormStateModel
+from ..infrastructure.ai.local_model import LocalHuggingFaceModel, GemmaFunctionalModel, FormStateModel
 from ..infrastructure.ai.summarizer import LocalSummarizer, GemmaSummarizer, QwenSummarizer
 from ..infrastructure.ai.ollama_model import OllamaFormStateModel, OllamaSummarizer
 from ..infrastructure.ai.mock_models import MockExtractionModel, MockSummarizer
@@ -47,8 +47,8 @@ class Container:
                 base_url=settings.OLLAMA_BASE_URL,
             )
         else:
-            if settings.EXTRACTION_MODEL_TYPE == "gemma_form_state":
-                model = GemmaFormStateModel(model_path=settings.FORM_STATE_MODEL_PATH)
+            if settings.EXTRACTION_MODEL_TYPE == "form_state":
+                model = FormStateModel(model_path=settings.FORM_STATE_MODEL_PATH)
             else:
                 model = GemmaFunctionalModel(max_input_tokens=512, max_new_tokens=256, temperature=0.0, checkpoint_path="/app/data_generation/models/checkpoint-200")
 

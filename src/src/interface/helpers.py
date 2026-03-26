@@ -15,6 +15,7 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 
 from ..domain.domain import Conversation, FormSchema, ExtractionResult, ConversationVersion
+from ..domain.speakers import render_history_for_model
 from .dependencies import container
 
 logging.basicConfig(level=logging.INFO)
@@ -74,7 +75,7 @@ def _tmpl(template_name: str, request: Request, ctx: dict, user=None):
     ctx.setdefault("request", request)
     ctx["current_user"] = user
     ctx["is_admin"] = _is_admin(user) if user else False
-    return templates.TemplateResponse(template_name, ctx)
+    return templates.TemplateResponse(request, template_name, ctx)
 
 def _validate_username(username: str) -> Optional[str]:
     """
@@ -279,10 +280,7 @@ async def _extract_for_conversation_text(
     current_field_state: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     parsed = _parse_conversation_text(conversation_text)
-    full_convo = ""
-    for speaker, text in parsed.items():
-        clean_speaker = " ".join(speaker.split()[:-1]) if " " in speaker else speaker
-        full_convo += f"{clean_speaker}: {text}\n"
+    full_convo = render_history_for_model(parsed)
 
     seeded_fields: Dict[str, Any] = {}
     for field_key in form.fields.keys():
@@ -320,7 +318,7 @@ async def _extract_for_conversation_text(
         answers_task = model.process_extraction_request(input_str)
         logger.info("[LiveExtract] Using full conversation replay path")
     summary_task = container.pipeline.summarizer.summarize(
-        "\n".join([f"{k}: {v}" for k, v in parsed.items()])
+        full_convo
     )
     answers, summary = await asyncio.gather(answers_task, summary_task)
 

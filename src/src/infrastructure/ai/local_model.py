@@ -185,7 +185,7 @@ class GemmaFunctionalModel(IExtractionModel):
         return list(prediction.values())
 
 
-class GemmaFormStateModel(IExtractionModel):
+class FormStateModel(IExtractionModel):
     """Incremental form-state extraction using the trained mono-model adapter.
 
     Processes a conversation line-by-line, carrying forward form state and
@@ -219,6 +219,8 @@ class GemmaFormStateModel(IExtractionModel):
         resolved = self._resolve_path(model_path)
         self.adapter_path = resolved
         self.base_model_id = self._resolve_base_model_id(resolved)
+        logger.info("LoRA Adapter Path:")
+        logger.info(self.adapter_path)
         tokenizer_source = resolved if (Path(resolved) / "tokenizer.json").is_file() else self.base_model_id
         logger.info("Loading tokenizer...")
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_source, trust_remote_code=True)
@@ -259,11 +261,21 @@ class GemmaFormStateModel(IExtractionModel):
             with adapter_config_path.open("r", encoding="utf-8") as fh:
                 config = json.load(fh)
             configured_path = config.get("base_model_name_or_path") or fallback
+            if configured_path == fallback:
+                logger.info("Using Fallback Qwen Model 1.")
         except Exception:
+            logger.info("Using Fallback Qwen Model 2.") 
             return fallback
         candidate = Path(str(configured_path)).expanduser()
-        if candidate.is_dir() and (candidate / "config.json").is_file():
+        logger.info("Candidate Folder Info")
+        logger.info(candidate.is_dir())
+        logger.info(candidate)
+        logger.info("Candidate File Info")
+        logger.info((candidate / "adapter_config.json"))
+        if candidate.is_dir() and (candidate / "adapter_config.json").is_file():
+            logger.info("Using LoRA Qwen Model.")
             return str(candidate)
+        logger.info("Using Fallback Qwen Model 3.")
         return fallback
 
     def _load_model(self):
@@ -332,7 +344,7 @@ class GemmaFormStateModel(IExtractionModel):
     def _build_form_state(field_values: dict[str, Any]) -> dict:
         return {
             "Initial fields": {
-                key: GemmaFormStateModel._normalize_state_value(value)
+                key: FormStateModel._normalize_state_value(value)
                 for key, value in field_values.items()
             }
         }
@@ -423,7 +435,7 @@ class GemmaFormStateModel(IExtractionModel):
         next_form_state_match = re.search(r'"next_form_state"\s*:\s*\{', clean_text, re.IGNORECASE)
         if next_form_state_match:
             brace_start = clean_text.find("{", next_form_state_match.start())
-            extracted = GemmaFormStateModel._extract_balanced_braces(clean_text, brace_start)
+            extracted = FormStateModel._extract_balanced_braces(clean_text, brace_start)
             if extracted:
                 raw_objects.append(extracted)
 
@@ -455,7 +467,7 @@ class GemmaFormStateModel(IExtractionModel):
                     return parsed
                 return {"Initial fields": parsed}
 
-        extracted_pairs = GemmaFormStateModel._extract_field_pairs(clean_text)
+        extracted_pairs = FormStateModel._extract_field_pairs(clean_text)
         if extracted_pairs:
             logger.info("Recovered field pairs from malformed payload: %s", extracted_pairs)
             return {"Initial fields": extracted_pairs}
@@ -498,7 +510,7 @@ class GemmaFormStateModel(IExtractionModel):
             if not match:
                 continue
             brace_start = text.find("{", match.start())
-            extracted = GemmaFormStateModel._extract_balanced_braces(text, brace_start)
+            extracted = FormStateModel._extract_balanced_braces(text, brace_start)
             if extracted:
                 field_block = extracted
                 break
@@ -542,11 +554,11 @@ class GemmaFormStateModel(IExtractionModel):
         summary_from_text = ""
 
         if isinstance(raw_arguments, str):
-            summary_from_text = GemmaFormStateModel._extract_summary_from_text(raw_arguments)
+            summary_from_text = FormStateModel._extract_summary_from_text(raw_arguments)
             try:
                 arguments = json.loads(raw_arguments)
             except json.JSONDecodeError:
-                next_form_state = GemmaFormStateModel._extract_fields_from_text(raw_arguments)
+                next_form_state = FormStateModel._extract_fields_from_text(raw_arguments)
                 logger.info(f"Next Form State From String: {next_form_state}")
                 return next_form_state, summary_from_text
         elif isinstance(raw_arguments, dict):
@@ -561,7 +573,7 @@ class GemmaFormStateModel(IExtractionModel):
             try:
                 next_form_state = json.loads(next_form_state)
             except json.JSONDecodeError:
-                next_form_state = GemmaFormStateModel._extract_fields_from_text(next_form_state)
+                next_form_state = FormStateModel._extract_fields_from_text(next_form_state)
         new_summary_state = arguments.get("new_summary_state")
         if not isinstance(new_summary_state, str):
             new_summary_state = summary_from_text
@@ -597,8 +609,8 @@ class GemmaFormStateModel(IExtractionModel):
 
     @staticmethod
     def _merge_form_state(current_state: dict[str, Any], update_state: dict[str, Any], field_keys: list[str]) -> dict[str, Any]:
-        merged = GemmaFormStateModel._normalize_form_state_shape(current_state, field_keys)
-        normalized_update = GemmaFormStateModel._normalize_form_state_shape(update_state, field_keys)
+        merged = FormStateModel._normalize_form_state_shape(current_state, field_keys)
+        normalized_update = FormStateModel._normalize_form_state_shape(update_state, field_keys)
 
         for section_name, section_values in normalized_update.items():
             if not isinstance(section_values, dict):
@@ -610,7 +622,7 @@ class GemmaFormStateModel(IExtractionModel):
             for key, value in section_values.items():
                 if not isinstance(key, str):
                     continue
-                normalized_value = GemmaFormStateModel._normalize_state_value(value)
+                normalized_value = FormStateModel._normalize_state_value(value)
                 if normalized_value == "N/A" and key in target_section:
                     continue
                 target_section[key] = normalized_value
@@ -665,7 +677,7 @@ class GemmaFormStateModel(IExtractionModel):
 
     async def extract_batch(self, requests: List[ExtractionRequest]) -> List[Any]:
         """Not used for this model — delegates to process_extraction_request."""
-        raise NotImplementedError("GemmaFormStateModel uses process_extraction_request, not extract_batch")
+        raise NotImplementedError("FormStateModel uses process_extraction_request, not extract_batch")
 
     async def process_live_update(
         self,

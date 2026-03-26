@@ -2,6 +2,8 @@ from pydantic import BaseModel, Field
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 
+from .speakers import render_history_for_model
+
 class ConversationVersion(BaseModel):
     version_index: int
     timestamp: datetime = Field(default_factory=datetime.utcnow)
@@ -29,7 +31,7 @@ class Conversation(BaseModel):
     @property
     def full_text(self) -> str:
         """Combines all turns from the LATEST version into a single string."""
-        return "\n".join([f"{k}: {v}" for k, v in self.latest_history.items()])
+        return render_history_for_model(self.latest_history)
 
 class FormSchema(BaseModel):
     id: str = Field(alias="form_id")

@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from typing import List, Dict, Any
 
 from ..domain.domain import Conversation, FormSchema, ConversationVersion
+from ..domain.speakers import render_history_for_model
 from .dependencies import container, Container
 
 from pydantic import BaseModel as PydanticBaseModel
@@ -106,7 +107,7 @@ app.mount("/static", StaticFiles(directory="src/interface/static"), name="static
 
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request):
-    return templates.TemplateResponse("register.html", {
+    return templates.TemplateResponse(request, "register.html", {
         "request": request, "error": None, "prefill": {}
     })
 
@@ -121,7 +122,7 @@ async def register(
     prefill = {"email": email, "username": username}
 
     def _err(msg):
-        return templates.TemplateResponse("register.html", {
+        return templates.TemplateResponse(request, "register.html", {
             "request": request, "error": msg, "prefill": prefill
         })
 
@@ -156,7 +157,7 @@ async def register(
 
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request, registered: str = ""):
-    return templates.TemplateResponse("login.html", {
+    return templates.TemplateResponse(request, "login.html", {
         "request": request,
         "error": None,
         "success": "Account created! Please sign in." if registered == "1" else None,
@@ -171,7 +172,7 @@ async def login(
 ):
     user = await _user_repo().find_one({"username": username})
     if not user or not _verify_password(password, user.get("password_hash", "")):
-        return templates.TemplateResponse("login.html", {
+        return templates.TemplateResponse(request, "login.html", {
             "request": request,
             "error": "Incorrect username or password.",
             "success": None,
@@ -528,7 +529,7 @@ async def edit_conversation_page(request: Request, convo_id: str, form_id: str):
         raise HTTPException(404, "Conversation not found")
     if not form:
         raise HTTPException(404, "Form not found")
-    raw_text = "\n".join([f"{k.split(' ')[0]}: {v}" for k, v in convo.latest_history.items()])
+    raw_text = render_history_for_model(convo.latest_history)
     return _tmpl("edit_conversation.html", request, {
         "convo": convo, "raw_text": raw_text, "form_id": form_id, "form": form,
     }, user=user)
