@@ -41,6 +41,8 @@ class FormSchema(BaseModel):
     # Simplified schema: field_name -> type_description
     # We flattened the address in the JSONL to make parallel extraction easier
     fields: Dict[str, str] = Field(alias="schema")
+    visibility: str = "global"
+    collaborators: List[str] = Field(default_factory=list)
 
 class ExtractionResult(BaseModel):
     conversation_id: str

@@ -26,6 +26,8 @@ from .helpers import (
     _load_outputs,
 )
 
+from .collab_ws import router as collab_router
+
 class LiveExtractRequest(PydanticBaseModel):
     form_id: str
     conversation: str
@@ -104,6 +106,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="ProductLabs Form Filler", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory="src/interface/static"), name="static")
+app.include_router(collab_router)
 
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request):
@@ -305,67 +308,81 @@ async def home(request: Request):
     user = await _get_current_user(request)
     if not user:
         return RedirectResponse(url="/login", status_code=303)
-
     all_forms = await container.form_repo.get_all()
-    if _is_admin(user):
-        user_ids = {getattr(f, "owner_id", None) for f in all_forms if getattr(f, "owner_id", None)}
-        user_map: Dict[str, str] = {}
-        for uid in user_ids:
-            u = await _user_repo().find_one({"user_id": uid})
-            if u:
-                user_map[uid] = u["username"]
-        forms = all_forms
-        form_owners = {
-            getattr(f, "form_id", None): user_map.get(getattr(f, "owner_id", None), "Global")
-            for f in all_forms
-        }
-    else:
-        forms = [f for f in all_forms if getattr(f, "owner_id", None) in (None, user["user_id"])]
-        form_owners = {}
+    username  = user["username"]
+    is_admin  = _is_admin(user)
 
-    # Set of form IDs the current user is allowed to delete (used by the template).
-    deletable_form_ids = {
-        getattr(f, "form_id", None)
-        for f in forms
-        if _can_write_form(f, user)
-    }
+    if is_admin:
+        visible_forms = all_forms
+    else:
+        visible_forms = [
+            f for f in all_forms
+            if getattr(f, "visibility", None) == "global"
+            or getattr(f, "owner_id", None) is None          # legacy seed data — treat as global
+            or getattr(f, "owner_id", None) == user["user_id"]  # personal or collab owned by this user
+            or (getattr(f, "visibility", "") == "collaborative"
+                and username in getattr(f, "collaborators", []))
+        ]
+
+    deletable_form_ids = {f.id for f in visible_forms if getattr(f, "owner_id", None) == user["user_id"]}
+    form_owners = {}
+    if is_admin:
+        all_user_ids = {f.owner_id for f in visible_forms if f.owner_id}
+        if all_user_ids:
+            docs = await _user_repo().find({"user_id": {"$in": list(all_user_ids)}}).to_list(length=500)
+            form_owners = {d["user_id"]: d["username"] for d in docs}
 
     return _tmpl("home.html", request, {
-        "forms": forms,
-        "form_owners": form_owners,
+        "forms":             visible_forms,
         "deletable_form_ids": deletable_form_ids,
+        "form_owners":       form_owners,
     }, user=user)
 
 @app.post("/forms", response_class=RedirectResponse)
-async def handle_create_form(
-    request: Request,
-    form_name: str = Form(...),
-    form_description: str = Form(""),
-    field_name: List[str] = Form(..., alias="field_name[]"),
-    field_type: List[str] = Form(..., alias="field_type[]"),
-):
-    user = await _get_current_user(request)
-    if not user:
-        return RedirectResponse(url="/login", status_code=303)
-
-    form_id = str(uuid4())[:8]
-    schema_dict = {name: ftype for name, ftype in zip(field_name, field_type) if name.strip()}
-    await container.form_repo.save(FormSchema(
-        form_id=form_id,
-        form_name=form_name,
-        description=form_description,
-        schema=schema_dict,
-        owner_id=user["user_id"],
-    ))
-    logger.info(f"Form {form_id} created by {user['username']}.")
-    return RedirectResponse(url="/", status_code=303)
-
-@app.get("/forms/new", response_class=HTMLResponse)
 async def create_form(request: Request):
     user = await _get_current_user(request)
     if not user:
         return RedirectResponse(url="/login", status_code=303)
-    return _tmpl("create_form.html", request, {}, user=user)
+    form_data = await request.form()
+    form_name   = form_data.get("form_name", "").strip()
+    description = form_data.get("form_description", "").strip()
+    visibility  = form_data.get("visibility", "personal")  # "personal"|"global"|"collaborative"
+
+    # Only admins may create global forms; silently demote to personal for everyone else.
+    if visibility == "global" and not _is_admin(user):
+        visibility = "personal"
+
+    collaborators = [
+        col.strip()
+        for col in form_data.getlist("collaborator[]")
+        if col.strip()
+    ]
+
+    field_names = form_data.getlist("field_name[]")
+    field_types = form_data.getlist("field_type[]")
+    fields = {k: v for k, v in zip(field_names, field_types) if k.strip()}
+    if not fields:
+        raise HTTPException(400, "At least one valid field is required.")
+
+    new_form = FormSchema(**{
+        "form_id":   str(uuid4()),
+        "form_name": form_name,
+        "schema":    fields,
+    },
+        description=description,
+        owner_id=user["user_id"],
+        visibility=visibility,
+        collaborators=collaborators if visibility == "collaborative" else [],
+    )
+    await container.form_repo.save(new_form)
+    return RedirectResponse(url="/", status_code=303)
+
+@app.get("/forms/new", response_class=HTMLResponse)
+async def new_form_page(request: Request):
+    user = await _get_current_user(request)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+    return _tmpl("create_form.html", request, {"is_admin": _is_admin(user)}, user=user)
 
 @app.get("/forms/{form_id}", response_class=HTMLResponse)
 async def view_form(request: Request, form_id: str):
@@ -373,6 +390,13 @@ async def view_form(request: Request, form_id: str):
     if not user:
         return RedirectResponse(url="/login", status_code=303)
     form = await _get_form_for_user(form_id, user)
+    if not form:
+        # Fallback: collaborators on a collaborative form may not be returned
+        # by _get_form_for_user — fetch directly and check.
+        raw_form = await container.form_repo.get_by_id(form_id)
+        if raw_form and getattr(raw_form, "visibility", "") == "collaborative" \
+                and user["username"] in getattr(raw_form, "collaborators", []):
+            form = raw_form
     if not form:
         raise HTTPException(404, "Form not found")
     return _tmpl("view_form.html", request, {"form": form}, user=user)
@@ -469,12 +493,38 @@ async def delete_form_api(request: Request, form_id: str):
     await container.form_repo.delete_by_id(form_id)
     return JSONResponse({"ok": True})
 
+@app.get("/forms/{form_id}/collab", response_class=HTMLResponse)
+async def enter_collab_conversation(request: Request, form_id: str):
+    """Launches the collaborative live-entry page."""
+    user = await _get_current_user(request)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+    form = await _get_form_for_user(form_id, user)
+    if not form:
+        raw_form = await container.form_repo.get_by_id(form_id)
+        if raw_form and getattr(raw_form, "visibility", "") == "collaborative" \
+                and user["username"] in getattr(raw_form, "collaborators", []):
+            form = raw_form
+    if not form:
+        raise HTTPException(status_code=404, detail="Form not found")
+    room_id = f"form-{form_id}"
+    return _tmpl("enter_conversation_collab.html", request, {
+        "form":         form,
+        "room_id":      room_id,
+        "current_user": user["username"],
+    }, user=user)
+
 @app.get("/forms/{form_id}/conversations", response_class=HTMLResponse)
 async def list_conversations(request: Request, form_id: str):
     user = await _get_current_user(request)
     if not user:
         return RedirectResponse(url="/login", status_code=303)
     form = await _get_form_for_user(form_id, user)
+    if not form:
+        raw_form = await container.form_repo.get_by_id(form_id)
+        if raw_form and getattr(raw_form, "visibility", "") == "collaborative" \
+                and user["username"] in getattr(raw_form, "collaborators", []):
+            form = raw_form
     if not form:
         raise HTTPException(404, "Form not found")
     all_convos = await container.convo_repo.get_by_form_id(form_id)
@@ -491,6 +541,11 @@ async def enter_conversation(request: Request, form_id: str):
         return RedirectResponse(url="/login", status_code=303)
     form = await _get_form_for_user(form_id, user)
     if not form:
+        raw_form = await container.form_repo.get_by_id(form_id)
+        if raw_form and getattr(raw_form, "visibility", "") == "collaborative" \
+                and user["username"] in getattr(raw_form, "collaborators", []):
+            form = raw_form
+    if not form:
         raise HTTPException(404, "Form not found")
     return _tmpl("enter_conversation.html", request, {"form": form}, user=user)
 
@@ -500,6 +555,11 @@ async def live_extraction_page(request: Request, form_id: str):
     if not user:
         return RedirectResponse(url="/login", status_code=303)
     form = await _get_form_for_user(form_id, user)
+    if not form:
+        raw_form = await container.form_repo.get_by_id(form_id)
+        if raw_form and getattr(raw_form, "visibility", "") == "collaborative" \
+                and user["username"] in getattr(raw_form, "collaborators", []):
+            form = raw_form
     if not form:
         raise HTTPException(404, "Form not found")
     return _tmpl("static_enter_conversation.html", request, {"form": form}, user=user)
@@ -511,6 +571,11 @@ async def asr_extraction_page(request: Request, form_id: str):
     if not user:
         return RedirectResponse(url="/login", status_code=303)
     form = await _get_form_for_user(form_id, user)
+    if not form:
+        raw_form = await container.form_repo.get_by_id(form_id)
+        if raw_form and getattr(raw_form, "visibility", "") == "collaborative" \
+                and user["username"] in getattr(raw_form, "collaborators", []):
+            form = raw_form
     if not form:
         raise HTTPException(404, "Form not found")
     return _tmpl("asr_enter_conversation.html", request, {
