@@ -83,7 +83,7 @@ async def _persist_conversation_and_extract(
     )
     await container.convo_repo.save(convo)
 
-    result = await container.pipeline.run(conversation_id, form_id, version_index=0)
+    result = await container.pipeline.run(conversation_id, form_id, version_index=0, owner_id=owner_id)
     if reviewed_field_overrides:
         _apply_field_overrides(result.filled_data, reviewed_field_overrides)
         await container.runlog_repo.update(result.run_id, {"extracted_fields": result.model_dump()})
@@ -348,8 +348,9 @@ async def create_form(request: Request):
     description = form_data.get("form_description", "").strip()
     visibility  = form_data.get("visibility", "personal")  # "personal"|"global"|"collaborative"
 
-    # Only admins may create global forms; silently demote to personal for everyone else.
-    if visibility == "global" and not _is_admin(user):
+    if _is_admin(user):
+        visibility = "global"
+    elif visibility == "global":
         visibility = "personal"
 
     collaborators = [
@@ -741,7 +742,7 @@ async def run_extraction(request: Request, form_id: str, convo_id: str):
             raise HTTPException(404, "No conversation history found.")
         latest_version = convo.versions[-1]
         result = await container.pipeline.run(
-            convo_id, form_id, version_index=latest_version.version_index
+            convo_id, form_id, version_index=latest_version.version_index, owner_id=user["user_id"]
         )
         latest_version.run_id = result.run_id
         await container.convo_repo.save(convo)
