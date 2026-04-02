@@ -48,26 +48,32 @@
     <p style="color:var(--text-muted); font-size:0.875rem; margin-bottom:16px;">Choose how you want to provide the
         conversation for this form.</p>
     <div class="action-cards">
-        <a href="/forms/{{ form.id }}/conversations" class="action-card">
-            <span class="ac-icon"></span>
-            <span class="ac-title">Select a Conversation</span>
-            <span class="ac-desc">Browse and pick from previously saved conversations.</span>
-        </a>
         <a href="/forms/{{ form.id }}/enter-conversation" class="action-card">
             <span class="ac-icon"></span>
             <span class="ac-title">Live Extraction</span>
             <span class="ac-desc">Type out a conversation and view extraction outputs simultaneously.</span>
         </a>
+        <a href="/forms/{{ form.id }}/conversations" class="action-card">
+            <span class="ac-icon"></span>
+            <span class="ac-title">Select a Conversation</span>
+            <span class="ac-desc">Browse and pick from previously saved conversations.</span>
+        </a>
+         <a href="/forms/{{ form.id }}/asr" class="action-card">
+            <span class="ac-icon"></span>
+            <span class="ac-title">Static Audio Extraction</span>
+            <span class="ac-desc">Record/upload one full conversation, then run chunked static form extraction.</span>
+        </a>
         <a href="/forms/{{ form.id }}/live" class="action-card">
             <span class="ac-icon"></span>
-            <span class="ac-title">Static Extraction</span>
+            <span class="ac-title">Static Text Extraction</span>
             <span class="ac-desc">Type out a conversation and run extraction upon completion.</span>
         </a>
-        <a href="/forms/{{ form.id }}/asr" class="action-card">
+       
+        <!-- <a href="/forms/{{ form.id }}/asr" class="action-card">
             <span class="ac-icon"></span>
             <span class="ac-title">ASR Extraction</span>
             <span class="ac-desc">Upload or record audio, transcribe + translate to English, then run static extraction.</span>
-        </a>
+        </a> -->
     </div>
 </div>
 

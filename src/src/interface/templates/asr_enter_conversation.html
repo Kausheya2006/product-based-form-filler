@@ -9,6 +9,16 @@
 <div class="card">
     <form method="post" action="/conversations/create-asr" id="asrExtractionForm" enctype="multipart/form-data">
         <input type="hidden" name="form_id" value="{{ form.id }}">
+        <input type="hidden" name="translated_text_override" id="translatedTextOverride" value="">
+        <input type="hidden" name="raw_transcript_override" id="rawTranscriptOverride" value="">
+
+        <div class="asr-mode-wrap">
+            <p class="form-hint" style="margin:0 0 8px 0;">Choose one input method:</p>
+            <div class="asr-mode-row">
+                <button type="button" class="btn asr-mode-btn" id="modeUploadBtn" aria-pressed="true">Enter Audio File</button>
+                <button type="button" class="btn asr-mode-btn" id="modeRecordBtn" aria-pressed="false">Record Now</button>
+            </div>
+        </div>
 
         <div class="form-group">
             <label for="input_language">Input Language</label>
@@ -30,28 +40,100 @@
             <input id="conversation_id" name="conversation_id" placeholder="auto-generated if blank">
         </div>
 
-        <div class="form-group">
+        <div class="form-group" id="uploadSection">
             <label for="audio_file">Audio File</label>
             <input id="audio_file" name="audio_file" type="file" accept="audio/*">
-            <p class="form-hint">Upload an audio file or record directly below.</p>
+            <p class="form-hint">Upload a complete conversation audio file.</p>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" id="recordSection">
             <label>Record Audio</label>
             <div class="action-row" style="margin-top:4px;">
-                <button type="button" class="btn" id="startRecordingBtn">Start Recording</button>
-                <button type="button" class="btn" id="stopRecordingBtn" disabled>Stop</button>
+                <button type="button" class="btn btn-primary asr-action-btn" id="startRecordingBtn">Start Recording</button>
+                <button type="button" class="btn asr-action-btn" id="stopRecordingBtn" disabled>Stop</button>
             </div>
             <p class="form-hint" id="recordingStatus">Not recording</p>
             <audio id="recordingPreview" controls style="width:100%; display:none; margin-top:8px;"></audio>
         </div>
 
-        <div class="action-row">
-            <button type="submit" class="btn btn-success" id="asrSubmitBtn">Transcribe, Translate & Run Extraction</button>
+        <div class="action-row asr-submit-row">
+            <button type="submit" class="btn btn-success asr-submit-btn" id="asrSubmitBtn">Transcribe, Translate & Run Extraction</button>
             <a href="/forms/{{ form.id }}" class="btn">Cancel</a>
         </div>
     </form>
 </div>
 
-<script src="/static/js/asr_extraction.js"></script>
+<div class="card" id="translatedOutputCard" style="display:none;">
+    <h3 style="margin-top:0;">Translated Text (English)</h3>
+    <p class="form-hint" id="translatedOutputStatus">Generating translated text...</p>
+    <textarea id="translatedOutputText" rows="8" readonly style="width:100%; font-family:monospace; border:1px solid var(--border); border-radius:10px; padding:12px; background:var(--bg-gray);"></textarea>
+</div>
+
+<style>
+    .asr-mode-wrap {
+        margin-bottom: 14px;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--bg-gray);
+    }
+    .asr-mode-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+    .asr-mode-btn {
+        justify-content: center;
+        font-weight: 600;
+        border: 1px solid var(--border);
+        background: var(--bg-white);
+        cursor: pointer;
+        transition: all 0.15s ease;
+        min-height: 46px;
+        font-size: 0.95rem;
+        pointer-events: auto !important;
+    }
+    .asr-mode-btn:hover {
+        border-color: var(--primary);
+    }
+    .asr-mode-btn.active {
+        border-color: var(--primary);
+        color: var(--primary-dark);
+        background: var(--primary-light);
+        box-shadow: none;
+    }
+    .asr-section-disabled {
+        opacity: 0.55;
+        pointer-events: none;
+    }
+    .asr-action-btn {
+        min-height: 40px;
+        min-width: 148px;
+    }
+    .asr-submit-row {
+        align-items: center;
+        margin-top: 18px;
+    }
+    .asr-submit-btn {
+        min-height: 44px;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+    .asr-submit-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    @media (max-width: 720px) {
+        .asr-mode-row {
+            grid-template-columns: 1fr;
+        }
+        .asr-action-btn,
+        .asr-submit-btn,
+        .asr-submit-row .btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<script src="/static/js/asr_extraction.js?v=2"></script>
 {% endblock %}
