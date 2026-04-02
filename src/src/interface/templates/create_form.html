@@ -30,6 +30,18 @@
         </div>
 
         <div class="visibility-options">
+            {% if is_admin %}
+            <!-- Admins can only create global forms -->
+            <label class="vis-option" id="vis-global">
+                <input type="radio" name="visibility" value="global" checked />
+                <div class="vis-card">
+                    <div class="vis-label">Global</div>
+                    <div class="vis-desc">Visible to all users on the platform.</div>
+                    <span class="badge badge-yellow vis-badge">Global</span>
+                </div>
+            </label>
+            {% else %}
+            <!-- Regular users can create personal or collaborative forms -->
             <label class="vis-option" id="vis-personal">
                 <input type="radio" name="visibility" value="personal" checked />
                 <div class="vis-card">
@@ -39,17 +51,6 @@
                 </div>
             </label>
 
-            {% if is_admin %}
-            <label class="vis-option" id="vis-global">
-                <input type="radio" name="visibility" value="global" />
-                <div class="vis-card">
-                    <div class="vis-label">Global</div>
-                    <div class="vis-desc">Visible to all users on the platform.</div>
-                    <span class="badge badge-yellow vis-badge">Global</span>
-                </div>
-            </label>
-            {% endif %}
-
             <label class="vis-option" id="vis-collaborative">
                 <input type="radio" name="visibility" value="collaborative" />
                 <div class="vis-card">
@@ -58,9 +59,11 @@
                     <span class="badge badge-purple vis-badge">Collaborative</span>
                 </div>
             </label>
+            {% endif %}
         </div>
 
-        <!-- Collaborator username inputs — shown only when collaborative is selected -->
+        <!-- Collaborator username inputs — shown only when collaborative is selected (non-admin only) -->
+        {% if not is_admin %}
         <div id="collaborators-section" style="display:none; margin-top:16px;">
             <label style="margin-bottom:8px; display:block; font-weight:600; font-size:0.875rem;">
                 Collaborator Usernames
@@ -76,6 +79,7 @@
                 <button type="button" id="add-collaborator" class="btn btn-sm">＋ Add Collaborator</button>
             </div>
         </div>
+        {% endif %}
     </div>
 
     <!-- ── Fields ── -->

@@ -67,3 +67,4 @@ class RunLog(BaseModel):
     status: str  # "running", "success", "failed"
     error: str | None = None
     summary: str | None = None
+    owner_id: Optional[str] = None

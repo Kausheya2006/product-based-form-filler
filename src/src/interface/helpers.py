@@ -353,11 +353,10 @@ def _format_filled_data(data: Dict[str, Any], prefix: str = "") -> str:
             )
     return html
 
-async def _save_output(result: ExtractionResult, owner_id: str = None):
+async def _save_output(result: ExtractionResult, owner_id: str):
     collection = container.convo_repo.db.outputs
     doc = result.model_dump()
-    if owner_id:
-        doc["owner_id"] = owner_id
+    doc["owner_id"] = owner_id
     await collection.insert_one(doc)
     logger.info("Extraction result saved to Atlas.")
 
@@ -366,11 +365,5 @@ async def _load_outputs(user: dict) -> List[Dict]:
     if _is_admin(user):
         cursor = collection.find({}).sort("_id", -1)
     else:
-        cursor = collection.find({
-            "$or": [
-                {"owner_id": user["user_id"]},
-                {"owner_id": {"$exists": False}},
-                {"owner_id": None},
-            ]
-        }).sort("_id", -1)
+        cursor = collection.find({"owner_id": user["user_id"]}).sort("_id", -1)
     return await cursor.to_list(length=100)

@@ -109,7 +109,7 @@ class FormFillingService(IPipeline):
         self.summarizer = summarizer 
         self.model_type = model_type
 
-    async def run(self, conversation_id: str, form_id: str, version_index: int) -> ExtractionResult:
+    async def run(self, conversation_id: str, form_id: str, version_index: int, owner_id: str = None) -> ExtractionResult:
         run_id = str(uuid4())
 
         await self.runlog_repo.create(RunLog(
@@ -117,7 +117,8 @@ class FormFillingService(IPipeline):
             conversation_id=conversation_id,
             version_index=version_index,
             started_at=datetime.utcnow(),
-            status="running"
+            status="running",
+            owner_id=owner_id,
         ))
 
         try:
