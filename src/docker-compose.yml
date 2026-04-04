@@ -35,7 +35,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.app
     container_name: productlabs_app
     env_file:
       - .env
@@ -54,7 +54,6 @@ services:
       - "8000:8000"
     volumes:
       - ./data:/app/data
-      - ./data_generation:/app/data_generation
       - ./src:/app/src
       - hf_cache:/root/.cache/huggingface
     command: uvicorn src.interface.api:app --host 0.0.0.0 --port 8000 --reload
