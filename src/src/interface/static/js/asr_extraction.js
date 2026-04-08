@@ -7,12 +7,55 @@ document.addEventListener("DOMContentLoaded", () => {
   const stopRecordingBtn = document.getElementById("stopRecordingBtn");
   const recordingStatus = document.getElementById("recordingStatus");
   const recordingPreview = document.getElementById("recordingPreview");
+  const translatedOutputCard = document.getElementById("translatedOutputCard");
+  const translatedOutputStatus = document.getElementById("translatedOutputStatus");
+  const translatedOutputText = document.getElementById("translatedOutputText");
+  const translatedTextOverride = document.getElementById("translatedTextOverride");
+  const rawTranscriptOverride = document.getElementById("rawTranscriptOverride");
+  const modeUploadBtn = document.getElementById("modeUploadBtn");
+  const modeRecordBtn = document.getElementById("modeRecordBtn");
+  const uploadSection = document.getElementById("uploadSection");
+  const recordSection = document.getElementById("recordSection");
 
   if (!form || !submitBtn || !languageSelect || !audioFileInput) return;
 
   let mediaRecorder = null;
   let mediaStream = null;
   let chunks = [];
+  let selectedInputMode = "upload";
+
+  function clearSelectedAudioFile() {
+    audioFileInput.value = "";
+  }
+
+  function setInputMode(mode) {
+    selectedInputMode = mode;
+    const usingUpload = mode === "upload";
+
+    if (modeUploadBtn) {
+      modeUploadBtn.classList.toggle("active", usingUpload);
+      modeUploadBtn.setAttribute("aria-pressed", String(usingUpload));
+    }
+    if (modeRecordBtn) {
+      modeRecordBtn.classList.toggle("active", !usingUpload);
+      modeRecordBtn.setAttribute("aria-pressed", String(!usingUpload));
+    }
+
+    if (uploadSection) uploadSection.classList.toggle("asr-section-disabled", !usingUpload);
+    if (recordSection) recordSection.classList.toggle("asr-section-disabled", usingUpload);
+
+    if (usingUpload) {
+      stopRecording();
+      if (recordingStatus) recordingStatus.textContent = "Recording is disabled in file mode.";
+      if (recordingPreview) {
+        recordingPreview.style.display = "none";
+        recordingPreview.removeAttribute("src");
+      }
+    } else {
+      clearSelectedAudioFile();
+      if (recordingStatus) recordingStatus.textContent = "Ready to record.";
+    }
+  }
 
   async function startRecording() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder === "undefined") {
@@ -74,15 +117,80 @@ document.addEventListener("DOMContentLoaded", () => {
     stopRecordingBtn.addEventListener("click", stopRecording);
   }
 
-  form.addEventListener("submit", (event) => {
-    if (!audioFileInput.files || audioFileInput.files.length === 0) {
+  if (modeUploadBtn && modeRecordBtn) {
+    modeUploadBtn.addEventListener("click", (event) => {
       event.preventDefault();
-      alert("Please upload an audio file or record audio before submitting.");
+      setInputMode("upload");
+    });
+    modeRecordBtn.addEventListener("click", (event) => {
+      event.preventDefault();
+      setInputMode("record");
+    });
+    setInputMode("upload");
+  }
+
+  form.addEventListener("submit", async (event) => {
+    if (selectedInputMode === "upload" && (!audioFileInput.files || audioFileInput.files.length === 0)) {
+      event.preventDefault();
+      alert("Please upload an audio file before submitting.");
       return;
     }
 
+    if (selectedInputMode === "record" && (!audioFileInput.files || audioFileInput.files.length === 0)) {
+      event.preventDefault();
+      alert("Please record audio and press Stop before submitting.");
+      return;
+    }
+
+    event.preventDefault();
+
     submitBtn.disabled = true;
     const languageLabel = languageSelect.options[languageSelect.selectedIndex]?.text || "selected language";
-    submitBtn.textContent = `Transcribing ${languageLabel} audio, translating to English, then extracting...`;
+    submitBtn.textContent = `Transcribing ${languageLabel} audio and translating...`;
+
+    try {
+      const previewBody = new FormData();
+      previewBody.append("input_language", languageSelect.value);
+      previewBody.append("audio_file", audioFileInput.files[0]);
+
+      const previewRes = await fetch("/asr/translate-preview", {
+        method: "POST",
+        body: previewBody,
+      });
+
+      const previewData = await previewRes.json();
+      if (!previewRes.ok) {
+        throw new Error(previewData.detail || previewData.error || "ASR translation failed.");
+      }
+
+      const translatedText = String(previewData.translated_text || "").trim();
+      const rawText = String(previewData.raw_text || "").trim();
+      if (!translatedText) {
+        throw new Error("Translated text is empty.");
+      }
+
+      if (translatedOutputCard) translatedOutputCard.style.display = "block";
+      if (translatedOutputText) translatedOutputText.value = translatedText;
+      if (translatedOutputStatus) {
+        translatedOutputStatus.textContent = "Translated text generated. Running extraction next...";
+      }
+
+      if (translatedTextOverride) translatedTextOverride.value = translatedText;
+      if (rawTranscriptOverride) rawTranscriptOverride.value = rawText;
+
+      // Prevent re-transcription in the second step; backend will use overrides.
+      audioFileInput.value = "";
+      const englishOption = Array.from(languageSelect.options).find((opt) => opt.value === "en");
+      if (englishOption) {
+        languageSelect.value = "en";
+      }
+
+      submitBtn.textContent = "Submitting translated text for extraction...";
+      setTimeout(() => form.submit(), 700);
+    } catch (error) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Transcribe, Translate & Run Extraction";
+      alert(error?.message || String(error));
+    }
   });
 });

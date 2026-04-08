@@ -5,6 +5,7 @@ from ..infrastructure.persistence.mongo import MongoConversationRepository, Mong
 from ..infrastructure.ai.local_model import LocalHuggingFaceModel, GemmaFunctionalModel, FormStateModel
 from ..infrastructure.ai.summarizer import LocalSummarizer, GemmaSummarizer, QwenSummarizer
 from ..infrastructure.ai.ollama_model import OllamaFormStateModel, OllamaSummarizer
+from ..infrastructure.ai.model_service_client import RemoteModelServiceExtractionModel, RemoteModelServiceSummarizer
 from ..infrastructure.ai.mock_models import MockExtractionModel, MockSummarizer
 from ..infrastructure.ai.translator import LocalTranslator
 from ..infrastructure.ai.asr import LocalASRTranscriber
@@ -33,6 +34,13 @@ class Container:
             logger.info("MOCK_MODELS=true — skipping ML model loading (no GPU required)")
             model = MockExtractionModel()
             summarizer = MockSummarizer()
+        elif settings.MODEL_SERVICE_URL:
+            logger.info(
+                "MODEL_SERVICE_URL set — routing extraction/summarization to model service (%s)",
+                settings.MODEL_SERVICE_URL,
+            )
+            model = RemoteModelServiceExtractionModel(settings.MODEL_SERVICE_URL)
+            summarizer = RemoteModelServiceSummarizer(settings.MODEL_SERVICE_URL)
         elif settings.USE_OLLAMA:
             logger.info(
                 "USE_OLLAMA=true — routing extraction/summarization to Ollama (%s)",

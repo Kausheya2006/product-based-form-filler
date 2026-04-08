@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 
 from typing import List, Dict, Any
 
-from ..domain.domain import Conversation, FormSchema, ConversationVersion
+from ..domain.domain import Conversation, FormSchema, ConversationVersion, ExtractionResult
 from ..domain.speakers import render_history_for_model
 from .dependencies import container, Container
 
@@ -47,7 +47,22 @@ def _transcript_to_conversation_text(transcript: str) -> str:
     cleaned = " ".join((transcript or "").split())
     if not cleaned:
         return ""
-    return f"Speaker: {cleaned}"
+
+    # Break long transcript blobs into turn-like chunks so extraction gets
+    # richer context, similar to multi-message conversation flows.
+    chunks: list[str] = []
+    sentence_buffer = ""
+    for token in cleaned.split(" "):
+        candidate = f"{sentence_buffer} {token}".strip() if sentence_buffer else token
+        if len(candidate) >= 280 and sentence_buffer:
+            chunks.append(sentence_buffer.strip())
+            sentence_buffer = token
+        else:
+            sentence_buffer = candidate
+    if sentence_buffer.strip():
+        chunks.append(sentence_buffer.strip())
+
+    return "\n".join(f"Speaker: {chunk}" for chunk in chunks if chunk)
 
 
 async def _persist_conversation_and_extract(
@@ -59,6 +74,7 @@ async def _persist_conversation_and_extract(
     conversation_name: str = "",
     reviewed_field_overrides: Dict[str, Any] | None = None,
     version_metadata: Dict[str, Any] | None = None,
+    use_live_extraction: bool = False,
 ) -> str:
     if not conversation_id.strip():
         conversation_id = str(uuid4())[:8]
@@ -83,10 +99,25 @@ async def _persist_conversation_and_extract(
     )
     await container.convo_repo.save(convo)
 
-    result = await container.pipeline.run(conversation_id, form_id, version_index=0, owner_id=owner_id)
-    if reviewed_field_overrides:
-        _apply_field_overrides(result.filled_data, reviewed_field_overrides)
-        await container.runlog_repo.update(result.run_id, {"extracted_fields": result.model_dump()})
+    if use_live_extraction:
+        form = await container.form_repo.get_by_id(form_id)
+        if not form:
+            raise HTTPException(404, "Form not found")
+        extraction = await _extract_for_conversation_text(form, conversation_text)
+        result = ExtractionResult(
+            conversation_id=conversation_id,
+            form_id=form_id,
+            filled_data=extraction.get("filled_data", {}),
+            run_id=str(uuid4()),
+            summary=str(extraction.get("summary", "")),
+        )
+        if reviewed_field_overrides:
+            _apply_field_overrides(result.filled_data, reviewed_field_overrides)
+    else:
+        result = await container.pipeline.run(conversation_id, form_id, version_index=0, owner_id=owner_id)
+        if reviewed_field_overrides:
+            _apply_field_overrides(result.filled_data, reviewed_field_overrides)
+            await container.runlog_repo.update(result.run_id, {"extracted_fields": result.model_dump()})
 
     latest_version = convo.versions[-1]
     latest_version.run_id = result.run_id
@@ -681,6 +712,8 @@ async def create_conversation_asr(
     conversation_id: str = Form(""),
     conversation_name: str = Form(""),
     conversation_text: str = Form(""),
+    translated_text_override: str = Form(""),
+    raw_transcript_override: str = Form(""),
     audio_file: UploadFile | None = File(default=None),
 ):
     user = await _get_current_user(request)
@@ -692,6 +725,7 @@ async def create_conversation_asr(
         raise HTTPException(404, "Form not found")
 
     transcript_text = ""
+    translated_text = ""
     if audio_file is not None and (audio_file.filename or "").strip():
         raw_audio = await audio_file.read()
         if not raw_audio:
@@ -701,12 +735,16 @@ async def create_conversation_asr(
             filename=audio_file.filename,
             input_language=input_language,
         )
+        translated_text = await container.translator.translate_to_english(transcript_text, input_language)
+    elif translated_text_override.strip():
+        translated_text = translated_text_override.strip()
+        transcript_text = raw_transcript_override.strip() or translated_text
     elif conversation_text.strip():
         transcript_text = conversation_text
+        translated_text = await container.translator.translate_to_english(transcript_text, input_language)
     else:
         raise HTTPException(400, "Please upload an audio file or record audio.")
 
-    translated_text = await container.translator.translate_to_english(transcript_text, input_language)
     conversation_payload = _transcript_to_conversation_text(translated_text)
     if not conversation_payload:
         raise HTTPException(400, "Transcription produced empty text.")
@@ -725,11 +763,42 @@ async def create_conversation_asr(
                 "raw_transcript": transcript_text,
                 "translated_transcript": translated_text,
             },
+            use_live_extraction=True,
         )
     except Exception as e:
         raise HTTPException(500, f"Conversation saved, but extraction failed: {str(e)}")
 
     return RedirectResponse(url=f"/extract/{form_id}/{conversation_id}", status_code=303)
+
+
+@app.post("/asr/translate-preview", response_class=JSONResponse)
+async def asr_translate_preview(
+    request: Request,
+    input_language: str = Form("en"),
+    audio_file: UploadFile | None = File(default=None),
+):
+    user = await _get_current_user(request)
+    if not user:
+        return JSONResponse({"error": "Not authenticated"}, status_code=401)
+
+    if audio_file is None or not (audio_file.filename or "").strip():
+        raise HTTPException(400, "Audio file is required.")
+
+    raw_audio = await audio_file.read()
+    if not raw_audio:
+        raise HTTPException(400, "Uploaded audio file is empty.")
+
+    transcript_text = await container.asr_transcriber.transcribe_to_text(
+        audio_bytes=raw_audio,
+        filename=audio_file.filename,
+        input_language=input_language,
+    )
+    translated_text = await container.translator.translate_to_english(transcript_text, input_language)
+
+    return JSONResponse({
+        "raw_text": transcript_text.strip(),
+        "translated_text": translated_text.strip(),
+    })
 
 @app.get("/extract/{form_id}/{convo_id}", response_class=HTMLResponse)
 async def run_extraction(request: Request, form_id: str, convo_id: str):
@@ -740,10 +809,23 @@ async def run_extraction(request: Request, form_id: str, convo_id: str):
         convo = await _get_convo_for_user(convo_id, user)
         if not convo or not convo.versions:
             raise HTTPException(404, "No conversation history found.")
+        form = await _get_form_for_user(form_id, user)
+        if not form:
+            raise HTTPException(404, "Form not found")
         latest_version = convo.versions[-1]
-        result = await container.pipeline.run(
-            convo_id, form_id, version_index=latest_version.version_index, owner_id=user["user_id"]
-        )
+        if getattr(latest_version, "source_mode", "") == "asr":
+            extraction = await _extract_for_conversation_text(form, convo.full_text)
+            result = ExtractionResult(
+                conversation_id=convo_id,
+                form_id=form_id,
+                filled_data=extraction.get("filled_data", {}),
+                run_id=str(uuid4()),
+                summary=str(extraction.get("summary", "")),
+            )
+        else:
+            result = await container.pipeline.run(
+                convo_id, form_id, version_index=latest_version.version_index, owner_id=user["user_id"]
+            )
         latest_version.run_id = result.run_id
         await container.convo_repo.save(convo)
         await _save_output(result, owner_id=user["user_id"])

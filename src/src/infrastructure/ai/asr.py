@@ -44,10 +44,25 @@ class LocalASRTranscriber:
             loop = asyncio.get_running_loop()
             result = await loop.run_in_executor(
                 self._executor,
-                lambda: asr(tmp_path, generate_kwargs=generate_kwargs),
+                lambda: asr(
+                    tmp_path,
+                    return_timestamps=True,
+                    generate_kwargs=generate_kwargs,
+                ),
             )
             if isinstance(result, dict):
-                return str(result.get("text", "")).strip()
+                text = str(result.get("text", "")).strip()
+                if text:
+                    return text
+
+                chunks = result.get("chunks") or []
+                if isinstance(chunks, list) and chunks:
+                    joined = " ".join(
+                        str(chunk.get("text", "")).strip()
+                        for chunk in chunks
+                        if isinstance(chunk, dict)
+                    ).strip()
+                    return joined
             return str(result).strip()
         finally:
             if tmp_path and os.path.exists(tmp_path):

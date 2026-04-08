@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     OLLAMA_EXTRACT_MODEL: str = "qwen2.5:1.5b"
     OLLAMA_SUMMARIZER_MODEL: str = "qwen2.5:1.5b"
+    MODEL_SERVICE_URL: str = ""
     ADMIN_USERNAME: str = "PLadmin"
     MOCK_MODELS: bool = False
 

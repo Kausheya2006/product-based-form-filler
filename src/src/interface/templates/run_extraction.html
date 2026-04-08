@@ -21,6 +21,20 @@
         {{ summary }}
     </p>
 </div>
+
+{% set latest_version = convo.versions[-1] if convo and convo.versions else None %}
+{% if latest_version and latest_version.translated_transcript %}
+<div class="card">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px;">
+        <h3 style="margin:0;">Source Translation</h3>
+        <button type="button" class="btn" id="toggleTranslatedBtn">Show Translated Text</button>
+    </div>
+    <div id="translatedTextPane" style="display:none;">
+        <p class="page-subtitle" style="margin-top:0; margin-bottom:10px;">English translation generated from ASR input.</p>
+        <textarea readonly style="width:100%; min-height:180px; border:1px solid var(--border); border-radius:8px; padding:12px; font-family:monospace; background:var(--bg-gray); color:var(--text);">{{ latest_version.translated_transcript }}</textarea>
+    </div>
+</div>
+{% endif %}
 {% endif %}
 
 <div class="card">
@@ -53,6 +67,22 @@
         View All Outputs
     </a>
 </div>
+
+{% if latest_version and latest_version.translated_transcript %}
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const toggleBtn = document.getElementById("toggleTranslatedBtn");
+        const pane = document.getElementById("translatedTextPane");
+        if (!toggleBtn || !pane) return;
+
+        toggleBtn.addEventListener("click", () => {
+            const isHidden = pane.style.display === "none";
+            pane.style.display = isHidden ? "block" : "none";
+            toggleBtn.textContent = isHidden ? "Hide Translated Text" : "Show Translated Text";
+        });
+    });
+</script>
+{% endif %}
 
 <style>
 .extracted-fields .field { margin-bottom: 0; }
