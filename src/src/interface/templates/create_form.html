@@ -138,55 +138,6 @@
     </div>
 </div>
 
-<style>
-  /* ── Visibility option cards ── */
-  .visibility-options {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-  }
-  @media (max-width: 640px) {
-    .visibility-options { grid-template-columns: 1fr; }
-  }
-  .vis-option input[type="radio"] { display: none; }
-  .vis-card {
-    border: 2px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 14px;
-    cursor: pointer;
-    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
-    text-align: center;
-    background: var(--bg-white);
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
-  }
-  .vis-card:hover { border-color: var(--primary); background: var(--primary-light); }
-  .vis-option input:checked + .vis-card {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
-    background: var(--primary-light);
-  }
-  .vis-icon { font-size: 1.5rem; margin-bottom: 2px; }
-  .vis-label { font-weight: 700; font-size: 0.9rem; color: var(--text); }
-  .vis-desc  { font-size: 0.75rem; color: var(--text-muted); line-height: 1.4; }
-  .vis-badge { margin-top: 6px; }
-
-  /* ── badge-purple ── */
-  .badge-purple {
-    background: #ede9fe;
-    color: #6d28d9;
-    border: 1px solid #c4b5fd;
-  }
-
-  /* ── collab row ── */
-  .collab-row {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    margin-bottom: 8px;
-  }
-  .collab-row input { margin-top: 0; }
-</style>
-
 <script src="/static/js/create_form.js"></script>
 <script>
   // ── Visibility toggle ──
@@ -195,16 +146,19 @@
 
   function updateVisibility() {
     const val = document.querySelector('input[name="visibility"]:checked')?.value;
-    collabSection.style.display = val === "collaborative" ? "block" : "none";
+    if (collabSection) collabSection.style.display = val === "collaborative" ? "block" : "none";
   }
 
   visRadios.forEach(r => r.addEventListener("change", updateVisibility));
 
   // ── Add / remove collaborator rows ──
-  document.getElementById("add-collaborator").addEventListener("click", () => {
-    const tmpl = document.getElementById("collab-template").firstElementChild.cloneNode(true);
-    document.getElementById("collaborators-container").appendChild(tmpl);
-  });
+  const addCollabBtn = document.getElementById("add-collaborator");
+  if (addCollabBtn) {
+    addCollabBtn.addEventListener("click", () => {
+      const tmpl = document.getElementById("collab-template").firstElementChild.cloneNode(true);
+      document.getElementById("collaborators-container").appendChild(tmpl);
+    });
+  }
 
   function removeCollaborator(btn) {
     const container = document.getElementById("collaborators-container");

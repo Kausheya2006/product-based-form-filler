@@ -5,11 +5,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}ProductLabs Form Filler{% endblock %}</title>
-    <link rel="stylesheet" href="/static/css/index.css?v1">
+    <link rel="stylesheet" href="/static/css/index.css?v2">
     <link rel="icon" type="image/x-icon" href="/static/favicon.png">
 </head>
 
-<body>
+<body class="{% block body_class %}{% endblock %}">
+    {% block nav %}
     <nav class="nav">
         <a href="/" class="nav-brand">
             <span class="nav-logo">PL</span>
@@ -49,7 +50,9 @@
         </div>
         {% endif %}
     </nav>
+    {% endblock %}
 
+    {% block outer_content %}
     <div class="container">
         {% if back_link %}
             <a href="{{ back_link }}" class="back-btn">← Back</a>
@@ -57,6 +60,7 @@
         {% block flash %}{% endblock %}
         <div id="content">{% block content %}{% endblock %}</div>
     </div>
+    {% endblock %}
 </body>
 
 </html>
