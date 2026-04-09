@@ -3,6 +3,64 @@
 
 {% block body_class %}live-page{% endblock %}
 {% block content %}
+
+<style>
+  .suggested-fields-panel {
+    margin-top: 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #fffaf0;
+    padding: 14px;
+  }
+  .suggested-fields-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .suggested-fields-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #9a3412;
+  }
+  .suggested-fields-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .suggested-field-card {
+    border: 1px solid #fed7aa;
+    border-radius: 10px;
+    background: #ffffff;
+    padding: 10px;
+  }
+  .suggested-field-key {
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .suggested-field-value {
+    font-family: 'Monaco','Menlo',monospace;
+    font-size: 0.83rem;
+    color: var(--text);
+    margin-bottom: 10px;
+    word-break: break-word;
+  }
+  .suggested-field-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .suggested-field-empty {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin: 0;
+  }
+</style>
+
 <!-- Hidden form used only for final submission -->
 <div class="page-shell">
 <form id="conversation-form" method="post" action="/conversations/create" style="display:none;">
@@ -11,6 +69,7 @@
   <input type="hidden" name="conversation_id"   id="hidden_conv_id" />
   <input type="hidden" name="conversation_name" id="conversation_name" />
   <input type="hidden" name="field_overrides_json" id="field_overrides_json" />
+  <input type="hidden" name="accepted_new_fields_json" id="accepted_new_fields_json" />
 </form>
 
 <!-- ── Header ── -->
@@ -119,6 +178,14 @@
         <p>Fields will appear here as you add messages.</p>
       </div>
 
+      <div class="suggested-fields-panel" id="suggestedFieldsPanel" hidden>
+        <div class="suggested-fields-header">
+          <div class="suggested-fields-title">Suggested New Fields</div>
+          <span class="badge" id="suggestedFieldsBadge">0</span>
+        </div>
+        <div class="suggested-fields-list" id="suggestedFieldsList"></div>
+      </div>
+
     </div>
 
     <div class="status-bar">
@@ -155,6 +222,11 @@
         <div>
           <label style="margin-bottom:8px;">Reviewed Field Values</label>
           <div class="confirm-fields" id="confirmFields"></div>
+        </div>
+
+        <div>
+          <label style="margin-bottom:8px;">Accepted New Fields</label>
+          <div class="confirm-fields" id="confirmNewFields"></div>
         </div>
       </div>
     </div>
@@ -232,6 +304,7 @@
   const hiddenConvId = document.getElementById("hidden_conv_id");
   const hiddenConversationName = document.getElementById("conversation_name");
   const hiddenFieldOverrides = document.getElementById("field_overrides_json");
+  const hiddenAcceptedNewFields = document.getElementById("accepted_new_fields_json");
   const convIdInput = document.getElementById("conv_id_input");
 
   const saveModalBackdrop = document.getElementById("saveModalBackdrop");
@@ -239,15 +312,21 @@
   const confirmConversationName = document.getElementById("confirmConversationName");
   const confirmConversationText = document.getElementById("confirmConversationText");
   const confirmFields = document.getElementById("confirmFields");
+  const confirmNewFields = document.getElementById("confirmNewFields");
   const confirmCancelBtn = document.getElementById("confirmCancelBtn");
   const confirmSaveBtn = document.getElementById("confirmSaveBtn");
+  const suggestedFieldsPanel = document.getElementById("suggestedFieldsPanel");
+  const suggestedFieldsList = document.getElementById("suggestedFieldsList");
+  const suggestedFieldsBadge = document.getElementById("suggestedFieldsBadge");
 
   const domRefs = {
     speakerChipsEl, newSpeakerName, addSpeakerBtn, chatMessages, chatEmpty,
     msgInput, sendBtn, outputScroll, outputEmpty, statusDot, statusText,
     summaryCard, summaryText, saveBtn, chatForm, convTextInput, hiddenConvId,
-    hiddenConversationName, hiddenFieldOverrides, saveModalBackdrop,
-    confirmConversationName, confirmConversationText, confirmFields
+    hiddenConversationName, hiddenFieldOverrides, hiddenAcceptedNewFields,
+    saveModalBackdrop, confirmConversationName, confirmConversationText,
+    confirmFields, confirmNewFields, suggestedFieldsPanel, suggestedFieldsList,
+    suggestedFieldsBadge
   };
   Object.entries(domRefs).forEach(([name, el]) => {
     if (!el) {
@@ -289,6 +368,9 @@
   const currentFieldValues = {};
   const lastModelFieldValues = {};
   const manuallyEditedFields = new Set();
+  const acceptedNewFields = {};
+  const suggestedNewFields = {};
+  const rejectedNewFieldValues = {};
 
   debugLog("[INIT] DOM refs checked. Ready to render speakers.");
 
@@ -322,6 +404,16 @@
     return String(value).trim();
   }
 
+  function cloneAcceptedNewFields() {
+    const out = {};
+    Object.entries(acceptedNewFields).forEach(([key, value]) => {
+      const normalizedKey = normalizeFieldValue(key);
+      if (!normalizedKey) return;
+      out[normalizedKey] = normalizeFieldValue(value);
+    });
+    return out;
+  }
+
   function normalizeForMatch(value) {
     return String(value || "")
       .toLowerCase()
@@ -339,6 +431,104 @@
 
   function getCurrentFieldValue(key) {
     return normalizeFieldValue(currentFieldValues[key]);
+  }
+
+  function renderSuggestedNewFields() {
+    if (!suggestedFieldsPanel || !suggestedFieldsList || !suggestedFieldsBadge) return;
+
+    suggestedFieldsList.innerHTML = "";
+    const entries = Object.entries(suggestedNewFields);
+    suggestedFieldsBadge.textContent = String(entries.length);
+    suggestedFieldsPanel.hidden = entries.length === 0;
+
+    if (entries.length === 0) {
+      return;
+    }
+
+    entries.forEach(([key, value]) => {
+      const card = document.createElement("div");
+      card.className = "suggested-field-card";
+
+      const keyEl = document.createElement("div");
+      keyEl.className = "suggested-field-key";
+      keyEl.textContent = key;
+
+      const valueEl = document.createElement("div");
+      valueEl.className = "suggested-field-value";
+      valueEl.textContent = value;
+
+      const actionsEl = document.createElement("div");
+      actionsEl.className = "suggested-field-actions";
+
+      const acceptBtn = document.createElement("button");
+      acceptBtn.type = "button";
+      acceptBtn.className = "btn btn-success";
+      acceptBtn.textContent = "Accept";
+      acceptBtn.addEventListener("click", () => acceptSuggestedNewField(key));
+
+      const rejectBtn = document.createElement("button");
+      rejectBtn.type = "button";
+      rejectBtn.className = "btn";
+      rejectBtn.textContent = "Reject";
+      rejectBtn.addEventListener("click", () => rejectSuggestedNewField(key));
+
+      actionsEl.appendChild(acceptBtn);
+      actionsEl.appendChild(rejectBtn);
+      card.appendChild(keyEl);
+      card.appendChild(valueEl);
+      card.appendChild(actionsEl);
+      suggestedFieldsList.appendChild(card);
+    });
+  }
+
+  function acceptSuggestedNewField(key) {
+    const normalizedKey = normalizeFieldValue(key);
+    const normalizedValue = normalizeFieldValue(suggestedNewFields[normalizedKey]);
+    if (!normalizedKey || !normalizedValue) return;
+
+    acceptedNewFields[normalizedKey] = normalizedValue;
+    currentFieldValues[normalizedKey] = normalizedValue;
+    lastModelFieldValues[normalizedKey] = normalizedValue;
+    manuallyEditedFields.delete(normalizedKey);
+    ensureFieldCard(normalizedKey);
+    setFieldCardDisplay(normalizedKey, normalizedValue, true);
+    applyManualClass(normalizedKey);
+    outputEmpty.style.display = "none";
+
+    delete suggestedNewFields[normalizedKey];
+    delete rejectedNewFieldValues[normalizedKey];
+    renderSuggestedNewFields();
+
+    statusDot.style.background = "var(--primary)";
+    statusText.textContent = `Accepted new field ${normalizedKey}`;
+  }
+
+  function rejectSuggestedNewField(key) {
+    const normalizedKey = normalizeFieldValue(key);
+    const normalizedValue = normalizeFieldValue(suggestedNewFields[normalizedKey]);
+    if (!normalizedKey) return;
+
+    rejectedNewFieldValues[normalizedKey] = normalizedValue;
+    delete suggestedNewFields[normalizedKey];
+    renderSuggestedNewFields();
+
+    statusDot.style.background = "var(--primary)";
+    statusText.textContent = `Rejected new field ${normalizedKey}`;
+  }
+
+  function syncSuggestedNewFieldsFromModel(nextSuggestions) {
+    Object.keys(suggestedNewFields).forEach(key => delete suggestedNewFields[key]);
+
+    Object.entries(nextSuggestions || {}).forEach(([rawKey, rawValue]) => {
+      const key = normalizeFieldValue(rawKey);
+      const value = normalizeFieldValue(rawValue);
+      if (!key || !value) return;
+      if (acceptedNewFields[key] === value) return;
+      if (rejectedNewFieldValues[key] === value) return;
+      suggestedNewFields[key] = value;
+    });
+
+    renderSuggestedNewFields();
   }
 
   function setFieldCardDisplay(key, value, animate = false) {
@@ -413,79 +603,86 @@
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z"/></svg>';
   }
 
+  function ensureFieldCard(key) {
+    const normalizedKey = normalizeFieldValue(key);
+    if (!normalizedKey || fieldCards[normalizedKey]) return;
+
+    debugLog("[FIELDS] creating card for:", normalizedKey);
+
+    const card = document.createElement("div");
+    card.className = "field-card";
+
+    const keyRow = document.createElement("div");
+    keyRow.className = "field-key-row";
+
+    const keyEl = document.createElement("div");
+    keyEl.className = "field-key";
+    keyEl.innerHTML = `<span class="dot"></span>${normalizedKey}`;
+
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.className = "field-edit-btn";
+    editBtn.title = `Edit ${normalizedKey}`;
+    editBtn.setAttribute("aria-label", `Edit ${normalizedKey}`);
+    editBtn.innerHTML = buildEditIcon();
+
+    keyRow.appendChild(keyEl);
+    keyRow.appendChild(editBtn);
+
+    const valueEl = document.createElement("div");
+    valueEl.className = "field-value empty";
+    valueEl.textContent = "-";
+
+    const inputEl = document.createElement("input");
+    inputEl.className = "field-input";
+    inputEl.type = "text";
+    inputEl.placeholder = `Enter ${normalizedKey}`;
+
+    editBtn.addEventListener("click", () => {
+      const refs = fieldCards[normalizedKey];
+      setFieldEditing(normalizedKey, !refs.editing);
+    });
+
+    inputEl.addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        saveFieldEdit(normalizedKey);
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        cancelFieldEdit(normalizedKey);
+      }
+    });
+
+    inputEl.addEventListener("blur", () => {
+      if (fieldCards[normalizedKey].editing) saveFieldEdit(normalizedKey);
+    });
+
+    card.appendChild(keyRow);
+    card.appendChild(valueEl);
+    card.appendChild(inputEl);
+    outputScroll.appendChild(card);
+
+    fieldCards[normalizedKey] = {
+      card,
+      keyEl,
+      valueEl,
+      inputEl,
+      editBtn,
+      editing: false
+    };
+
+    currentFieldValues[normalizedKey] = getCurrentFieldValue(normalizedKey);
+    applyManualClass(normalizedKey);
+    setFieldCardDisplay(normalizedKey, getCurrentFieldValue(normalizedKey));
+  }
+
   function initFieldCards() {
     debugLog("[FIELDS] initFieldCards called");
     outputEmpty.style.display = "none";
 
     Object.keys(formFields).forEach(key => {
-      if (fieldCards[key]) return;
-      debugLog("[FIELDS] creating card for:", key);
-
-      const card = document.createElement("div");
-      card.className = "field-card";
-
-      const keyRow = document.createElement("div");
-      keyRow.className = "field-key-row";
-
-      const keyEl = document.createElement("div");
-      keyEl.className = "field-key";
-      keyEl.innerHTML = `<span class="dot"></span>${key}`;
-
-      const editBtn = document.createElement("button");
-      editBtn.type = "button";
-      editBtn.className = "field-edit-btn";
-      editBtn.title = `Edit ${key}`;
-      editBtn.setAttribute("aria-label", `Edit ${key}`);
-      editBtn.innerHTML = buildEditIcon();
-
-      keyRow.appendChild(keyEl);
-      keyRow.appendChild(editBtn);
-
-      const valueEl = document.createElement("div");
-      valueEl.className = "field-value empty";
-      valueEl.textContent = "-";
-
-      const inputEl = document.createElement("input");
-      inputEl.className = "field-input";
-      inputEl.type = "text";
-      inputEl.placeholder = `Enter ${key}`;
-
-      editBtn.addEventListener("click", () => {
-        const refs = fieldCards[key];
-        setFieldEditing(key, !refs.editing);
-      });
-
-      inputEl.addEventListener("keydown", e => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          saveFieldEdit(key);
-        }
-        if (e.key === "Escape") {
-          e.preventDefault();
-          cancelFieldEdit(key);
-        }
-      });
-
-      inputEl.addEventListener("blur", () => {
-        if (fieldCards[key].editing) saveFieldEdit(key);
-      });
-
-      card.appendChild(keyRow);
-      card.appendChild(valueEl);
-      card.appendChild(inputEl);
-      outputScroll.appendChild(card);
-
-      fieldCards[key] = {
-        card,
-        keyEl,
-        valueEl,
-        inputEl,
-        editBtn,
-        editing: false
-      };
-
-      applyManualClass(key);
-      setFieldCardDisplay(key, getCurrentFieldValue(key));
+      ensureFieldCard(key);
     });
 
     debugLog("[FIELDS] cards ready:", Object.keys(fieldCards));
@@ -495,6 +692,7 @@
     debugLog("[FIELDS] applyFilledData input:", filledData);
     const flat = flattenObject(filledData || {});
     debugLog("[FIELDS] flattened data:", flat);
+    Object.keys(flat).forEach(key => ensureFieldCard(key));
     Object.keys(fieldCards).forEach(key => {
       const extractedValue = normalizeFieldValue(flat[key]);
       const currentValue = getCurrentFieldValue(key);
@@ -538,6 +736,12 @@
       payload[key] = getCurrentFieldValue(key);
     });
     debugLog("[EXTRACT] field_state_json payload:", payload);
+    return payload;
+  }
+
+  function buildAcceptedNewFieldsPayload() {
+    const payload = cloneAcceptedNewFields();
+    debugLog("[EXTRACT] accepted_new_fields_json payload:", payload);
     return payload;
   }
 
@@ -953,6 +1157,7 @@
       statusText.textContent = "No conversation text yet.";
       summaryCard.style.display = "none";
       applyFilledData({});
+      syncSuggestedNewFieldsFromModel({});
       return;
     }
 
@@ -964,7 +1169,8 @@
     const body = new URLSearchParams({
       form_id: FORM_ID,
       conversation_text: conversationText,
-      field_state_json: JSON.stringify(buildCurrentFieldStatePayload())
+      field_state_json: JSON.stringify(buildCurrentFieldStatePayload()),
+      accepted_new_fields_json: JSON.stringify(buildAcceptedNewFieldsPayload())
     });
     debugLog("[EXTRACT] POST /extract/preview body:", body.toString());
 
@@ -986,6 +1192,7 @@
         ? `${messages[messages.length - 1].speaker}: ${messages[messages.length - 1].text}`
         : "";
       applyFilledData(data.filled_data || {}, latestTurnText);
+      syncSuggestedNewFieldsFromModel(data.suggested_new_fields || {});
 
       if (data.summary) {
         summaryText.textContent = data.summary;
@@ -1267,6 +1474,33 @@
       wrapper.appendChild(input);
       confirmFields.appendChild(wrapper);
     });
+
+    confirmNewFields.innerHTML = "";
+    const acceptedEntries = Object.entries(acceptedNewFields);
+    if (acceptedEntries.length === 0) {
+      const empty = document.createElement("p");
+      empty.className = "suggested-field-empty";
+      empty.textContent = "No accepted new fields.";
+      confirmNewFields.appendChild(empty);
+      return;
+    }
+
+    acceptedEntries.forEach(([key, value]) => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "confirm-field";
+
+      const label = document.createElement("label");
+      label.textContent = key;
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.dataset.newFieldKey = key;
+      input.value = value;
+
+      wrapper.appendChild(label);
+      wrapper.appendChild(input);
+      confirmNewFields.appendChild(wrapper);
+    });
   }
 
   function openSaveModal() {
@@ -1297,6 +1531,15 @@
       reviewed[input.dataset.fieldKey] = normalizeFieldValue(input.value);
     });
     debugLog("[SAVE] reviewed fields collected:", reviewed);
+    return reviewed;
+  }
+
+  function collectReviewedNewFieldValues() {
+    const reviewed = {};
+    confirmNewFields.querySelectorAll("input[data-new-field-key]").forEach(input => {
+      reviewed[input.dataset.newFieldKey] = normalizeFieldValue(input.value);
+    });
+    debugLog("[SAVE] reviewed new fields collected:", reviewed);
     return reviewed;
   }
 
@@ -1340,19 +1583,31 @@
     }
 
     const reviewedFields = collectAllReviewedFieldValues();
+    const reviewedNewFields = collectReviewedNewFieldValues();
     syncReviewedFieldsToCards(reviewedFields);
     const overridePayload = buildOverridePayload(reviewedFields);
+
+    Object.keys(acceptedNewFields).forEach(key => delete acceptedNewFields[key]);
+    Object.entries(reviewedNewFields).forEach(([key, value]) => {
+      const normalizedKey = normalizeFieldValue(key);
+      const normalizedValue = normalizeFieldValue(value);
+      if (!normalizedKey || !normalizedValue) return;
+      acceptedNewFields[normalizedKey] = normalizedValue;
+    });
+    renderSuggestedNewFields();
 
     convTextInput.value = reviewedConversation;
     hiddenConvId.value = convIdInput ? convIdInput.value.trim() : "";
     hiddenConversationName.value = confirmConversationName.value.trim();
     hiddenFieldOverrides.value = JSON.stringify(overridePayload);
+    hiddenAcceptedNewFields.value = JSON.stringify(cloneAcceptedNewFields());
 
     debugLog("[SAVE] final payload", {
       conversationId: hiddenConvId.value,
       conversationName: hiddenConversationName.value,
       conversationTextLength: convTextInput.value.length,
-      overrideCount: Object.keys(overridePayload).length
+      overrideCount: Object.keys(overridePayload).length,
+      acceptedNewFieldCount: Object.keys(acceptedNewFields).length
     });
 
     chatForm.submit();

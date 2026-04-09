@@ -686,6 +686,7 @@ class FormStateModel(IExtractionModel):
         form_name: str,
         current_field_state: dict[str, Any],
         field_keys: list[str],
+        accepted_new_fields: dict[str, Any] | None = None,
     ) -> List[Any]:
         seeded_fields = {
             key: self._normalize_state_value(current_field_state.get(key, "N/A"))

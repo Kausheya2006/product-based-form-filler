@@ -42,12 +42,14 @@ class RemoteModelServiceExtractionModel(IExtractionModel):
         form_name: str,
         current_field_state: dict[str, Any],
         field_keys: list[str],
-    ) -> List[Any]:
+        accepted_new_fields: dict[str, Any] | None = None,
+    ) -> Any:
         payload = {
             "conversation_text": conversation_text,
             "form_name": form_name,
             "current_field_state": current_field_state,
             "field_keys": field_keys,
+            "accepted_new_fields": accepted_new_fields or {},
         }
         timeout = httpx.Timeout(120.0, connect=5.0)
         async with httpx.AsyncClient(timeout=timeout) as client:
@@ -55,16 +57,18 @@ class RemoteModelServiceExtractionModel(IExtractionModel):
                 response = await client.post(f"{self.base_url}/live-extract", json=payload)
                 response.raise_for_status()
                 data = response.json()
+                if "result" in data:
+                    return data.get("result", {})
                 return list(data.get("answers", []))
             except Exception as exc:
                 logger.warning("Model service live extraction unavailable, falling back to mock model: %s", exc)
-                input_str = (
-                    "Extract info from conversation to fill form.\n"
-                    f"Conversation: {conversation_text}\n"
-                    f"Form: {form_name}\n"
-                    f"Fields: {json.dumps(current_field_state)}"
+                return await self.mock_model.process_live_update(
+                    conversation_text=conversation_text,
+                    form_name=form_name,
+                    current_field_state=current_field_state,
+                    field_keys=field_keys,
+                    accepted_new_fields=accepted_new_fields or {},
                 )
-                return await self.mock_model.process_extraction_request(input_str)
 
 
 class RemoteModelServiceSummarizer(ISummarizer):

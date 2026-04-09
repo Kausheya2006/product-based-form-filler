@@ -24,6 +24,20 @@ class MockExtractionModel(IExtractionModel):
         except Exception:
             return ["N/A"] * 20
 
+    async def process_live_update(
+        self,
+        *,
+        conversation_text: str,
+        form_name: str,
+        current_field_state: dict[str, Any],
+        field_keys: list[str],
+        accepted_new_fields: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        return {
+            "filled_data": {key: "N/A" for key in field_keys},
+            "suggested_new_fields": {"favorite_color": "blue"},
+        }
+
 
 class MockSummarizer(ISummarizer):
     """Returns a static placeholder — no model loaded."""

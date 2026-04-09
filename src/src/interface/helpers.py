@@ -274,10 +274,42 @@ def _apply_field_overrides(target: Dict[str, Any], overrides: Dict[str, Any]) ->
             continue
         _set_nested_field(target, field_key, "" if value is None else str(value))
 
+def _normalize_flat_field_map(payload: Dict[str, Any] | None) -> Dict[str, str]:
+    normalized: Dict[str, str] = {}
+    for field_key, value in (payload or {}).items():
+        if not isinstance(field_key, str):
+            continue
+        key = field_key.strip()
+        if not key:
+            continue
+        normalized[key] = "" if value is None else str(value).strip()
+    return normalized
+
+def _flatten_nested_field_map(source: Dict[str, Any], prefix: str = "", out: Dict[str, str] | None = None) -> Dict[str, str]:
+    if out is None:
+        out = {}
+    for key, value in (source or {}).items():
+        dotted_key = f"{prefix}.{key}" if prefix else key
+        if isinstance(value, dict):
+            _flatten_nested_field_map(value, dotted_key, out)
+        else:
+            out[dotted_key] = "" if value is None else str(value).strip()
+    return out
+
+def _merge_display_fields(
+    filled_data: Dict[str, Any] | None,
+    accepted_new_fields: Dict[str, Any] | None,
+) -> Dict[str, Any]:
+    merged: Dict[str, Any] = dict(filled_data or {})
+    for field_key, value in _normalize_flat_field_map(accepted_new_fields).items():
+        _set_nested_field(merged, field_key, value)
+    return merged
+
 async def _extract_for_conversation_text(
     form: FormSchema,
     conversation_text: str,
     current_field_state: Dict[str, Any] | None = None,
+    accepted_new_fields: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     parsed = _parse_conversation_text(conversation_text)
     full_convo = render_history_for_model(parsed)
@@ -301,6 +333,7 @@ async def _extract_for_conversation_text(
     logger.info("[LiveExtract] Form=%s", form.name)
     logger.info("[LiveExtract] Form fields=%s", list(form.fields.keys()))
     logger.info("[LiveExtract] Current field state=%s", current_field_state or {})
+    logger.info("[LiveExtract] Accepted new fields=%s", accepted_new_fields or {})
     logger.info("[LiveExtract] Seeded fields=%s", seeded_fields)
     logger.info("[LiveExtract] Parsed conversation=%s", parsed)
     logger.info("[LiveExtract] Model input=%s", input_str)
@@ -312,6 +345,7 @@ async def _extract_for_conversation_text(
             form_name=form.name,
             current_field_state=seeded_fields,
             field_keys=list(form.fields.keys()),
+            accepted_new_fields=_normalize_flat_field_map(accepted_new_fields),
         )
         logger.info("[LiveExtract] Using process_live_update path")
     else:
@@ -326,17 +360,49 @@ async def _extract_for_conversation_text(
     logger.info("[LiveExtract] Summary=%s", summary)
 
     filled_data: Dict[str, Any] = {}
-    for field_key, value in zip(form.fields.keys(), answers):
-        logger.info("[LiveExtract] Assigning field %s -> %s", field_key, value)
-        _set_nested_field(filled_data, field_key, value)
+    suggested_new_fields: Dict[str, str] = {}
+
+    if isinstance(answers, dict):
+        model_filled = answers.get("filled_data", {})
+        model_suggestions = answers.get("suggested_new_fields", {})
+        flat_filled = _flatten_nested_field_map(model_filled) if isinstance(model_filled, dict) else {}
+        flat_suggestions = _flatten_nested_field_map(model_suggestions) if isinstance(model_suggestions, dict) else {}
+
+        for field_key in form.fields.keys():
+            value = flat_filled.get(field_key, seeded_fields.get(field_key, "N/A"))
+            logger.info("[LiveExtract] Assigning field %s -> %s", field_key, value)
+            _set_nested_field(filled_data, field_key, value)
+
+        for field_key, value in flat_suggestions.items():
+            if field_key in form.fields:
+                continue
+            normalized_value = "" if value is None else str(value).strip()
+            if not normalized_value:
+                continue
+            suggested_new_fields[field_key] = normalized_value
+    else:
+        for field_key, value in zip(form.fields.keys(), answers):
+            logger.info("[LiveExtract] Assigning field %s -> %s", field_key, value)
+            _set_nested_field(filled_data, field_key, value)
     for field_key in form.fields.keys():
         if not _has_nested_field(filled_data, field_key):
             logger.info("[LiveExtract] Missing field after assignment, defaulting %s -> N/A", field_key)
             _set_nested_field(filled_data, field_key, "N/A")
 
-    logger.info("[LiveExtract] Final filled_data=%s", filled_data)
+    normalized_accepted_new_fields = _normalize_flat_field_map(accepted_new_fields)
+    if normalized_accepted_new_fields:
+        filled_data = _merge_display_fields(filled_data, normalized_accepted_new_fields)
 
-    return {"filled_data": filled_data, "summary": summary}
+    logger.info("[LiveExtract] Final filled_data=%s", filled_data)
+    logger.info("[LiveExtract] Suggested new fields=%s", suggested_new_fields)
+    logger.info("[LiveExtract] Accepted new fields=%s", normalized_accepted_new_fields)
+
+    return {
+        "filled_data": filled_data,
+        "suggested_new_fields": suggested_new_fields,
+        "accepted_new_fields": normalized_accepted_new_fields,
+        "summary": summary,
+    }
 
 def _format_filled_data(data: Dict[str, Any], prefix: str = "") -> str:
     html = ""
@@ -359,6 +425,13 @@ async def _save_output(result: ExtractionResult, owner_id: str):
     doc["owner_id"] = owner_id
     await collection.insert_one(doc)
     logger.info("Extraction result saved to Atlas.")
+
+async def _load_output_by_run_id(run_id: str, user: dict) -> Optional[Dict[str, Any]]:
+    collection = container.convo_repo.db.outputs
+    query: Dict[str, Any] = {"run_id": run_id}
+    if not _is_admin(user):
+        query["owner_id"] = user["user_id"]
+    return await collection.find_one(query)
 
 async def _load_outputs(user: dict) -> List[Dict]:
     collection = container.convo_repo.db.outputs

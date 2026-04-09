@@ -54,6 +54,21 @@
 </div>
 
 <div class="card">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+        <h3 style="margin:0;">Accepted New Fields</h3>
+        <span class="badge">{{ new_fields_html and 'Stored' or 'None' }}</span>
+    </div>
+    <hr>
+    {% if new_fields_html %}
+        <div class="extracted-fields">{{ new_fields_html | safe }}</div>
+    {% else %}
+        <div class="empty-state" style="padding:24px;">
+            <p>No accepted new fields were stored for this extraction.</p>
+        </div>
+    {% endif %}
+</div>
+
+<div class="card">
     <h3 style="margin-top:0;">JSON Output</h3>
     <hr>
     <pre style="background:var(--bg-gray); padding:16px; border-radius:8px; overflow-x:auto; font-size:0.82rem; line-height:1.5; margin:0; border:1px solid var(--border);">{{ json_pretty }}</pre>

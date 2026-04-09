@@ -48,6 +48,7 @@ class ExtractionResult(BaseModel):
     conversation_id: str
     form_id: str
     filled_data: Dict[str, Any]
+    accepted_new_fields: Dict[str, Any] = Field(default_factory=dict)
     run_id: str
     summary: str
 

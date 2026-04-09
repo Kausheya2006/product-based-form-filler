@@ -22,8 +22,8 @@ from .helpers import (
     _get_current_user, _user_repo, _tmpl, _validate_username, seed_data,
     _is_global, _can_write_form, _can_write_convo,
     _get_form_for_user, _get_convo_for_user, _parse_conversation_text, _build_schema_from_pairs,
-    _apply_field_overrides, _extract_for_conversation_text, _format_filled_data, _save_output,
-    _load_outputs,
+    _apply_field_overrides, _extract_for_conversation_text, _format_filled_data, _merge_display_fields, _save_output,
+    _load_outputs, _load_output_by_run_id,
 )
 
 from .collab_ws import router as collab_router
@@ -73,6 +73,7 @@ async def _persist_conversation_and_extract(
     conversation_id: str = "",
     conversation_name: str = "",
     reviewed_field_overrides: Dict[str, Any] | None = None,
+    accepted_new_fields: Dict[str, Any] | None = None,
     version_metadata: Dict[str, Any] | None = None,
     use_live_extraction: bool = False,
 ) -> str:
@@ -103,20 +104,34 @@ async def _persist_conversation_and_extract(
         form = await container.form_repo.get_by_id(form_id)
         if not form:
             raise HTTPException(404, "Form not found")
-        extraction = await _extract_for_conversation_text(form, conversation_text)
+        extraction = await _extract_for_conversation_text(
+            form,
+            conversation_text,
+            accepted_new_fields=accepted_new_fields,
+        )
         result = ExtractionResult(
             conversation_id=conversation_id,
             form_id=form_id,
             filled_data=extraction.get("filled_data", {}),
+            accepted_new_fields=accepted_new_fields or extraction.get("accepted_new_fields", {}),
             run_id=str(uuid4()),
             summary=str(extraction.get("summary", "")),
         )
+        result.filled_data = _merge_display_fields(result.filled_data, result.accepted_new_fields)
         if reviewed_field_overrides:
             _apply_field_overrides(result.filled_data, reviewed_field_overrides)
     else:
         result = await container.pipeline.run(conversation_id, form_id, version_index=0, owner_id=owner_id)
         if reviewed_field_overrides:
             _apply_field_overrides(result.filled_data, reviewed_field_overrides)
+        if accepted_new_fields:
+            result.accepted_new_fields = {
+                key: "" if value is None else str(value)
+                for key, value in accepted_new_fields.items()
+                if isinstance(key, str) and key.strip()
+            }
+            result.filled_data = _merge_display_fields(result.filled_data, result.accepted_new_fields)
+        if reviewed_field_overrides or accepted_new_fields:
             await container.runlog_repo.update(result.run_id, {"extracted_fields": result.model_dump()})
 
     latest_version = convo.versions[-1]
@@ -669,6 +684,7 @@ async def create_conversation(
     conversation_id: str = Form(""),
     conversation_name: str = Form(""),
     field_overrides_json: str = Form(""),
+    accepted_new_fields_json: str = Form(""),
     conversation_text: str = Form(...),
 ):
     user = await _get_current_user(request)
@@ -688,6 +704,20 @@ async def create_conversation(
             raise HTTPException(400, "Reviewed fields payload must be a JSON object.")
         reviewed_field_overrides = parsed_overrides
 
+    accepted_new_fields: Dict[str, Any] = {}
+    if accepted_new_fields_json.strip():
+        try:
+            parsed_new_fields = json.loads(accepted_new_fields_json)
+        except json.JSONDecodeError as e:
+            raise HTTPException(400, f"Invalid accepted new fields payload: {str(e)}")
+        if not isinstance(parsed_new_fields, dict):
+            raise HTTPException(400, "Accepted new fields payload must be a JSON object.")
+        accepted_new_fields = {
+            key: "" if value is None else str(value)
+            for key, value in parsed_new_fields.items()
+            if isinstance(key, str) and key.strip()
+        }
+
     try:
         conversation_id = await _persist_conversation_and_extract(
             form_id=form_id,
@@ -696,6 +726,7 @@ async def create_conversation(
             conversation_id=conversation_id,
             conversation_name=conversation_name,
             reviewed_field_overrides=reviewed_field_overrides,
+            accepted_new_fields=accepted_new_fields,
             version_metadata={"source_mode": "text"},
         )
     except Exception as e:
@@ -813,28 +844,51 @@ async def run_extraction(request: Request, form_id: str, convo_id: str):
         if not form:
             raise HTTPException(404, "Form not found")
         latest_version = convo.versions[-1]
-        if getattr(latest_version, "source_mode", "") == "asr":
-            extraction = await _extract_for_conversation_text(form, convo.full_text)
-            result = ExtractionResult(
-                conversation_id=convo_id,
-                form_id=form_id,
-                filled_data=extraction.get("filled_data", {}),
-                run_id=str(uuid4()),
-                summary=str(extraction.get("summary", "")),
-            )
-        else:
-            result = await container.pipeline.run(
-                convo_id, form_id, version_index=latest_version.version_index, owner_id=user["user_id"]
-            )
+        result = None
+        used_saved_result = False
+        if latest_version.run_id:
+            saved_output = await _load_output_by_run_id(latest_version.run_id, user)
+            if saved_output:
+                result = ExtractionResult(**{
+                    "conversation_id": saved_output.get("conversation_id", convo_id),
+                    "form_id": saved_output.get("form_id", form_id),
+                    "filled_data": saved_output.get("filled_data", {}),
+                    "accepted_new_fields": saved_output.get("accepted_new_fields", {}),
+                    "run_id": saved_output.get("run_id", latest_version.run_id),
+                    "summary": saved_output.get("summary", ""),
+                })
+                used_saved_result = True
+        if result is None:
+            if getattr(latest_version, "source_mode", "") == "asr":
+                extraction = await _extract_for_conversation_text(form, convo.full_text)
+                result = ExtractionResult(
+                    conversation_id=convo_id,
+                    form_id=form_id,
+                    filled_data=extraction.get("filled_data", {}),
+                    accepted_new_fields=extraction.get("accepted_new_fields", {}),
+                    run_id=str(uuid4()),
+                    summary=str(extraction.get("summary", "")),
+                )
+            else:
+                result = await container.pipeline.run(
+                    convo_id, form_id, version_index=latest_version.version_index, owner_id=user["user_id"]
+                )
         latest_version.run_id = result.run_id
         await container.convo_repo.save(convo)
-        await _save_output(result, owner_id=user["user_id"])
+        if not used_saved_result:
+            await _save_output(result, owner_id=user["user_id"])
+        display_fields = _merge_display_fields(result.filled_data, result.accepted_new_fields)
+        result_payload = {
+            "filled_data": display_fields,
+            "accepted_new_fields": result.accepted_new_fields,
+        }
         return _tmpl("run_extraction.html", request, {
             "form_id": form_id,
             "convo_id": convo_id,
             "convo": convo,
-            "fields_html": _format_filled_data(result.filled_data),
-            "json_pretty": json.dumps(result.filled_data, indent=2),
+            "fields_html": _format_filled_data(display_fields),
+            "new_fields_html": _format_filled_data(result.accepted_new_fields),
+            "json_pretty": json.dumps(result_payload, indent=2),
             "result": result,
             "summary": result.summary,
         }, user=user)
@@ -847,6 +901,7 @@ async def preview_extraction(
     form_id: str = Form(...),
     conversation_text: str = Form(""),
     field_state_json: str = Form(""),
+    accepted_new_fields_json: str = Form(""),
 ):
     user = await _get_current_user(request)
     if not user:
@@ -858,6 +913,7 @@ async def preview_extraction(
         return JSONResponse({"filled_data": {}, "summary": ""})
 
     current_field_state: Dict[str, Any] = {}
+    accepted_new_fields: Dict[str, Any] = {}
     if field_state_json.strip():
         try:
             parsed_state = json.loads(field_state_json)
@@ -869,11 +925,27 @@ async def preview_extraction(
         for key, value in parsed_state.items():
             if isinstance(key, str) and key in allowed_keys:
                 current_field_state[key] = "" if value is None else str(value)
+    if accepted_new_fields_json.strip():
+        try:
+            parsed_new_fields = json.loads(accepted_new_fields_json)
+        except json.JSONDecodeError as e:
+            raise HTTPException(400, f"Invalid accepted new fields payload: {str(e)}")
+        if not isinstance(parsed_new_fields, dict):
+            raise HTTPException(400, "Accepted new fields payload must be a JSON object.")
+        for key, value in parsed_new_fields.items():
+            if isinstance(key, str) and key.strip():
+                accepted_new_fields[key.strip()] = "" if value is None else str(value)
     logger.info("[PreviewExtract] form_id=%s", form_id)
     logger.info("[PreviewExtract] conversation_text=%s", conversation_text)
     logger.info("[PreviewExtract] current_field_state=%s", current_field_state)
+    logger.info("[PreviewExtract] accepted_new_fields=%s", accepted_new_fields)
     try:
-        extraction = await _extract_for_conversation_text(form, conversation_text, current_field_state)
+        extraction = await _extract_for_conversation_text(
+            form,
+            conversation_text,
+            current_field_state,
+            accepted_new_fields,
+        )
         logger.info("[PreviewExtract] response=%s", extraction)
         return JSONResponse(extraction)
     except Exception as e:
@@ -980,8 +1052,9 @@ async def view_run(request: Request, run_id: str):
     if not r:
         raise HTTPException(404, "Run not found")
     ef = getattr(r, "extracted_fields", {}) or {}
+    display_fields = _merge_display_fields(ef.get("filled_data", {}), ef.get("accepted_new_fields", {}))
     return _tmpl("view_run.html", request, {
         "run": r,
         "ef": ef,
-        "fields_html": _format_filled_data(ef.get("filled_data", {})),
+        "fields_html": _format_filled_data(display_fields),
     }, user=user)

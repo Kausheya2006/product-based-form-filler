@@ -25,6 +25,7 @@ class LiveExtractRequest(BaseModel):
     form_name: str
     current_field_state: dict[str, Any] = Field(default_factory=dict)
     field_keys: list[str] = Field(default_factory=list)
+    accepted_new_fields: dict[str, Any] = Field(default_factory=dict)
 
 
 class SummarizeRequest(BaseModel):
@@ -79,13 +80,16 @@ async def extract(request: ExtractRequest) -> dict[str, Any]:
 
 @app.post("/live-extract")
 async def live_extract(request: LiveExtractRequest) -> dict[str, Any]:
-    answers = await model.process_live_update(
+    result = await model.process_live_update(
         conversation_text=request.conversation_text,
         form_name=request.form_name,
         current_field_state=request.current_field_state,
         field_keys=request.field_keys,
+        accepted_new_fields=request.accepted_new_fields,
     )
-    return {"answers": answers}
+    if isinstance(result, dict):
+        return {"result": result}
+    return {"answers": result}
 
 
 @app.post("/summarize")
