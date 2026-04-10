@@ -26,3 +26,7 @@ soundfile
 noisereduce
 SpeechRecognition
 httpx
+pytest
+playwright
+pytest-playwright
+pytest-html

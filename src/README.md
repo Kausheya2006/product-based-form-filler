@@ -28,6 +28,82 @@ export MOCK_MODELS="false"
 uvicorn src.interface.api:app --host 0.0.0.0 --port 8000 --reload
 ```
 
+## Testing
+
+This project has two test layers:
+
+- Fast interface tests (CLI, no server/browser/model run)
+- Browser E2E tests (Playwright, real UI interactions)
+
+### A) Fast CLI Interface Tests
+
+Run from `src/`:
+
+```sh
+python -m pytest -q
+```
+
+Run groups:
+
+```sh
+python -m pytest -m auth -q
+python -m pytest -m profile -q
+python -m pytest -m forms -q
+python -m pytest -m interface -q
+```
+
+### B) Browser E2E Tests (Playwright)
+
+E2E tests live in `tests/e2e/` and are opt-in.
+
+1. Install dependencies once:
+
+```sh
+cd src
+source .venv/bin/activate
+pip install -r requirements.txt
+python -m playwright install chromium
+```
+
+2. Start app in one terminal (example Ollama setup):
+
+```sh
+cd src
+source .venv/bin/activate
+export MONGO_URI="mongodb://localhost:27017/chat_db"
+export DB_NAME="chat_db"
+export MOCK_MODELS="false"
+export USE_OLLAMA="true"
+export OLLAMA_BASE_URL="http://localhost:11434"
+export OLLAMA_EXTRACT_MODEL="qwen2.5:1.5b"
+export OLLAMA_SUMMARIZER_MODEL="qwen2.5:1.5b"
+uvicorn src.interface.api:app --host 0.0.0.0 --port 8000 --reload
+```
+
+3. Run E2E from another terminal:
+
+```sh
+cd src
+source .venv/bin/activate
+bash scripts/run_e2e_headed.sh
+# or
+bash scripts/run_e2e_headless.sh
+```
+
+Direct command:
+
+```sh
+RUN_E2E=1 APP_BASE_URL="http://127.0.0.1:8000" \
+python -m pytest tests/e2e -m e2e --headed --browser chromium \
+  --html=reports/e2e_report.html --self-contained-html \
+  --tracing=retain-on-failure --video=retain-on-failure --screenshot=only-on-failure
+```
+
+Notes:
+
+- `sss` in pytest output means E2E tests were skipped in normal CLI runs.
+- E2E HTML reports are written under `src/reports/`.
+
 ## Architecture
 
 Clean Architecture (Ports & Adapters) — dependencies point inward only.
