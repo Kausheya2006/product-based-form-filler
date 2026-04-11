@@ -1,6 +1,5 @@
 from uuid import uuid4
 from datetime import datetime
-import json
 import re
 import asyncio 
 from ..domain.domain import ExtractionResult, ExtractionRequest, RunLog
@@ -155,20 +154,32 @@ class FormFillingService(IPipeline):
                 else:
                     raise Exception
 
-            summarization_task = self.summarizer.summarize(context)
+            summarization_task = asyncio.create_task(self.summarizer.summarize(context))
 
             if self.model_type == "field_process":
                 extraction_task = self.model.extract_batch(requests) 
                 answers, summary = await asyncio.gather(extraction_task, summarization_task)
             elif self.model_type == "full_process":
-                input_str = (
-                    "Extract info from conversation to fill form.\n"
-                    f"Conversation: {full_convo}\n"
-                    f"Form: {form.name}\n"
-                    f"Fields: {json.dumps(empty_fields)}"
-                )
-                extraction_task = self.model.process_extraction_request(input_str) 
-                answers, summary = await asyncio.gather(extraction_task, summarization_task)
+                if not hasattr(self.model, "process_live_update"):
+                    raise RuntimeError(
+                        "Static extraction requires a model with process_live_update "
+                        "so it can use the live extraction prompt format."
+                    )
+                answers = [empty_fields[key] for key in field_keys]
+                running_state = dict(empty_fields)
+                lines = [line for line in full_convo.splitlines() if line.strip()]
+                for index in range(len(lines)):
+                    answers = await self.model.process_live_update(
+                        conversation_text="\n".join(lines[:index + 1]),
+                        form_name=form.name,
+                        current_field_state=running_state,
+                        field_keys=field_keys,
+                    )
+                    running_state = {
+                        field_key: value
+                        for field_key, value in zip(field_keys, answers)
+                    }
+                summary = await summarization_task
             else:
                 raise Exception 
 

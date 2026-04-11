@@ -108,6 +108,7 @@ async def _persist_conversation_and_extract(
             form,
             conversation_text,
             accepted_new_fields=accepted_new_fields,
+            replay_all_lines=True,
         )
         result = ExtractionResult(
             conversation_id=conversation_id,
@@ -859,20 +860,9 @@ async def run_extraction(request: Request, form_id: str, convo_id: str):
                 })
                 used_saved_result = True
         if result is None:
-            if getattr(latest_version, "source_mode", "") == "asr":
-                extraction = await _extract_for_conversation_text(form, convo.full_text)
-                result = ExtractionResult(
-                    conversation_id=convo_id,
-                    form_id=form_id,
-                    filled_data=extraction.get("filled_data", {}),
-                    accepted_new_fields=extraction.get("accepted_new_fields", {}),
-                    run_id=str(uuid4()),
-                    summary=str(extraction.get("summary", "")),
-                )
-            else:
-                result = await container.pipeline.run(
-                    convo_id, form_id, version_index=latest_version.version_index, owner_id=user["user_id"]
-                )
+            result = await container.pipeline.run(
+                convo_id, form_id, version_index=latest_version.version_index, owner_id=user["user_id"]
+            )
         latest_version.run_id = result.run_id
         await container.convo_repo.save(convo)
         if not used_saved_result:

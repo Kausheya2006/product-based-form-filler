@@ -310,6 +310,7 @@ async def _extract_for_conversation_text(
     conversation_text: str,
     current_field_state: Dict[str, Any] | None = None,
     accepted_new_fields: Dict[str, Any] | None = None,
+    replay_all_lines: bool = False,
 ) -> Dict[str, Any]:
     parsed = _parse_conversation_text(conversation_text)
     full_convo = render_history_for_model(parsed)
@@ -323,23 +324,40 @@ async def _extract_for_conversation_text(
         else:
             seeded_fields[field_key] = "N/A"
 
-    input_str = (
-        f"Extract info from conversation to fill form.\n"
-        f"Conversation: {full_convo}"
-        f"Form: {form.name}\n"
-        f"Fields: {json.dumps(seeded_fields)}"
-    )
-
     logger.info("[LiveExtract] Form=%s", form.name)
     logger.info("[LiveExtract] Form fields=%s", list(form.fields.keys()))
     logger.info("[LiveExtract] Current field state=%s", current_field_state or {})
     logger.info("[LiveExtract] Accepted new fields=%s", accepted_new_fields or {})
     logger.info("[LiveExtract] Seeded fields=%s", seeded_fields)
     logger.info("[LiveExtract] Parsed conversation=%s", parsed)
-    logger.info("[LiveExtract] Model input=%s", input_str)
 
     model = container.pipeline.model
-    if hasattr(model, "process_live_update"):
+    if replay_all_lines:
+        if not hasattr(model, "process_live_update"):
+            raise RuntimeError(
+                "Replay extraction requires a model with process_live_update "
+                "so it can use the live extraction prompt format."
+            )
+        field_keys = list(form.fields.keys())
+        lines = [line for line in full_convo.strip().splitlines() if line.strip()]
+        answers = [seeded_fields[key] for key in field_keys]
+        running_state = dict(seeded_fields)
+        logger.info("[LiveExtract] Using iterative replay path with %s lines", len(lines))
+
+        for index in range(len(lines)):
+            answers = await model.process_live_update(
+                conversation_text="\n".join(lines[:index + 1]),
+                form_name=form.name,
+                current_field_state=running_state,
+                field_keys=field_keys,
+                accepted_new_fields=_normalize_flat_field_map(accepted_new_fields),
+            )
+            running_state = {
+                field_key: value
+                for field_key, value in zip(field_keys, answers)
+            }
+        answers_task = None
+    elif hasattr(model, "process_live_update"):
         answers_task = model.process_live_update(
             conversation_text=full_convo.strip(),
             form_name=form.name,
@@ -349,12 +367,22 @@ async def _extract_for_conversation_text(
         )
         logger.info("[LiveExtract] Using process_live_update path")
     else:
+        input_str = (
+            f"Extract info from conversation to fill form.\n"
+            f"Conversation: {full_convo}\n"
+            f"Form: {form.name}\n"
+            f"Fields: {json.dumps(seeded_fields)}"
+        )
+        logger.info("[LiveExtract] Model input=%s", input_str)
         answers_task = model.process_extraction_request(input_str)
         logger.info("[LiveExtract] Using full conversation replay path")
     summary_task = container.pipeline.summarizer.summarize(
         full_convo
     )
-    answers, summary = await asyncio.gather(answers_task, summary_task)
+    if answers_task is None:
+        summary = await summary_task
+    else:
+        answers, summary = await asyncio.gather(answers_task, summary_task)
 
     logger.info("[LiveExtract] Raw answers=%s", answers)
     logger.info("[LiveExtract] Summary=%s", summary)
