@@ -1632,7 +1632,12 @@
       sendMessage();
     }
   });
-  sendBtn.addEventListener("click", sendMessage);
+
+  sendBtn.addEventListener("click", e => {
+    e.preventDefault(); 
+    sendMessage();      
+  });
+
   msgVoiceBtn.addEventListener("click", () => {
     if (singleRecorder && singleRecorder.state !== "inactive") {
       stopSingleMessageRecording();
