@@ -3,6 +3,12 @@
 {% block nav_outputs %}active{% endblock %}
 {% block content %}
 
+<style>
+  .output-card-link { text-decoration: none; color: inherit; display: block; }
+  .output-card { transition: box-shadow 0.15s, transform 0.15s; cursor: pointer; }
+  .output-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.10); transform: translateY(-2px); }
+</style>
+
 <div class="page-header">
     <h1>Past Outputs</h1>
     <p class="page-subtitle">All extraction results, most recent first.</p>
@@ -10,7 +16,9 @@
 
 {% if outputs %}
 {% for out in outputs %}
-<div class="card">
+{% set run_id = out.get('run_id', '') %}
+<a href="{{ '/outputs/' ~ run_id if run_id else '#' }}" class="output-card-link">
+<div class="card output-card">
     <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">
         <div>
             <div style="font-weight:700; font-size:1rem; margin-bottom:4px;">
@@ -18,11 +26,13 @@
             </div>
             <div style="font-size:0.875rem; color:var(--text-muted);">
                 Conversation:
-                <a href="/conversations/{{ out.get('conversation_id') }}?form_id={{ out.get('form_id') }}"
-                    style="color:var(--primary); font-weight:500;">#{{ out.get('conversation_id', '—') }}</a>
+                <span style="color:var(--primary); font-weight:500;">#{{ out.get('conversation_id', '—') }}</span>
             </div>
         </div>
-        <span class="badge badge-green">Extracted</span>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <span class="badge badge-green">Extracted</span>
+            <span style="font-size:0.8rem; color:var(--text-muted);">View details →</span>
+        </div>
     </div>
 
     {% if out.get('filled_data') %}
@@ -60,6 +70,7 @@
     </div>
     {% endif %}
 </div>
+</a>
 {% endfor %}
 {% else %}
 <div class="empty-state card">
@@ -71,7 +82,8 @@
 {% endif %}
 <script>
   document.querySelectorAll(".view-summary-btn").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", (e) => {
+      e.preventDefault();
       const summary = button.nextElementSibling;
       if (!summary) return;
       const isHidden = summary.style.display === "none";

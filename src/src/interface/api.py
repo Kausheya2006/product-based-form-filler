@@ -1047,6 +1047,39 @@ async def view_outputs(request: Request):
         return RedirectResponse(url="/login", status_code=303)
     return _tmpl("view_outputs.html", request, {"outputs": await _load_outputs(user)}, user=user)
 
+@app.get("/outputs/{run_id}", response_class=HTMLResponse)
+async def view_output_detail(request: Request, run_id: str):
+    user = await _get_current_user(request)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+
+    out = await _load_output_by_run_id(run_id, user)
+    if not out:
+        raise HTTPException(404, "Output not found")
+
+    # Try to load the conversation so we can show the transcript.
+    # All conversations are persisted in MongoDB, so this should almost always succeed.
+    history: dict = {}
+    raw_conversation: str = ""
+    convo_missing = False
+
+    convo_id = out.get("conversation_id", "")
+    if convo_id:
+        convo = await _get_convo_for_user(convo_id, user)
+        if convo:
+            history = convo.latest_history or {}
+        else:
+            # Fallback: some outputs store the raw text directly
+            raw_conversation = out.get("raw_conversation", "")
+            convo_missing = True
+
+    return _tmpl("view_output_detail.html", request, {
+        "out": out,
+        "history": history,
+        "raw_conversation": raw_conversation,
+        "convo_missing": convo_missing,
+    }, user=user)
+
 @app.get("/runs", response_class=HTMLResponse)
 async def view_runs(request: Request, limit: int = 50):
     user = await _get_current_user(request)
