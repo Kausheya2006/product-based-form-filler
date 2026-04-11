@@ -255,6 +255,16 @@
     });
 
     ce.addEventListener("focusout", () => {
+      const text = ce.innerText.trim();
+
+      if (text.length <= 0) {
+        messages.splice(idx, 1);
+        renderMessages();  
+        hasPendingEdits = true;
+        runLiveExtraction();
+        return;
+      }
+
       if (hasPendingEdits) runLiveExtraction();
     });
 

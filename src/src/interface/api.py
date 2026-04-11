@@ -676,7 +676,12 @@ async def view_conversation(request: Request, convo_id: str, form_id: str):
     convo = await _get_convo_for_user(convo_id, user)
     if not convo:
         raise HTTPException(404, "Conversation not found")
-    return _tmpl("view_conversation.html", request, {"convo": convo, "form_id": form_id}, user=user)
+    
+    return _tmpl("view_conversation.html", request, {
+        "convo": convo, 
+        "form_id": form_id,
+        "back_link": f"/forms/{form_id}/conversations"
+    }, user=user)
 
 @app.post("/conversations/create", response_class=HTMLResponse)
 async def create_conversation(
