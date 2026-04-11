@@ -1053,23 +1053,51 @@ async def view_output_detail(request: Request, run_id: str):
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
+    # Primary: check the outputs collection
     out = await _load_output_by_run_id(run_id, user)
-    if not out:
-        raise HTTPException(404, "Output not found")
+    version_index = None
 
-    # Try to load the conversation so we can show the transcript.
-    # All conversations are persisted in MongoDB, so this should almost always succeed.
-    history: dict = {}
-    raw_conversation: str = ""
+    # Fallback: run may only exist in run_logs (pipeline runs, older records)
+    if not out:
+        run_log = await container.runlog_repo.get_by_id(run_id)
+        if not run_log:
+            raise HTTPException(404, "Output not found")
+        ef = getattr(run_log, "extracted_fields", {}) or {}
+        # Non-admins may only see their own runs
+        if not _is_admin(user) and getattr(run_log, "owner_id", None) not in (None, user["user_id"]):
+            raise HTTPException(404, "Output not found")
+        version_index = getattr(run_log, "version_index", None)
+        out = {
+            "run_id":              run_log.run_id,
+            "conversation_id":     run_log.conversation_id,
+            "form_id":             ef.get("form_id", ""),
+            "filled_data":         _merge_display_fields(
+                                       ef.get("filled_data", {}),
+                                       ef.get("accepted_new_fields", {}),
+                                   ),
+            "accepted_new_fields": ef.get("accepted_new_fields", {}),
+            "summary":             getattr(run_log, "summary", "") or ef.get("summary", ""),
+        }
+
+    # Load the conversation transcript for the correct version
+    history = {}
+    raw_conversation = ""
     convo_missing = False
 
     convo_id = out.get("conversation_id", "")
     if convo_id:
         convo = await _get_convo_for_user(convo_id, user)
         if convo:
-            history = convo.latest_history or {}
+            # Show the specific version that was extracted, not just latest
+            if version_index is not None:
+                matched = next(
+                    (v for v in convo.versions if v.version_index == version_index),
+                    None,
+                )
+                history = (matched.history if matched else convo.latest_history) or {}
+            else:
+                history = convo.latest_history or {}
         else:
-            # Fallback: some outputs store the raw text directly
             raw_conversation = out.get("raw_conversation", "")
             convo_missing = True
 
@@ -1078,6 +1106,7 @@ async def view_output_detail(request: Request, run_id: str):
         "history": history,
         "raw_conversation": raw_conversation,
         "convo_missing": convo_missing,
+        "version_index": version_index,
     }, user=user)
 
 @app.get("/runs", response_class=HTMLResponse)

@@ -10,6 +10,7 @@
             Form: <a href="/forms/{{ out.get('form_id') }}" style="color:var(--primary); font-weight:600;">{{ out.get('form_id', '—') }}</a>
             &nbsp;·&nbsp;
             Conversation: <span style="color:var(--text-muted);">#{{ out.get('conversation_id', '—') }}</span>
+            {% if version_index is not none %}&nbsp;·&nbsp;<span style="color:var(--text-muted);">v{{ version_index }}</span>{% endif %}
         </p>
     </div>
     <a href="/outputs" class="btn">← Back to Outputs</a>

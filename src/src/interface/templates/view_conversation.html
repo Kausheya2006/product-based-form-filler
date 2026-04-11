@@ -17,7 +17,7 @@
     <div style="display:flex; gap:8px; flex-wrap:wrap; padding: 4px 0;">
         {% for version in convo.versions %}
             {% if version.run_id %}
-                <a href="/runs/{{ version.run_id }}" style="text-decoration:none;">
+                <a href="/outputs/{{ version.run_id }}" style="text-decoration:none;">
                     <span class="badge badge-blue" style="padding:5px 12px; font-size:0.78rem;">
                         v{{ version.version_index }} · View Output
                     </span>
