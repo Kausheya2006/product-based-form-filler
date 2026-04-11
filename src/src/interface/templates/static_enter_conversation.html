@@ -10,6 +10,13 @@
   <input type="hidden" name="conversation_id"   id="hidden_conv_id" />
 </form>
 
+<form method="post" action="/conversations/create" id="saveChatForm" style="display:none;">
+    <input type="hidden" name="form_id" value="{{ form.id }}" />
+    <input type="hidden" name="conversation_text" id="save_conversation_text" />
+    <input type="hidden" name="conversation_id" id="save_conv_id" />
+    <input type="hidden" name="extract" value="false">
+</form>
+
 <div class="page-shell">
 
   <!-- Header -->
@@ -66,6 +73,11 @@
       <span class="extract-hint">Saves the conversation and runs field extraction once</span>
     </div>
 
+    <div class="extract-bar">
+        <button class="btn-extract" id="runSaveBtn" disabled>Save Conversation</button>
+        <span class="extract-hint">Saves the conversation</span>
+    </div>
+
     <!-- Status -->
     <div class="status-bar">
       <span class="status-dot" id="statusDot"></span>
@@ -91,6 +103,7 @@
   const msgInput       = document.getElementById("msgInput");
   const sendBtn        = document.getElementById("sendBtn");
   const runExtrBtn     = document.getElementById("runExtractionBtn");
+  const runSaveBtn     = document.getElementById("runSaveBtn");
   const statusDot      = document.getElementById("statusDot");
   const statusText     = document.getElementById("statusText");
   const convIdInput    = document.getElementById("convIdInput");
@@ -145,6 +158,7 @@
     autosizeTextarea(msgInput);
     chatEmpty.style.display = "none";
     runExtrBtn.disabled = false;
+    runSaveBtn.disabled = false;
     statusText.textContent = `${messages.length} message${messages.length > 1 ? "s" : ""} — ready to run extraction`;
   }
 
@@ -241,9 +255,38 @@
     statusDot.classList.add("busy");
     statusText.textContent = "Saving and running extraction…";
     runExtrBtn.disabled = true;
+    runSaveBtn.disabled = true;
 
     document.getElementById("chatForm").submit();
   });
+
+  runSaveBtn.addEventListener("click", () => {
+        if (messages.length === 0) return;
+
+        // Sync any edits made directly to bubbles
+        const rows = chatMessages.querySelectorAll(".bubble-row");
+        rows.forEach((row, idx) => {
+            const ce = row.querySelector(".bubble-text");
+            if (ce && messages[idx]) {
+                messages[idx].text = ce.innerText.replace(/\n$/, "");
+            }
+        });
+
+        const conversationText = messages
+            .filter(m => m.text.trim())
+            .map(m => `${m.speaker}: ${m.text}`)
+            .join("\n");
+
+        document.getElementById("save_conversation_text").value = conversationText;
+        document.getElementById("save_conv_id").value = convIdInput.value.trim();
+
+        statusDot.classList.add("busy");
+        statusText.textContent = "Saving conversation...";
+        runExtrBtn.disabled = true;
+        runSaveBtn.disabled = true;
+
+        document.getElementById("saveChatForm").submit();
+    });
 </script>
 
 {% endblock %}

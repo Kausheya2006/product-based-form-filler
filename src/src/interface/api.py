@@ -687,6 +687,7 @@ async def create_conversation(
     field_overrides_json: str = Form(""),
     accepted_new_fields_json: str = Form(""),
     conversation_text: str = Form(...),
+    extract: bool = Form(True),
 ):
     user = await _get_current_user(request)
     if not user:
@@ -719,7 +720,7 @@ async def create_conversation(
             if isinstance(key, str) and key.strip()
         }
 
-    try:
+    if extract:
         conversation_id = await _persist_conversation_and_extract(
             form_id=form_id,
             conversation_text=conversation_text,
@@ -730,10 +731,30 @@ async def create_conversation(
             accepted_new_fields=accepted_new_fields,
             version_metadata={"source_mode": "text"},
         )
-    except Exception as e:
-        raise HTTPException(500, f"Conversation saved, but extraction failed: {str(e)}")
+        return RedirectResponse(url=f"/extract/{form_id}/{conversation_id}", status_code=303)
+    else:
+        # Save only, no extraction
+        conversation_dict = _parse_conversation_text(conversation_text)
+        if not conversation_dict:
+            raise HTTPException(400, "Could not parse conversation.")
 
-    return RedirectResponse(url=f"/extract/{form_id}/{conversation_id}", status_code=303)
+        convo = Conversation(
+            conversation_id=conversation_id,
+            form_id=form_id,
+            conversation_name=conversation_name.strip(),
+            versions=[
+                ConversationVersion(
+                    version_index=0,
+                    history=conversation_dict,
+                    source_mode="text",
+                )
+            ],
+            owner_id=user["user_id"],
+        )
+        await container.convo_repo.save(convo)
+
+        return RedirectResponse(url=f"/conversations/{conversation_id}?form_id={form_id}", status_code=303)
+
 
 
 @app.post("/conversations/create-asr", response_class=HTMLResponse)
