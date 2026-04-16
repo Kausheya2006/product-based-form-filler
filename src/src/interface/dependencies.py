@@ -5,6 +5,7 @@ from ..infrastructure.persistence.mongo import MongoConversationRepository, Mong
 from ..infrastructure.ai.local_model import LocalHuggingFaceModel, GemmaFunctionalModel, FormStateModel
 from ..infrastructure.ai.summarizer import LocalSummarizer, GemmaSummarizer, QwenSummarizer
 from ..infrastructure.ai.ollama_model import OllamaFormStateModel, OllamaSummarizer
+from ..infrastructure.ai.modal_model import ModalExtractionModel, ModalSummarizer
 from ..infrastructure.ai.model_service_client import RemoteModelServiceExtractionModel, RemoteModelServiceSummarizer
 from ..infrastructure.ai.mock_models import MockExtractionModel, MockSummarizer
 from ..infrastructure.ai.translator import LocalTranslator
@@ -34,6 +35,37 @@ class Container:
             logger.info("MOCK_MODELS=true — skipping ML model loading (no GPU required)")
             model = MockExtractionModel()
             summarizer = MockSummarizer()
+        elif settings.USE_MODAL_INFERENCE:
+            logger.info(
+                "USE_MODAL_INFERENCE=true — routing extraction/summarization to Modal (%s mode)",
+                "sdk" if settings.MODAL_INFERENCE_USE_SDK else "http",
+            )
+            model = ModalExtractionModel(
+                use_sdk=settings.MODAL_INFERENCE_USE_SDK,
+                base_url=settings.MODAL_INFERENCE_URL,
+                app_name=settings.MODAL_APP_NAME,
+                function_name=settings.MODAL_EXTRACT_FUNCTION,
+            )
+            summarizer = ModalSummarizer(
+                use_sdk=settings.MODAL_INFERENCE_USE_SDK,
+                base_url=settings.MODAL_INFERENCE_URL,
+                app_name=settings.MODAL_APP_NAME,
+                function_name=settings.MODAL_SUMMARIZER_FUNCTION,
+            )
+        elif settings.USE_LOCAL_CONTAINER_GEMMA4:
+            logger.info(
+                "USE_LOCAL_CONTAINER_GEMMA4=true — routing to local container (%s) model=%s",
+                settings.LOCAL_CONTAINER_BASE_URL,
+                settings.LOCAL_CONTAINER_EXTRACT_MODEL,
+            )
+            model = OllamaFormStateModel(
+                model_name=settings.LOCAL_CONTAINER_EXTRACT_MODEL,
+                base_url=settings.LOCAL_CONTAINER_BASE_URL,
+            )
+            summarizer = OllamaSummarizer(
+                model_name=settings.LOCAL_CONTAINER_SUMMARIZER_MODEL,
+                base_url=settings.LOCAL_CONTAINER_BASE_URL,
+            )
         elif settings.MODEL_SERVICE_URL:
             logger.info(
                 "MODEL_SERVICE_URL set — routing extraction/summarization to model service (%s)",

@@ -26,6 +26,7 @@ soundfile
 noisereduce
 SpeechRecognition
 httpx
+modal
 pytest
 playwright
 pytest-playwright

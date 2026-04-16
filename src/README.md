@@ -28,6 +28,10 @@ export MOCK_MODELS="false"
 uvicorn src.interface.api:app --host 0.0.0.0 --port 8000 --reload
 ```
 
+## Model switching (2-line quick use)
+In `src/.env`, set exactly one path: `USE_MODAL_INFERENCE=true` (cloud Qwen3), or `USE_LOCAL_CONTAINER_GEMMA4=true` (localhost Gemma container), or `USE_OLLAMA=true` (default local Ollama); keep others `false` and `MODEL_SERVICE_URL=` empty; for Modal SDK mode, run `modal setup` once (or use Modal token env vars).  
+Backend priority is fixed: `USE_MODAL_INFERENCE` → `USE_LOCAL_CONTAINER_GEMMA4` → `MODEL_SERVICE_URL` → `USE_OLLAMA` → bundled local model.
+
 ## Testing
 
 This project has two test layers:

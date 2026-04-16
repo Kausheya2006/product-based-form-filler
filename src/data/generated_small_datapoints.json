@@ -1,0 +1,4166 @@
+[
+  {
+    "input": {
+      "new_line": "Sarah 1739900075: That's correct. 12 Maple.",
+      "10_lines_before": {
+        "Agent 1739900000": "Hi, is this Sarah Miller?",
+        "Sarah 1739900015": "Yes, it is. Hello.",
+        "Agent 1739900030": "Great. We're here for the move-in.",
+        "Sarah 1739900048": "Okay, glad to start.",
+        "Agent 1739900062": "Property address is 12 Maple Lane?"
+      },
+      "form_name": "Move-In/Move-Out Checklist",
+      "form_description": "A detailed document used by landlords and tenants to record the condition of a property at the beginning and end of a lease term.",
+      "current_form_state": {
+        "Initial fields": {
+          "property_address": "N/A",
+          "tenant_names": "N/A",
+          "move_in_date": "N/A",
+          "move_out_date": "N/A",
+          "living_room_condition": "N/A",
+          "kitchen_condition": "N/A",
+          "bathroom_condition": "N/A",
+          "bedroom_condition": "N/A",
+          "outdoor_areas_condition": "N/A",
+          "notes_damages_photos": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The agent confirmed the tenant's name and is about to confirm the property address."
+    },
+    "ideal_output": {
+      "thinking": "The agent asked for the property address, and Sarah confirmed it. This updates the 'property_address' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "property_address": "12 Maple Lane",
+          "tenant_names": "N/A",
+          "move_in_date": "N/A",
+          "move_out_date": "N/A",
+          "living_room_condition": "N/A",
+          "kitchen_condition": "N/A",
+          "bathroom_condition": "N/A",
+          "bedroom_condition": "N/A",
+          "outdoor_areas_condition": "N/A",
+          "notes_damages_photos": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The agent confirmed the property address as 12 Maple Lane and is about to confirm the move-in date."
+    },
+    "_conversation_id": "91e139dd"
+  },
+  {
+    "input": {
+      "new_line": "Sarah 1739900105: Yes, the fifteenth.",
+      "10_lines_before": {
+        "Agent 1739900000": "Hi, is this Sarah Miller?",
+        "Sarah 1739900015": "Yes, it is. Hello.",
+        "Agent 1739900030": "Great. We're here for the move-in.",
+        "Sarah 1739900048": "Okay, glad to start.",
+        "Agent 1739900062": "Property address is 12 Maple Lane?",
+        "Sarah 1739900075": "That's correct. 12 Maple.",
+        "Agent 1739900091": "And move-in date, October 15th?"
+      },
+      "form_name": "Move-In/Move-Out Checklist",
+      "form_description": "A detailed document used by landlords and tenants to record the condition of a property at the beginning and end of a lease term.",
+      "current_form_state": {
+        "Initial fields": {
+          "property_address": "12 Maple Lane",
+          "tenant_names": "N/A",
+          "move_in_date": "N/A",
+          "move_out_date": "N/A",
+          "living_room_condition": "N/A",
+          "kitchen_condition": "N/A",
+          "bathroom_condition": "N/A",
+          "bedroom_condition": "N/A",
+          "outdoor_areas_condition": "N/A",
+          "notes_damages_photos": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The property address is confirmed as 12 Maple Lane. The agent is confirming the move-in date."
+    },
+    "ideal_output": {
+      "thinking": "The agent asked for the move-in date, and Sarah confirmed it. This updates the 'move_in_date' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "property_address": "12 Maple Lane",
+          "tenant_names": "N/A",
+          "move_in_date": "October 15th",
+          "move_out_date": "N/A",
+          "living_room_condition": "N/A",
+          "kitchen_condition": "N/A",
+          "bathroom_condition": "N/A",
+          "bedroom_condition": "N/A",
+          "outdoor_areas_condition": "N/A",
+          "notes_damages_photos": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The property address and move-in date are confirmed. The agent is now confirming the tenant's name."
+    },
+    "_conversation_id": "91e139dd"
+  },
+  {
+    "input": {
+      "new_line": "Sarah 1739900132: Just me, yes.",
+      "10_lines_before": {
+        "Agent 1739900000": "Hi, is this Sarah Miller?",
+        "Sarah 1739900015": "Yes, it is. Hello.",
+        "Agent 1739900030": "Great. We're here for the move-in.",
+        "Sarah 1739900048": "Okay, glad to start.",
+        "Agent 1739900062": "Property address is 12 Maple Lane?",
+        "Sarah 1739900075": "That's correct. 12 Maple.",
+        "Agent 1739900091": "And move-in date, October 15th?",
+        "Sarah 1739900105": "Yes, the fifteenth.",
+        "Agent 1739900118": "Tenant name is Sarah Miller?"
+      },
+      "form_name": "Move-In/Move-Out Checklist",
+      "form_description": "A detailed document used by landlords and tenants to record the condition of a property at the beginning and end of a lease term.",
+      "current_form_state": {
+        "Initial fields": {
+          "property_address": "12 Maple Lane",
+          "tenant_names": "N/A",
+          "move_in_date": "October 15th",
+          "move_out_date": "N/A",
+          "living_room_condition": "N/A",
+          "kitchen_condition": "N/A",
+          "bathroom_condition": "N/A",
+          "bedroom_condition": "N/A",
+          "outdoor_areas_condition": "N/A",
+          "notes_damages_photos": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Property address and move-in date confirmed. The agent is confirming the tenant's name."
+    },
+    "ideal_output": {
+      "thinking": "The agent asked for the tenant's name, and Sarah confirmed it is just her. This updates the 'tenant_names' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "property_address": "12 Maple Lane",
+          "tenant_names": "Sarah Miller",
+          "move_in_date": "October 15th",
+          "move_out_date": "N/A",
+          "living_room_condition": "N/A",
+          "kitchen_condition": "N/A",
+          "bathroom_condition": "N/A",
+          "bedroom_condition": "N/A",
+          "outdoor_areas_condition": "N/A",
+          "notes_damages_photos": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Property details (address, move-in date, tenant name) are confirmed. The agent is moving on to inspect the living room."
+    },
+    "_conversation_id": "91e139dd"
+  },
+  {
+    "input": {
+      "new_line": "Sarah 1739900160: Seems fine, no damages.",
+      "10_lines_before": {
+        "Agent 1739900000": "Hi, is this Sarah Miller?",
+        "Sarah 1739900015": "Yes, it is. Hello.",
+        "Agent 1739900030": "Great. We're here for the move-in.",
+        "Sarah 1739900048": "Okay, glad to start.",
+        "Agent 1739900062": "Property address is 12 Maple Lane?",
+        "Sarah 1739900075": "That's correct. 12 Maple.",
+        "Agent 1739900091": "And move-in date, October 15th?",
+        "Sarah 1739900105": "Yes, the fifteenth.",
+        "Agent 1739900118": "Tenant name is Sarah Miller?",
+        "Sarah 1739900132": "Just me, yes.",
+        "Agent 1739900145": "Let's check the living room."
+      },
+      "form_name": "Move-In/Move-Out Checklist",
+      "form_description": "A detailed document used by landlords and tenants to record the condition of a property at the beginning and end of a lease term.",
+      "current_form_state": {
+        "Initial fields": {
+          "property_address": "12 Maple Lane",
+          "tenant_names": "Sarah Miller",
+          "move_in_date": "October 15th",
+          "move_out_date": "N/A",
+          "living_room_condition": "N/A",
+          "kitchen_condition": "N/A",
+          "bathroom_condition": "N/A",
+          "bedroom_condition": "N/A",
+          "outdoor_areas_condition": "N/A",
+          "notes_damages_photos": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "All property details confirmed. The agent is inspecting the living room, and the tenant confirms it's fine with no damages."
+    },
+    "ideal_output": {
+      "thinking": "The agent asked about the living room, and Sarah responded about its condition. This updates the 'living_room_condition' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "property_address": "12 Maple Lane",
+          "tenant_names": "Sarah Miller",
+          "move_in_date": "October 15th",
+          "move_out_date": "N/A",
+          "living_room_condition": "Seems fine, no damages.",
+          "kitchen_condition": "N/A",
+          "bathroom_condition": "N/A",
+          "bedroom_condition": "N/A",
+          "outdoor_areas_condition": "N/A",
+          "notes_damages_photos": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Living room condition noted. The agent is moving on to inspect the kitchen."
+    },
+    "_conversation_id": "91e139dd"
+  },
+  {
+    "input": {
+      "new_line": "Sarah 1739900297: None that I see. No photos needed.",
+      "10_lines_before": {
+        "Agent 1739900000": "Hi, is this Sarah Miller?",
+        "Sarah 1739900015": "Yes, it is. Hello.",
+        "Agent 1739900030": "Great. We're here for the move-in.",
+        "Sarah 1739900048": "Okay, glad to start.",
+        "Agent 1739900062": "Property address is 12 Maple Lane?",
+        "Sarah 1739900075": "That's correct. 12 Maple.",
+        "Agent 1739900091": "And move-in date, October 15th?",
+        "Sarah 1739900105": "Yes, the fifteenth.",
+        "Agent 1739900118": "Tenant name is Sarah Miller?",
+        "Sarah 1739900132": "Just me, yes.",
+        "Agent 1739900145": "Let's check the living room.",
+        "Sarah 1739900160": "Seems fine, no damages.",
+        "Agent 1739900173": "Kitchen looks good too.",
+        "Sarah 1739900188": "All appliances work.",
+        "Agent 1739900201": "Bathroom condition is excellent.",
+        "Sarah 1739900216": "Clean and new.",
+        "Agent 1739900229": "Bedroom condition is normal.",
+        "Sarah 1739900243": "Just a standard room.",
+        "Agent 1739900256": "Outdoor areas are clear.",
+        "Sarah 1739900270": "No issues out there.",
+        "Agent 1739900283": "Any notes on damages?"
+      },
+      "form_name": "Move-In/Move-Out Checklist",
+      "form_description": "A detailed document used by landlords and tenants to record the condition of a property at the beginning and end of a lease term.",
+      "current_form_state": {
+        "Initial fields": {
+          "property_address": "12 Maple Lane",
+          "tenant_names": "Sarah Miller",
+          "move_in_date": "October 15th",
+          "move_out_date": "N/A",
+          "living_room_condition": "Seems fine, no damages.",
+          "kitchen_condition": "Looks good, all appliances work.",
+          "bathroom_condition": "Excellent, clean and new.",
+          "bedroom_condition": "Normal, just a standard room.",
+          "outdoor_areas_condition": "Clear, no issues out there.",
+          "notes_damages_photos": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "All property conditions have been reviewed and noted. The agent is asking for any final notes on damages or photos."
+    },
+    "ideal_output": {
+      "thinking": "The agent asked for notes on damages, and Sarah confirmed there are none and no photos are needed. This updates the 'notes_damages_photos' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "property_address": "12 Maple Lane",
+          "tenant_names": "Sarah Miller",
+          "move_in_date": "October 15th",
+          "move_out_date": "N/A",
+          "living_room_condition": "Seems fine, no damages.",
+          "kitchen_condition": "Looks good, all appliances work.",
+          "bathroom_condition": "Excellent, clean and new.",
+          "bedroom_condition": "Normal, just a standard room.",
+          "outdoor_areas_condition": "Clear, no issues out there.",
+          "notes_damages_photos": "None that I see. No photos needed."
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "All checklist items are complete. The agent is ready to finalize the process."
+    },
+    "_conversation_id": "91e139dd"
+  },
+  {
+    "input": {
+      "new_line": "Mr. Davies 1739900040: David Arthur Davies.",
+      "10_lines_before": {
+        "Medical Examiner 1739900000": "Good afternoon, Mr. Davies.",
+        "Mr. Davies 1739900015": "Afternoon, Doctor.",
+        "Medical Examiner 1739900028": "Your full name, please?"
+      },
+      "form_name": "CDL Medical Report",
+      "form_description": "A medical examination report required for commercial driver's license holders to certify their physical fitness to operate commercial motor vehicles.",
+      "current_form_state": {
+        "Initial fields": {
+          "driver_full_name": "N/A",
+          "driver_date_of_birth": "N/A",
+          "cdl_number": "N/A",
+          "examination_date": "N/A",
+          "medical_examiner_name": "N/A",
+          "vision_acuity_left_eye": "N/A",
+          "vision_acuity_right_eye": "N/A",
+          "blood_pressure_reading": "N/A",
+          "urinalysis_results": "N/A",
+          "medical_examiner_certification": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The medical examiner is starting the CDL medical report. The driver's name has not yet been provided."
+    },
+    "ideal_output": {
+      "thinking": "The driver is providing their full name in response to the examiner's question. This updates the 'driver_full_name' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "driver_full_name": "David Arthur Davies",
+          "driver_date_of_birth": "N/A",
+          "cdl_number": "N/A",
+          "examination_date": "N/A",
+          "medical_examiner_name": "N/A",
+          "vision_acuity_left_eye": "N/A",
+          "vision_acuity_right_eye": "N/A",
+          "blood_pressure_reading": "N/A",
+          "urinalysis_results": "N/A",
+          "medical_examiner_certification": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The driver's full name, David Arthur Davies, has been provided. The examiner is now asking for the date of birth."
+    },
+    "_conversation_id": "051b32a7"
+  },
+  {
+    "input": {
+      "new_line": "Mr. Davies 1739900065: May 12, 1975.",
+      "10_lines_before": {
+        "Medical Examiner 1739900000": "Good afternoon, Mr. Davies.",
+        "Mr. Davies 1739900015": "Afternoon, Doctor.",
+        "Medical Examiner 1739900028": "Your full name, please?",
+        "Mr. Davies 1739900040": "David Arthur Davies.",
+        "Medical Examiner 1739900052": "Date of birth?"
+      },
+      "form_name": "CDL Medical Report",
+      "form_description": "A medical examination report required for commercial driver's license holders to certify their physical fitness to operate commercial motor vehicles.",
+      "current_form_state": {
+        "Initial fields": {
+          "driver_full_name": "David Arthur Davies",
+          "driver_date_of_birth": "N/A",
+          "cdl_number": "N/A",
+          "examination_date": "N/A",
+          "medical_examiner_name": "N/A",
+          "vision_acuity_left_eye": "N/A",
+          "vision_acuity_right_eye": "N/A",
+          "blood_pressure_reading": "N/A",
+          "urinalysis_results": "N/A",
+          "medical_examiner_certification": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The driver's full name is David Arthur Davies. The examiner has asked for the date of birth."
+    },
+    "ideal_output": {
+      "thinking": "The driver is providing their date of birth. This updates the 'driver_date_of_birth' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "driver_full_name": "David Arthur Davies",
+          "driver_date_of_birth": "May 12, 1975",
+          "cdl_number": "N/A",
+          "examination_date": "N/A",
+          "medical_examiner_name": "N/A",
+          "vision_acuity_left_eye": "N/A",
+          "vision_acuity_right_eye": "N/A",
+          "blood_pressure_reading": "N/A",
+          "urinalysis_results": "N/A",
+          "medical_examiner_certification": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The driver's date of birth, May 12, 1975, has been provided. The examiner is now asking for the CDL number."
+    },
+    "_conversation_id": "051b32a7"
+  },
+  {
+    "input": {
+      "new_line": "Mr. Davies 1739900092: C123456789.",
+      "10_lines_before": {
+        "Medical Examiner 1739900052": "Date of birth?",
+        "Mr. Davies 1739900065": "May 12, 1975.",
+        "Medical Examiner 1739900078": "CDL number?",
+        "Mr. Davies 1739900092": "C123456789."
+      },
+      "form_name": "CDL Medical Report",
+      "form_description": "A medical examination report required for commercial driver's license holders to certify their physical fitness to operate commercial motor vehicles.",
+      "current_form_state": {
+        "Initial fields": {
+          "driver_full_name": "David Arthur Davies",
+          "driver_date_of_birth": "May 12, 1975",
+          "cdl_number": "N/A",
+          "examination_date": "N/A",
+          "medical_examiner_name": "N/A",
+          "vision_acuity_left_eye": "N/A",
+          "vision_acuity_right_eye": "N/A",
+          "blood_pressure_reading": "N/A",
+          "urinalysis_results": "N/A",
+          "medical_examiner_certification": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The driver's name and date of birth are recorded. The examiner is asking for the CDL number."
+    },
+    "ideal_output": {
+      "thinking": "The driver is providing their CDL number. This updates the 'cdl_number' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "driver_full_name": "David Arthur Davies",
+          "driver_date_of_birth": "May 12, 1975",
+          "cdl_number": "C123456789",
+          "examination_date": "N/A",
+          "medical_examiner_name": "N/A",
+          "vision_acuity_left_eye": "N/A",
+          "vision_acuity_right_eye": "N/A",
+          "blood_pressure_reading": "N/A",
+          "urinalysis_results": "N/A",
+          "medical_examiner_certification": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The driver's CDL number, C123456789, has been provided. The examiner states the examination date is today."
+    },
+    "_conversation_id": "051b32a7"
+  },
+  {
+    "input": {
+      "new_line": "Medical Examiner 1739900132: My name is Dr. Anya Sharma.",
+      "10_lines_before": {
+        "Mr. Davies 1739900065": "May 12, 1975.",
+        "Medical Examiner 1739900078": "CDL number?",
+        "Mr. Davies 1739900092": "C123456789.",
+        "Medical Examiner 1739900105": "Examination date is today.",
+        "Mr. Davies 1739900118": "Yes, that's right."
+      },
+      "form_name": "CDL Medical Report",
+      "form_description": "A medical examination report required for commercial driver's license holders to certify their physical fitness to operate commercial motor vehicles.",
+      "current_form_state": {
+        "Initial fields": {
+          "driver_full_name": "David Arthur Davies",
+          "driver_date_of_birth": "May 12, 1975",
+          "cdl_number": "C123456789",
+          "examination_date": "N/A",
+          "medical_examiner_name": "N/A",
+          "vision_acuity_left_eye": "N/A",
+          "vision_acuity_right_eye": "N/A",
+          "blood_pressure_reading": "N/A",
+          "urinalysis_results": "N/A",
+          "medical_examiner_certification": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Driver's name, DOB, and CDL number are recorded. The examination date is confirmed. The medical examiner is about to state their name."
+    },
+    "ideal_output": {
+      "thinking": "The medical examiner is stating their name. This updates the 'medical_examiner_name' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "driver_full_name": "David Arthur Davies",
+          "driver_date_of_birth": "May 12, 1975",
+          "cdl_number": "C123456789",
+          "examination_date": "N/A",
+          "medical_examiner_name": "Dr. Anya Sharma",
+          "vision_acuity_left_eye": "N/A",
+          "vision_acuity_right_eye": "N/A",
+          "blood_pressure_reading": "N/A",
+          "urinalysis_results": "N/A",
+          "medical_examiner_certification": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The medical examiner's name, Dr. Anya Sharma, has been provided. The examiner is now asking about the driver's vision for the left eye."
+    },
+    "_conversation_id": "051b32a7"
+  },
+  {
+    "input": {
+      "new_line": "Medical Examiner 1739900268: Urinalysis results are normal.",
+      "10_lines_before": {
+        "Medical Examiner 1739900187": "We'll check everything, David.",
+        "Medical Examiner 1739900200": "20/20.",
+        "Medical Examiner 1739900215": "Right eye?",
+        "Mr. Davies 1739900228": "20/20.",
+        "Medical Examiner 1739900241": "Blood pressure?",
+        "Mr. Davies 1739900255": "125 over 80.",
+        "Medical Examiner 1739900268": "Urinalysis results are normal."
+      },
+      "form_name": "CDL Medical Report",
+      "form_description": "A medical examination report required for commercial driver's license holders to certify their physical fitness to operate commercial motor vehicles.",
+      "current_form_state": {
+        "Initial fields": {
+          "driver_full_name": "David Arthur Davies",
+          "driver_date_of_birth": "May 12, 1975",
+          "cdl_number": "C123456789",
+          "examination_date": "N/A",
+          "medical_examiner_name": "Dr. Anya Sharma",
+          "vision_acuity_left_eye": "20/20",
+          "vision_acuity_right_eye": "20/20",
+          "blood_pressure_reading": "125/80",
+          "urinalysis_results": "N/A",
+          "medical_examiner_certification": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Vision and blood pressure have been recorded. The examiner is now stating the urinalysis results are normal."
+    },
+    "ideal_output": {
+      "thinking": "The examiner is stating the urinalysis results. This updates the 'urinalysis_results' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "driver_full_name": "David Arthur Davies",
+          "driver_date_of_birth": "May 12, 1975",
+          "cdl_number": "C123456789",
+          "examination_date": "N/A",
+          "medical_examiner_name": "Dr. Anya Sharma",
+          "vision_acuity_left_eye": "20/20",
+          "vision_acuity_right_eye": "20/20",
+          "blood_pressure_reading": "125/80",
+          "urinalysis_results": "Normal",
+          "medical_examiner_certification": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Urinalysis results are normal. The examiner is about to state the certification status."
+    },
+    "_conversation_id": "051b32a7"
+  },
+  {
+    "input": {
+      "new_line": "Sarah Miller 1739900040: Sarah Miller.",
+      "10_lines_before": {
+        "Clerk 1739900000": "Next, please. What can I do?",
+        "Sarah Miller 1739900015": "Hi. Transferring this car title.",
+        "Clerk 1739900028": "Okay. Seller's full name?",
+        "Sarah Miller 1739900040": "Sarah Miller."
+      },
+      "form_name": "Vehicle Title Transfer",
+      "form_description": "A legal document used to transfer ownership of a motor vehicle from one party to another.",
+      "current_form_state": {
+        "Initial fields": {
+          "seller_full_name": "N/A",
+          "seller_address": "N/A",
+          "buyer_full_name": "N/A",
+          "buyer_address": "N/A",
+          "vehicle_identification_number": "N/A",
+          "make": "N/A",
+          "model": "N/A",
+          "year": "N/A",
+          "odometer_reading": "N/A",
+          "sale_price": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The user wants to transfer a car title. The clerk is asking for the seller's full name."
+    },
+    "ideal_output": {
+      "thinking": "The user Sarah Miller provided her full name in response to the clerk's question about the seller's full name. This fills the 'seller_full_name' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "seller_full_name": "Sarah Miller",
+          "seller_address": "N/A",
+          "buyer_full_name": "N/A",
+          "buyer_address": "N/A",
+          "vehicle_identification_number": "N/A",
+          "make": "N/A",
+          "model": "N/A",
+          "year": "N/A",
+          "odometer_reading": "N/A",
+          "sale_price": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The user wants to transfer a car title. The seller's name is Sarah Miller. The clerk is asking for the seller's address."
+    },
+    "_conversation_id": "30db4996"
+  },
+  {
+    "input": {
+      "new_line": "Sarah Miller 1739900065: 123 Oak Street, Anytown.",
+      "10_lines_before": {
+        "Clerk 1739900000": "Next, please. What can I do?",
+        "Sarah Miller 1739900015": "Hi. Transferring this car title.",
+        "Clerk 1739900028": "Okay. Seller's full name?",
+        "Sarah Miller 1739900040": "Sarah Miller.",
+        "Clerk 1739900052": "And address?",
+        "Sarah Miller 1739900065": "123 Oak Street, Anytown."
+      },
+      "form_name": "Vehicle Title Transfer",
+      "form_description": "A legal document used to transfer ownership of a motor vehicle from one party to another.",
+      "current_form_state": {
+        "Initial fields": {
+          "seller_full_name": "Sarah Miller",
+          "seller_address": "N/A",
+          "buyer_full_name": "N/A",
+          "buyer_address": "N/A",
+          "vehicle_identification_number": "N/A",
+          "make": "N/A",
+          "model": "N/A",
+          "year": "N/A",
+          "odometer_reading": "N/A",
+          "sale_price": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The user wants to transfer a car title. The seller's name is Sarah Miller. The clerk is asking for the seller's address."
+    },
+    "ideal_output": {
+      "thinking": "The user Sarah Miller provided her address in response to the clerk's question. This fills the 'seller_address' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "seller_full_name": "Sarah Miller",
+          "seller_address": "123 Oak Street, Anytown",
+          "buyer_full_name": "N/A",
+          "buyer_address": "N/A",
+          "vehicle_identification_number": "N/A",
+          "make": "N/A",
+          "model": "N/A",
+          "year": "N/A",
+          "odometer_reading": "N/A",
+          "sale_price": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The user wants to transfer a car title. The seller's name is Sarah Miller and her address is 123 Oak Street, Anytown. The clerk is asking for the buyer's name."
+    },
+    "_conversation_id": "30db4996"
+  },
+  {
+    "input": {
+      "new_line": "David Chen 1739900100: David Chen.",
+      "10_lines_before": {
+        "Clerk 1739900000": "Next, please. What can I do?",
+        "Sarah Miller 1739900015": "Hi. Transferring this car title.",
+        "Clerk 1739900028": "Okay. Seller's full name?",
+        "Sarah Miller 1739900040": "Sarah Miller.",
+        "Clerk 1739900052": "And address?",
+        "Sarah Miller 1739900065": "123 Oak Street, Anytown.",
+        "Clerk 1739900080": "Got it. Buyer's name?",
+        "David Chen 1739900100": "David Chen."
+      },
+      "form_name": "Vehicle Title Transfer",
+      "form_description": "A legal document used to transfer ownership of a motor vehicle from one party to another.",
+      "current_form_state": {
+        "Initial fields": {
+          "seller_full_name": "Sarah Miller",
+          "seller_address": "123 Oak Street, Anytown",
+          "buyer_full_name": "N/A",
+          "buyer_address": "N/A",
+          "vehicle_identification_number": "N/A",
+          "make": "N/A",
+          "model": "N/A",
+          "year": "N/A",
+          "odometer_reading": "N/A",
+          "sale_price": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The user wants to transfer a car title. The seller's name is Sarah Miller and her address is 123 Oak Street, Anytown. The clerk is asking for the buyer's name."
+    },
+    "ideal_output": {
+      "thinking": "The user David Chen provided his full name in response to the clerk's question about the buyer's name. This fills the 'buyer_full_name' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "seller_full_name": "Sarah Miller",
+          "seller_address": "123 Oak Street, Anytown",
+          "buyer_full_name": "David Chen",
+          "buyer_address": "N/A",
+          "vehicle_identification_number": "N/A",
+          "make": "N/A",
+          "model": "N/A",
+          "year": "N/A",
+          "odometer_reading": "N/A",
+          "sale_price": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The user wants to transfer a car title. The seller is Sarah Miller (123 Oak Street, Anytown) and the buyer is David Chen. The clerk is asking for the buyer's address."
+    },
+    "_conversation_id": "30db4996"
+  },
+  {
+    "input": {
+      "new_line": "David Chen 1739900130: 456 Maple Avenue, Anytown.",
+      "10_lines_before": {
+        "Clerk 1739900000": "Next, please. What can I do?",
+        "Sarah Miller 1739900015": "Hi. Transferring this car title.",
+        "Clerk 1739900028": "Okay. Seller's full name?",
+        "Sarah Miller 1739900040": "Sarah Miller.",
+        "Clerk 1739900052": "And address?",
+        "Sarah Miller 1739900065": "123 Oak Street, Anytown.",
+        "Clerk 1739900080": "Got it. Buyer's name?",
+        "David Chen 1739900100": "David Chen.",
+        "Clerk 1739900115": "Buyer's address?",
+        "David Chen 1739900130": "456 Maple Avenue, Anytown."
+      },
+      "form_name": "Vehicle Title Transfer",
+      "form_description": "A legal document used to transfer ownership of a motor vehicle from one party to another.",
+      "current_form_state": {
+        "Initial fields": {
+          "seller_full_name": "Sarah Miller",
+          "seller_address": "123 Oak Street, Anytown",
+          "buyer_full_name": "David Chen",
+          "buyer_address": "N/A",
+          "vehicle_identification_number": "N/A",
+          "make": "N/A",
+          "model": "N/A",
+          "year": "N/A",
+          "odometer_reading": "N/A",
+          "sale_price": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The user wants to transfer a car title. The seller is Sarah Miller (123 Oak Street, Anytown) and the buyer is David Chen. The clerk is asking for the buyer's address."
+    },
+    "ideal_output": {
+      "thinking": "The user David Chen provided his address in response to the clerk's question. This fills the 'buyer_address' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "seller_full_name": "Sarah Miller",
+          "seller_address": "123 Oak Street, Anytown",
+          "buyer_full_name": "David Chen",
+          "buyer_address": "456 Maple Avenue, Anytown",
+          "vehicle_identification_number": "N/A",
+          "make": "N/A",
+          "model": "N/A",
+          "year": "N/A",
+          "odometer_reading": "N/A",
+          "sale_price": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The user wants to transfer a car title. Seller: Sarah Miller (123 Oak Street, Anytown). Buyer: David Chen (456 Maple Avenue, Anytown). The clerk is asking for the VIN number."
+    },
+    "_conversation_id": "30db4996"
+  },
+  {
+    "input": {
+      "new_line": "David Chen 1739900175: Uh, 1G1AX123456789012.",
+      "10_lines_before": {
+        "Clerk 1739900000": "Next, please. What can I do?",
+        "Sarah Miller 1739900015": "Hi. Transferring this car title.",
+        "Clerk 1739900028": "Okay. Seller's full name?",
+        "Sarah Miller 1739900040": "Sarah Miller.",
+        "Clerk 1739900052": "And address?",
+        "Sarah Miller 1739900065": "123 Oak Street, Anytown.",
+        "Clerk 1739900080": "Got it. Buyer's name?",
+        "David Chen 1739900100": "David Chen.",
+        "Clerk 1739900115": "Buyer's address?",
+        "David Chen 1739900130": "456 Maple Avenue, Anytown.",
+        "Clerk 1739900142": "Thank you. VIN number?",
+        "Sarah Miller 1739900158": "It's on the pink slip.",
+        "David Chen 1739900175": "Uh, 1G1AX123456789012."
+      },
+      "form_name": "Vehicle Title Transfer",
+      "form_description": "A legal document used to transfer ownership of a motor vehicle from one party to another.",
+      "current_form_state": {
+        "Initial fields": {
+          "seller_full_name": "Sarah Miller",
+          "seller_address": "123 Oak Street, Anytown",
+          "buyer_full_name": "David Chen",
+          "buyer_address": "456 Maple Avenue, Anytown",
+          "vehicle_identification_number": "N/A",
+          "make": "N/A",
+          "model": "N/A",
+          "year": "N/A",
+          "odometer_reading": "N/A",
+          "sale_price": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The user wants to transfer a car title. Seller: Sarah Miller (123 Oak Street, Anytown). Buyer: David Chen (456 Maple Avenue, Anytown). The clerk is asking for the VIN number."
+    },
+    "ideal_output": {
+      "thinking": "The user David Chen provided the VIN number in response to the clerk's question. This fills the 'vehicle_identification_number' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "seller_full_name": "Sarah Miller",
+          "seller_address": "123 Oak Street, Anytown",
+          "buyer_full_name": "David Chen",
+          "buyer_address": "456 Maple Avenue, Anytown",
+          "vehicle_identification_number": "1G1AX123456789012",
+          "make": "N/A",
+          "model": "N/A",
+          "year": "N/A",
+          "odometer_reading": "N/A",
+          "sale_price": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The user wants to transfer a car title. Seller: Sarah Miller (123 Oak Street, Anytown). Buyer: David Chen (456 Maple Avenue, Anytown). Vehicle VIN: 1G1AX123456789012. The clerk is asking for the make of the vehicle."
+    },
+    "_conversation_id": "30db4996"
+  },
+  {
+    "input": {
+      "new_line": "David 1739900042: Uh, just 'Smith' household.",
+      "10_lines_before": {
+        "Maria 1739900000": "Ready for this census thing?",
+        "David 1739900015": "Almost. Where's that pen?",
+        "Maria 1739900028": "Here. So, house name?"
+      },
+      "form_name": "Census Questionnaire",
+      "form_description": "A mandatory government survey used to count the population and gather demographic data for resource allocation and political representation.",
+      "current_form_state": {
+        "Initial fields": {
+          "household_name_1": "N/A",
+          "household_sex_1": "N/A",
+          "household_age_1": "N/A",
+          "household_race_1": "N/A",
+          "household_hispanic_origin_1": "N/A",
+          "number_of_people_in_household": "N/A",
+          "housing_tenure": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The census is about to begin. The enumerator is asking for the household name."
+    },
+    "ideal_output": {
+      "thinking": "The user initially said 'Uh, just 'Smith' household.' This implies a potential hesitation or a correction from a previous thought. However, there's no explicit prior statement to correct. The most logical interpretation is that this is the first definitive answer for the household name, and the 'Uh' indicates a slight pause before providing it.",
+      "next_form_state": {
+        "Initial fields": {
+          "household_name_1": "Smith",
+          "household_sex_1": "N/A",
+          "household_age_1": "N/A",
+          "household_race_1": "N/A",
+          "household_hispanic_origin_1": "N/A",
+          "number_of_people_in_household": "N/A",
+          "housing_tenure": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The household name for the census is 'Smith'."
+    },
+    "_conversation_id": "b108127b"
+  },
+  {
+    "input": {
+      "new_line": "David 1739900070: Male.",
+      "10_lines_before": {
+        "Maria 1739900000": "Ready for this census thing?",
+        "David 1739900015": "Almost. Where's that pen?",
+        "Maria 1739900028": "Here. So, house name?",
+        "David 1739900042": "Uh, just 'Smith' household.",
+        "Maria 1739900055": "Okay. And you, David?",
+        "David 1739900070": "Male."
+      },
+      "form_name": "Census Questionnaire",
+      "form_description": "A mandatory government survey used to count the population and gather demographic data for resource allocation and political representation.",
+      "current_form_state": {
+        "Initial fields": {
+          "household_name_1": "Smith",
+          "household_sex_1": "N/A",
+          "household_age_1": "N/A",
+          "household_race_1": "N/A",
+          "household_hispanic_origin_1": "N/A",
+          "number_of_people_in_household": "N/A",
+          "housing_tenure": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The household name is 'Smith'. The enumerator is now asking for David's sex."
+    },
+    "ideal_output": {
+      "thinking": "David is directly answering the question about his sex, which is 'Male'. This is the first explicit answer for Person 1's sex.",
+      "next_form_state": {
+        "Initial fields": {
+          "household_name_1": "Smith",
+          "household_sex_1": "Male",
+          "household_age_1": "N/A",
+          "household_race_1": "N/A",
+          "household_hispanic_origin_1": "N/A",
+          "number_of_people_in_household": "N/A",
+          "housing_tenure": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The household name is 'Smith' and Person 1 (David) is Male."
+    },
+    "_conversation_id": "b108127b"
+  },
+  {
+    "input": {
+      "new_line": "David 1739900100: Thirty-five. Feels older.",
+      "10_lines_before": {
+        "Maria 1739900055": "Okay. And you, David?",
+        "David 1739900070": "Male.",
+        "Maria 1739900082": "Age?",
+        "David 1739900100": "Thirty-five. Feels older."
+      },
+      "form_name": "Census Questionnaire",
+      "form_description": "A mandatory government survey used to count the population and gather demographic data for resource allocation and political representation.",
+      "current_form_state": {
+        "Initial fields": {
+          "household_name_1": "Smith",
+          "household_sex_1": "Male",
+          "household_age_1": "N/A",
+          "household_race_1": "N/A",
+          "household_hispanic_origin_1": "N/A",
+          "number_of_people_in_household": "N/A",
+          "housing_tenure": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The household name is 'Smith', Person 1 (David) is Male. The enumerator is asking for David's age."
+    },
+    "ideal_output": {
+      "thinking": "David is providing his age as 'Thirty-five'. The phrase 'Feels older' is conversational and not part of the factual data for the form.",
+      "next_form_state": {
+        "Initial fields": {
+          "household_name_1": "Smith",
+          "household_sex_1": "Male",
+          "household_age_1": "35",
+          "household_race_1": "N/A",
+          "household_hispanic_origin_1": "N/A",
+          "number_of_people_in_household": "N/A",
+          "housing_tenure": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The household name is 'Smith', Person 1 (David) is Male and 35 years old."
+    },
+    "_conversation_id": "b108127b"
+  },
+  {
+    "input": {
+      "new_line": "David 1739900158: No. Just regular.",
+      "10_lines_before": {
+        "Maria 1739900115": "Ha! Race?",
+        "David 1739900130": "White.",
+        "Maria 1739900143": "Hispanic origin?",
+        "David 1739900158": "No. Just regular."
+      },
+      "form_name": "Census Questionnaire",
+      "form_description": "A mandatory government survey used to count the population and gather demographic data for resource allocation and political representation.",
+      "current_form_state": {
+        "Initial fields": {
+          "household_name_1": "Smith",
+          "household_sex_1": "Male",
+          "household_age_1": "35",
+          "household_race_1": "White",
+          "household_hispanic_origin_1": "N/A",
+          "number_of_people_in_household": "N/A",
+          "housing_tenure": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The household name is 'Smith', Person 1 (David) is Male, 35 years old, and White. The enumerator is asking about Hispanic origin."
+    },
+    "ideal_output": {
+      "thinking": "David's response 'No. Just regular.' is a direct answer to the question of Hispanic origin, indicating 'No'. The 'Just regular' is conversational filler.",
+      "next_form_state": {
+        "Initial fields": {
+          "household_name_1": "Smith",
+          "household_sex_1": "Male",
+          "household_age_1": "35",
+          "household_race_1": "White",
+          "household_hispanic_origin_1": "No",
+          "number_of_people_in_household": "N/A",
+          "housing_tenure": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The household name is 'Smith', Person 1 (David) is Male, 35 years old, White, and not of Hispanic origin."
+    },
+    "_conversation_id": "b108127b"
+  },
+  {
+    "input": {
+      "new_line": "David 1739900188: Four, including me.",
+      "10_lines_before": {
+        "David 1739900130": "White.",
+        "Maria 1739900143": "Hispanic origin?",
+        "David 1739900158": "No. Just regular.",
+        "Maria 1739900172": "Got it. Number of people?",
+        "David 1739900188": "Four, including me."
+      },
+      "form_name": "Census Questionnaire",
+      "form_description": "A mandatory government survey used to count the population and gather demographic data for resource allocation and political representation.",
+      "current_form_state": {
+        "Initial fields": {
+          "household_name_1": "Smith",
+          "household_sex_1": "Male",
+          "household_age_1": "35",
+          "household_race_1": "White",
+          "household_hispanic_origin_1": "No",
+          "number_of_people_in_household": "N/A",
+          "housing_tenure": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The household is 'Smith', Person 1 (David) is Male, 35, White, and not Hispanic. The enumerator is asking for the number of people in the household."
+    },
+    "ideal_output": {
+      "thinking": "David directly answers the question about the number of people in the household as 'Four'. The phrase 'including me' confirms that he is part of this count.",
+      "next_form_state": {
+        "Initial fields": {
+          "household_name_1": "Smith",
+          "household_sex_1": "Male",
+          "household_age_1": "35",
+          "household_race_1": "White",
+          "household_hispanic_origin_1": "No",
+          "number_of_people_in_household": "4",
+          "housing_tenure": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The household is 'Smith', with 4 people. Person 1 (David) is Male, 35, White, and not Hispanic."
+    },
+    "_conversation_id": "b108127b"
+  },
+  {
+    "input": {
+      "new_line": "Sarah 1739900000: Ready to start, Mark?",
+      "10_lines_before": {},
+      "form_name": "Performance Review",
+      "form_description": "A formal assessment of an employee's work performance and overall contribution to the company over a specific period.",
+      "current_form_state": {
+        "Initial fields": {
+          "employee_name": "N/A",
+          "review_period_start": "N/A",
+          "review_period_end": "N/A",
+          "reviewer_name": "N/A",
+          "key_strengths": "N/A",
+          "areas_for_development": "N/A",
+          "overall_rating": "N/A",
+          "employee_comments": "N/A",
+          "reviewer_signature": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Form: Performance Review. No information gathered yet."
+    },
+    "ideal_output": {
+      "thinking": "The user is initiating the conversation. This line is a greeting and doesn't provide any specific form data. Therefore, the form state remains unchanged.",
+      "next_form_state": {
+        "Initial fields": {
+          "employee_name": "N/A",
+          "review_period_start": "N/A",
+          "review_period_end": "N/A",
+          "reviewer_name": "N/A",
+          "key_strengths": "N/A",
+          "areas_for_development": "N/A",
+          "overall_rating": "N/A",
+          "employee_comments": "N/A",
+          "reviewer_signature": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Form: Performance Review. No information gathered yet."
+    },
+    "_conversation_id": "42b96eb9"
+  },
+  {
+    "input": {
+      "new_line": "Mark 1739900015: Yes, Sarah. Almost.",
+      "10_lines_before": {
+        "Sarah 1739900000": "Ready to start, Mark?"
+      },
+      "form_name": "Performance Review",
+      "form_description": "A formal assessment of an employee's work performance and overall contribution to the company over a specific period.",
+      "current_form_state": {
+        "Initial fields": {
+          "employee_name": "N/A",
+          "review_period_start": "N/A",
+          "review_period_end": "N/A",
+          "reviewer_name": "N/A",
+          "key_strengths": "N/A",
+          "areas_for_development": "N/A",
+          "overall_rating": "N/A",
+          "employee_comments": "N/A",
+          "reviewer_signature": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Form: Performance Review. No information gathered yet."
+    },
+    "ideal_output": {
+      "thinking": "This is a conversational filler and does not contribute any data to the form. The form state should remain unchanged.",
+      "next_form_state": {
+        "Initial fields": {
+          "employee_name": "N/A",
+          "review_period_start": "N/A",
+          "review_period_end": "N/A",
+          "reviewer_name": "N/A",
+          "key_strengths": "N/A",
+          "areas_for_development": "N/A",
+          "overall_rating": "N/A",
+          "employee_comments": "N/A",
+          "reviewer_signature": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Form: Performance Review. No information gathered yet."
+    },
+    "_conversation_id": "42b96eb9"
+  },
+  {
+    "input": {
+      "new_line": "Sarah 1739900022: Okay. So, Emily Chen?",
+      "10_lines_before": {
+        "Sarah 1739900000": "Ready to start, Mark?",
+        "Mark 1739900015": "Yes, Sarah. Almost."
+      },
+      "form_name": "Performance Review",
+      "form_description": "A formal assessment of an employee's work performance and overall contribution to the company over a specific period.",
+      "current_form_state": {
+        "Initial fields": {
+          "employee_name": "N/A",
+          "review_period_start": "N/A",
+          "review_period_end": "N/A",
+          "reviewer_name": "N/A",
+          "key_strengths": "N/A",
+          "areas_for_development": "N/A",
+          "overall_rating": "N/A",
+          "employee_comments": "N/A",
+          "reviewer_signature": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Form: Performance Review. No information gathered yet."
+    },
+    "ideal_output": {
+      "thinking": "This line is a confirmation of the employee's name. It directly maps to the 'employee_name' field. The 'current_summary_state' is updated to reflect this.",
+      "next_form_state": {
+        "Initial fields": {
+          "employee_name": "Emily Chen",
+          "review_period_start": "N/A",
+          "review_period_end": "N/A",
+          "reviewer_name": "N/A",
+          "key_strengths": "N/A",
+          "areas_for_development": "N/A",
+          "overall_rating": "N/A",
+          "employee_comments": "N/A",
+          "reviewer_signature": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Form: Performance Review. Employee Name: Emily Chen."
+    },
+    "_conversation_id": "42b96eb9"
+  },
+  {
+    "input": {
+      "new_line": "Mark 1739900035: That's right, Emily Chen.",
+      "10_lines_before": {
+        "Sarah 1739900000": "Ready to start, Mark?",
+        "Mark 1739900015": "Yes, Sarah. Almost.",
+        "Sarah 1739900022": "Okay. So, Emily Chen?"
+      },
+      "form_name": "Performance Review",
+      "form_description": "A formal assessment of an employee's work performance and overall contribution to the company over a specific period.",
+      "current_form_state": {
+        "Initial fields": {
+          "employee_name": "Emily Chen",
+          "review_period_start": "N/A",
+          "review_period_end": "N/A",
+          "reviewer_name": "N/A",
+          "key_strengths": "N/A",
+          "areas_for_development": "N/A",
+          "overall_rating": "N/A",
+          "employee_comments": "N/A",
+          "reviewer_signature": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Form: Performance Review. Employee Name: Emily Chen."
+    },
+    "ideal_output": {
+      "thinking": "This line confirms the employee's name, which was already captured. It's a confirmation and doesn't add new information to the form. The form state remains the same.",
+      "next_form_state": {
+        "Initial fields": {
+          "employee_name": "Emily Chen",
+          "review_period_start": "N/A",
+          "review_period_end": "N/A",
+          "reviewer_name": "N/A",
+          "key_strengths": "N/A",
+          "areas_for_development": "N/A",
+          "overall_rating": "N/A",
+          "employee_comments": "N/A",
+          "reviewer_signature": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Form: Performance Review. Employee Name: Emily Chen."
+    },
+    "_conversation_id": "42b96eb9"
+  },
+  {
+    "input": {
+      "new_line": "Sarah 1739900063: Uh, no. Feb first.",
+      "10_lines_before": {
+        "Sarah 1739900000": "Ready to start, Mark?",
+        "Mark 1739900015": "Yes, Sarah. Almost.",
+        "Sarah 1739900022": "Okay. So, Emily Chen?",
+        "Mark 1739900035": "That's right, Emily Chen.",
+        "Sarah 1739900048": "Review period, January to March?"
+      },
+      "form_name": "Performance Review",
+      "form_description": "A formal assessment of an employee's work performance and overall contribution to the company over a specific period.",
+      "current_form_state": {
+        "Initial fields": {
+          "employee_name": "Emily Chen",
+          "review_period_start": "N/A",
+          "review_period_end": "N/A",
+          "reviewer_name": "N/A",
+          "key_strengths": "N/A",
+          "areas_for_development": "N/A",
+          "overall_rating": "N/A",
+          "employee_comments": "N/A",
+          "reviewer_signature": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Form: Performance Review. Employee Name: Emily Chen. Review Period: January to March (correction needed)."
+    },
+    "ideal_output": {
+      "thinking": "This line corrects the previous statement about the review period start date. It provides the actual start date 'Feb first' which should update the 'review_period_start' field. The summary state is updated to reflect the corrected start date.",
+      "next_form_state": {
+        "Initial fields": {
+          "employee_name": "Emily Chen",
+          "review_period_start": "February first",
+          "review_period_end": "N/A",
+          "reviewer_name": "N/A",
+          "key_strengths": "N/A",
+          "areas_for_development": "N/A",
+          "overall_rating": "N/A",
+          "employee_comments": "N/A",
+          "reviewer_signature": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Form: Performance Review. Employee Name: Emily Chen. Review Period: February first to N/A."
+    },
+    "_conversation_id": "42b96eb9"
+  },
+  {
+    "input": {
+      "new_line": "Alice 1739900048: It's example-dot-com.net.",
+      "10_lines_before": {
+        "Alice 1739900000": "So, we need an SSL cert.",
+        "Bob 1739900012": "For the main site?",
+        "Alice 1739900020": "Yes, the main site.",
+        "Charlie 1739900035": "What's the domain name again?"
+      },
+      "form_name": "SSL Certificate Request",
+      "form_description": "A form to request a Secure Socket Layer (SSL) certificate for a website to enable encrypted communication.",
+      "current_form_state": {
+        "Initial fields": {
+          "domain_name": "N/A",
+          "organization_name": "N/A",
+          "organization_unit": "N/A",
+          "city_state": "N/A",
+          "country": "N/A",
+          "admin_contact_email": "N/A",
+          "technical_contact_email": "N/A",
+          "certificate_type": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "User wants an SSL certificate for their main site."
+    },
+    "ideal_output": {
+      "thinking": "The user is providing the domain name for the SSL certificate request. This directly maps to the 'domain_name' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "domain_name": "example-dot-com.net",
+          "organization_name": "N/A",
+          "organization_unit": "N/A",
+          "city_state": "N/A",
+          "country": "N/A",
+          "admin_contact_email": "N/A",
+          "technical_contact_email": "N/A",
+          "certificate_type": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "User wants an SSL certificate for their main site, example-dot-com.net."
+    },
+    "_conversation_id": "62d840d1"
+  },
+  {
+    "input": {
+      "new_line": "Alice 1739900089: Global Innovations Inc.",
+      "10_lines_before": {
+        "Alice 1739900000": "So, we need an SSL cert.",
+        "Bob 1739900012": "For the main site?",
+        "Alice 1739900020": "Yes, the main site.",
+        "Charlie 1739900035": "What's the domain name again?",
+        "Alice 1739900048": "It's example-dot-com.net.",
+        "Bob 1739900061": "Got it. Example-dot-com.net.",
+        "Charlie 1739900075": "And the organization name?"
+      },
+      "form_name": "SSL Certificate Request",
+      "form_description": "A form to request a Secure Socket Layer (SSL) certificate for a website to enable encrypted communication.",
+      "current_form_state": {
+        "Initial fields": {
+          "domain_name": "example-dot-com.net",
+          "organization_name": "N/A",
+          "organization_unit": "N/A",
+          "city_state": "N/A",
+          "country": "N/A",
+          "admin_contact_email": "N/A",
+          "technical_contact_email": "N/A",
+          "certificate_type": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "User wants an SSL certificate for their main site, example-dot-com.net. They are now providing the organization name."
+    },
+    "ideal_output": {
+      "thinking": "The user is providing the organization name, which directly maps to the 'organization_name' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "domain_name": "example-dot-com.net",
+          "organization_name": "Global Innovations Inc.",
+          "organization_unit": "N/A",
+          "city_state": "N/A",
+          "country": "N/A",
+          "admin_contact_email": "N/A",
+          "technical_contact_email": "N/A",
+          "certificate_type": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "User wants an SSL certificate for Global Innovations Inc. on their main site, example-dot-com.net."
+    },
+    "_conversation_id": "62d840d1"
+  },
+  {
+    "input": {
+      "new_line": "Alice 1739900129: Just IT Services.",
+      "10_lines_before": {
+        "Alice 1739900000": "So, we need an SSL cert.",
+        "Bob 1739900012": "For the main site?",
+        "Alice 1739900020": "Yes, the main site.",
+        "Charlie 1739900035": "What's the domain name again?",
+        "Alice 1739900048": "It's example-dot-com.net.",
+        "Bob 1739900061": "Got it. Example-dot-com.net.",
+        "Charlie 1739900075": "And the organization name?",
+        "Alice 1739900089": "Global Innovations Inc.",
+        "Bob 1739900098": "Global Innovations Inc.",
+        "Charlie 1739900115": "What about department or unit?"
+      },
+      "form_name": "SSL Certificate Request",
+      "form_description": "A form to request a Secure Socket Layer (SSL) certificate for a website to enable encrypted communication.",
+      "current_form_state": {
+        "Initial fields": {
+          "domain_name": "example-dot-com.net",
+          "organization_name": "Global Innovations Inc.",
+          "organization_unit": "N/A",
+          "city_state": "N/A",
+          "country": "N/A",
+          "admin_contact_email": "N/A",
+          "technical_contact_email": "N/A",
+          "certificate_type": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "User wants an SSL certificate for Global Innovations Inc. on example-dot-com.net. They are now providing the organizational unit."
+    },
+    "ideal_output": {
+      "thinking": "The user is providing the organizational unit, which maps to the 'organization_unit' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "domain_name": "example-dot-com.net",
+          "organization_name": "Global Innovations Inc.",
+          "organization_unit": "IT Services",
+          "city_state": "N/A",
+          "country": "N/A",
+          "admin_contact_email": "N/A",
+          "technical_contact_email": "N/A",
+          "certificate_type": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "User wants an SSL certificate for Global Innovations Inc., IT Services, on example-dot-com.net."
+    },
+    "_conversation_id": "62d840d1"
+  },
+  {
+    "input": {
+      "new_line": "Alice 1739900165: San Francisco, California.",
+      "10_lines_before": {
+        "Alice 1739900000": "So, we need an SSL cert.",
+        "Bob 1739900012": "For the main site?",
+        "Alice 1739900020": "Yes, the main site.",
+        "Charlie 1739900035": "What's the domain name again?",
+        "Alice 1739900048": "It's example-dot-com.net.",
+        "Bob 1739900061": "Got it. Example-dot-com.net.",
+        "Charlie 1739900075": "And the organization name?",
+        "Alice 1739900089": "Global Innovations Inc.",
+        "Bob 1739900098": "Global Innovations Inc.",
+        "Charlie 1739900115": "What about department or unit?",
+        "Alice 1739900129": "Just IT Services.",
+        "Bob 1739900140": "IT Services. Okay.",
+        "Charlie 1739900152": "Location? City, State?"
+      },
+      "form_name": "SSL Certificate Request",
+      "form_description": "A form to request a Secure Socket Layer (SSL) certificate for a website to enable encrypted communication.",
+      "current_form_state": {
+        "Initial fields": {
+          "domain_name": "example-dot-com.net",
+          "organization_name": "Global Innovations Inc.",
+          "organization_unit": "IT Services",
+          "city_state": "N/A",
+          "country": "N/A",
+          "admin_contact_email": "N/A",
+          "technical_contact_email": "N/A",
+          "certificate_type": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "User wants an SSL certificate for Global Innovations Inc., IT Services, on example-dot-com.net. They are now providing the city and state."
+    },
+    "ideal_output": {
+      "thinking": "The user is providing the city and state, which maps to the 'city_state' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "domain_name": "example-dot-com.net",
+          "organization_name": "Global Innovations Inc.",
+          "organization_unit": "IT Services",
+          "city_state": "San Francisco, California",
+          "country": "N/A",
+          "admin_contact_email": "N/A",
+          "technical_contact_email": "N/A",
+          "certificate_type": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "User wants an SSL certificate for Global Innovations Inc., IT Services, in San Francisco, California on example-dot-com.net."
+    },
+    "_conversation_id": "62d840d1"
+  },
+  {
+    "input": {
+      "new_line": "Alice 1739900240: admin@example-dot-com.net.",
+      "10_lines_before": {
+        "Alice 1739900000": "So, we need an SSL cert.",
+        "Bob 1739900012": "For the main site?",
+        "Alice 1739900020": "Yes, the main site.",
+        "Charlie 1739900035": "What's the domain name again?",
+        "Alice 1739900048": "It's example-dot-com.net.",
+        "Bob 1739900061": "Got it. Example-dot-com.net.",
+        "Charlie 1739900075": "And the organization name?",
+        "Alice 1739900089": "Global Innovations Inc.",
+        "Bob 1739900098": "Global Innovations Inc.",
+        "Charlie 1739900115": "What about department or unit?",
+        "Alice 1739900129": "Just IT Services.",
+        "Bob 1739900140": "IT Services. Okay.",
+        "Charlie 1739900152": "Location? City, State?",
+        "Alice 1739900165": "San Francisco, California.",
+        "Bob 1739900178": "San Francisco, CA.",
+        "Charlie 1739900190": "Country?",
+        "Alice 1739900201": "United States.",
+        "Bob 1739900215": "USA. And the emails?",
+        "Charlie 1739900228": "Admin contact email?"
+      },
+      "form_name": "SSL Certificate Request",
+      "form_description": "A form to request a Secure Socket Layer (SSL) certificate for a website to enable encrypted communication.",
+      "current_form_state": {
+        "Initial fields": {
+          "domain_name": "example-dot-com.net",
+          "organization_name": "Global Innovations Inc.",
+          "organization_unit": "IT Services",
+          "city_state": "San Francisco, California",
+          "country": "United States",
+          "admin_contact_email": "N/A",
+          "technical_contact_email": "N/A",
+          "certificate_type": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "User wants an SSL certificate for Global Innovations Inc., IT Services, in San Francisco, California, United States on example-dot-com.net. They are now providing the admin contact email."
+    },
+    "ideal_output": {
+      "thinking": "The user is providing the administrator contact email, which maps to the 'admin_contact_email' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "domain_name": "example-dot-com.net",
+          "organization_name": "Global Innovations Inc.",
+          "organization_unit": "IT Services",
+          "city_state": "San Francisco, California",
+          "country": "United States",
+          "admin_contact_email": "admin@example-dot-com.net",
+          "technical_contact_email": "N/A",
+          "certificate_type": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "User wants an SSL certificate for Global Innovations Inc., IT Services, in San Francisco, California, United States on example-dot-com.net with admin contact admin@example-dot-com.net."
+    },
+    "_conversation_id": "62d840d1"
+  },
+  {
+    "input": {
+      "new_line": "Sarah 1739900055: It's David Chen.",
+      "10_lines_before": {
+        "Sarah 1739900000": "Hello?",
+        "Nurse Miller 1739900015": "Hi, this is Nurse Miller.",
+        "Nurse Miller 1739900020": "Calling about a new prescription.",
+        "Sarah 1739900035": "Okay, go ahead.",
+        "Nurse Miller 1739900045": "Patient name, please?"
+      },
+      "form_name": "Prescription Pad (Rx)",
+      "form_description": "A legal document issued by a medical practitioner for the dispensing of specific medications or treatments to a patient.",
+      "current_form_state": {
+        "Initial fields": {
+          "patient_name": "N/A",
+          "patient_date_of_birth": "N/A",
+          "medication_name": "N/A",
+          "dosage": "N/A",
+          "route_of_administration": "N/A",
+          "frequency": "N/A",
+          "quantity_dispensed": "N/A",
+          "refills_authorized": "N/A",
+          "prescriber_name": "N/A",
+          "prescriber_dea_number": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The nurse is calling about a new prescription. The patient's name has been requested."
+    },
+    "ideal_output": {
+      "thinking": "The user provided the patient's name 'David Chen'. This fills the 'patient_name' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "patient_name": "David Chen",
+          "patient_date_of_birth": "N/A",
+          "medication_name": "N/A",
+          "dosage": "N/A",
+          "route_of_administration": "N/A",
+          "frequency": "N/A",
+          "quantity_dispensed": "N/A",
+          "refills_authorized": "N/A",
+          "prescriber_name": "N/A",
+          "prescriber_dea_number": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The patient's name is David Chen. The nurse has confirmed the name and is asking for the date of birth."
+    },
+    "_conversation_id": "8021609d"
+  },
+  {
+    "input": {
+      "new_line": "Sarah 1739900088: Uh, June 15th, 1985.",
+      "10_lines_before": {
+        "Sarah 1739900000": "Hello?",
+        "Nurse Miller 1739900015": "Hi, this is Nurse Miller.",
+        "Nurse Miller 1739900020": "Calling about a new prescription.",
+        "Sarah 1739900035": "Okay, go ahead.",
+        "Nurse Miller 1739900045": "Patient name, please?",
+        "Sarah 1739900055": "It's David Chen.",
+        "Nurse Miller 1739900068": "David Chen. Got it.",
+        "Nurse Miller 1739900075": "Date of birth?",
+        "Nurse Miller 1739900100": "June 15, 1985."
+      },
+      "form_name": "Prescription Pad (Rx)",
+      "form_description": "A legal document issued by a medical practitioner for the dispensing of specific medications or treatments to a patient.",
+      "current_form_state": {
+        "Initial fields": {
+          "patient_name": "David Chen",
+          "patient_date_of_birth": "N/A",
+          "medication_name": "N/A",
+          "dosage": "N/A",
+          "route_of_administration": "N/A",
+          "frequency": "N/A",
+          "quantity_dispensed": "N/A",
+          "refills_authorized": "N/A",
+          "prescriber_name": "N/A",
+          "prescriber_dea_number": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The patient's name is David Chen. The nurse has confirmed the name and is asking for the date of birth. The date of birth has been provided as June 15th, 1985."
+    },
+    "ideal_output": {
+      "thinking": "The user provided the patient's date of birth 'June 15th, 1985'. This fills the 'patient_date_of_birth' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "patient_name": "David Chen",
+          "patient_date_of_birth": "June 15th, 1985",
+          "medication_name": "N/A",
+          "dosage": "N/A",
+          "route_of_administration": "N/A",
+          "frequency": "N/A",
+          "quantity_dispensed": "N/A",
+          "refills_authorized": "N/A",
+          "prescriber_name": "N/A",
+          "prescriber_dea_number": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The patient's name is David Chen, DOB June 15th, 1985. The nurse is asking for the medication. The medication has been provided as Amoxicillin."
+    },
+    "_conversation_id": "8021609d"
+  },
+  {
+    "input": {
+      "new_line": "Sarah 1739900125: Amoxicillin.",
+      "10_lines_before": {
+        "Sarah 1739900055": "It's David Chen.",
+        "Nurse Miller 1739900068": "David Chen. Got it.",
+        "Nurse Miller 1739900075": "Date of birth?",
+        "Sarah 1739900088": "Uh, June 15th, 1985.",
+        "Nurse Miller 1739900100": "June 15, 1985.",
+        "Nurse Miller 1739900115": "And the medication?",
+        "Nurse Miller 1739900132": "Amoxicillin. What dosage?",
+        "Sarah 1739900148": "500 milligrams, please.",
+        "Nurse Miller 1739900160": "500 milligrams. Oral?",
+        "Sarah 1739900170": "Yes, oral. Twice daily."
+      },
+      "form_name": "Prescription Pad (Rx)",
+      "form_description": "A legal document issued by a medical practitioner for the dispensing of specific medications or treatments to a patient.",
+      "current_form_state": {
+        "Initial fields": {
+          "patient_name": "David Chen",
+          "patient_date_of_birth": "June 15th, 1985",
+          "medication_name": "N/A",
+          "dosage": "N/A",
+          "route_of_administration": "N/A",
+          "frequency": "N/A",
+          "quantity_dispensed": "N/A",
+          "refills_authorized": "N/A",
+          "prescriber_name": "N/A",
+          "prescriber_dea_number": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The patient is David Chen, DOB June 15th, 1985. The medication is Amoxicillin. The dosage is 500 milligrams. The route is oral, and the frequency is twice daily."
+    },
+    "ideal_output": {
+      "thinking": "The user provided the medication name 'Amoxicillin'. This fills the 'medication_name' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "patient_name": "David Chen",
+          "patient_date_of_birth": "June 15th, 1985",
+          "medication_name": "Amoxicillin",
+          "dosage": "N/A",
+          "route_of_administration": "N/A",
+          "frequency": "N/A",
+          "quantity_dispensed": "N/A",
+          "refills_authorized": "N/A",
+          "prescriber_name": "N/A",
+          "prescriber_dea_number": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The patient is David Chen, DOB June 15th, 1985. The medication is Amoxicillin, 500 milligrams, oral, twice daily. The nurse is asking for the quantity to be dispensed. The quantity has been provided as sixty tablets."
+    },
+    "_conversation_id": "8021609d"
+  },
+  {
+    "input": {
+      "new_line": "Sarah 1739900195: Sixty tablets.",
+      "10_lines_before": {
+        "Sarah 1739900075": "Date of birth?",
+        "Sarah 1739900088": "Uh, June 15th, 1985.",
+        "Nurse Miller 1739900100": "June 15, 1985.",
+        "Nurse Miller 1739900115": "And the medication?",
+        "Sarah 1739900125": "Amoxicillin.",
+        "Nurse Miller 1739900132": "Amoxicillin. What dosage?",
+        "Sarah 1739900148": "500 milligrams, please.",
+        "Nurse Miller 1739900160": "500 milligrams. Oral?",
+        "Sarah 1739900170": "Yes, oral. Twice daily.",
+        "Nurse Miller 1739900185": "Twice a day. How many?"
+      },
+      "form_name": "Prescription Pad (Rx)",
+      "form_description": "A legal document issued by a medical practitioner for the dispensing of specific medications or treatments to a patient.",
+      "current_form_state": {
+        "Initial fields": {
+          "patient_name": "David Chen",
+          "patient_date_of_birth": "June 15th, 1985",
+          "medication_name": "Amoxicillin",
+          "dosage": "500 milligrams",
+          "route_of_administration": "Oral",
+          "frequency": "Twice daily",
+          "quantity_dispensed": "N/A",
+          "refills_authorized": "N/A",
+          "prescriber_name": "N/A",
+          "prescriber_dea_number": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The patient is David Chen, DOB June 15th, 1985. The medication is Amoxicillin, 500 milligrams, oral, twice daily. The quantity to be dispensed is sixty tablets. The nurse is asking about refills."
+    },
+    "ideal_output": {
+      "thinking": "The user provided the quantity dispensed as 'Sixty tablets'. This fills the 'quantity_dispensed' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "patient_name": "David Chen",
+          "patient_date_of_birth": "June 15th, 1985",
+          "medication_name": "Amoxicillin",
+          "dosage": "500 milligrams",
+          "route_of_administration": "Oral",
+          "frequency": "Twice daily",
+          "quantity_dispensed": "Sixty tablets",
+          "refills_authorized": "N/A",
+          "prescriber_name": "N/A",
+          "prescriber_dea_number": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The patient is David Chen, DOB June 15th, 1985. The medication is Amoxicillin, 500 milligrams, oral, twice daily, dispensed as sixty tablets. The nurse is asking about refills. The refills authorized have been provided as one refill."
+    },
+    "_conversation_id": "8021609d"
+  },
+  {
+    "input": {
+      "new_line": "Sarah 1739900255: Dr. Anya Sharma.",
+      "10_lines_before": {
+        "Sarah 1739900115": "And the medication?",
+        "Sarah 1739900125": "Amoxicillin.",
+        "Nurse Miller 1739900132": "Amoxicillin. What dosage?",
+        "Sarah 1739900148": "500 milligrams, please.",
+        "Nurse Miller 1739900160": "500 milligrams. Oral?",
+        "Sarah 1739900170": "Yes, oral. Twice daily.",
+        "Nurse Miller 1739900185": "Twice a day. How many?",
+        "Sarah 1739900195": "Sixty tablets.",
+        "Nurse Miller 1739900205": "Sixty. And refills?",
+        "Sarah 1739900218": "One refill authorized."
+      },
+      "form_name": "Prescription Pad (Rx)",
+      "form_description": "A legal document issued by a medical practitioner for the dispensing of specific medications or treatments to a patient.",
+      "current_form_state": {
+        "Initial fields": {
+          "patient_name": "David Chen",
+          "patient_date_of_birth": "June 15th, 1985",
+          "medication_name": "Amoxicillin",
+          "dosage": "500 milligrams",
+          "route_of_administration": "Oral",
+          "frequency": "Twice daily",
+          "quantity_dispensed": "Sixty tablets",
+          "refills_authorized": "One refill",
+          "prescriber_name": "N/A",
+          "prescriber_dea_number": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The patient is David Chen, DOB June 15th, 1985. The medication is Amoxicillin, 500 milligrams, oral, twice daily, dispensed as sixty tablets with one refill authorized. The nurse is asking for the prescriber's name. The prescriber's name has been provided as Dr. Anya Sharma."
+    },
+    "ideal_output": {
+      "thinking": "The user provided the prescriber's name 'Dr. Anya Sharma'. This fills the 'prescriber_name' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "patient_name": "David Chen",
+          "patient_date_of_birth": "June 15th, 1985",
+          "medication_name": "Amoxicillin",
+          "dosage": "500 milligrams",
+          "route_of_administration": "Oral",
+          "frequency": "Twice daily",
+          "quantity_dispensed": "Sixty tablets",
+          "refills_authorized": "One refill",
+          "prescriber_name": "Dr. Anya Sharma",
+          "prescriber_dea_number": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The patient is David Chen, DOB June 15th, 1985. The medication is Amoxicillin, 500 milligrams, oral, twice daily, dispensed as sixty tablets with one refill authorized. The prescriber is Dr. Anya Sharma. The nurse thanked Dr. Sharma."
+    },
+    "_conversation_id": "8021609d"
+  },
+  {
+    "input": {
+      "new_line": "Driver Mike 1739900042: Michael Allen Jenkins.",
+      "10_lines_before": {
+        "Paramedic Sarah 1739900000": "Okay, stay calm, we're here.",
+        "Driver Mike 1739900017": "My head hurts. So much.",
+        "Paramedic Sarah 1739900029": "We need your full name."
+      },
+      "form_name": "Voter Registration Form",
+      "form_description": "A form used to register eligible citizens to vote in federal, state, and local elections.",
+      "current_form_state": {
+        "Initial fields": {
+          "full_legal_name": "N/A",
+          "date_of_birth": "N/A",
+          "residential_address": "N/A",
+          "mailing_address_if_different": "N/A",
+          "drivers_license_or_state_id": "N/A",
+          "last_4_ssn": "N/A",
+          "us_citizen_status": "N/A",
+          "eighteen_by_election": "N/A",
+          "political_party_affiliation": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The user is being attended to by paramedics after an accident. The paramedic is asking for the user's full legal name."
+    },
+    "ideal_output": {
+      "thinking": "The user provided their full legal name in response to the paramedic's question. This directly updates the 'full_legal_name' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "full_legal_name": "Michael Allen Jenkins",
+          "date_of_birth": "N/A",
+          "residential_address": "N/A",
+          "mailing_address_if_different": "N/A",
+          "drivers_license_or_state_id": "N/A",
+          "last_4_ssn": "N/A",
+          "us_citizen_status": "N/A",
+          "eighteen_by_election": "N/A",
+          "political_party_affiliation": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The user has provided their full legal name as 'Michael Allen Jenkins'. The paramedic is now asking for the date of birth."
+    },
+    "_conversation_id": "d10b7ed9"
+  },
+  {
+    "input": {
+      "new_line": "Driver Mike 1739900070: April 14, 1988.",
+      "10_lines_before": {
+        "Paramedic Sarah 1739900000": "Okay, stay calm, we're here.",
+        "Driver Mike 1739900017": "My head hurts. So much.",
+        "Paramedic Sarah 1739900029": "We need your full name.",
+        "Driver Mike 1739900042": "Michael Allen Jenkins.",
+        "Paramedic Sarah 1739900055": "Date of birth?"
+      },
+      "form_name": "Voter Registration Form",
+      "form_description": "A form used to register eligible citizens to vote in federal, state, and local elections.",
+      "current_form_state": {
+        "Initial fields": {
+          "full_legal_name": "Michael Allen Jenkins",
+          "date_of_birth": "N/A",
+          "residential_address": "N/A",
+          "mailing_address_if_different": "N/A",
+          "drivers_license_or_state_id": "N/A",
+          "last_4_ssn": "N/A",
+          "us_citizen_status": "N/A",
+          "eighteen_by_election": "N/A",
+          "political_party_affiliation": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The user's full legal name is 'Michael Allen Jenkins'. The paramedic is asking for the date of birth."
+    },
+    "ideal_output": {
+      "thinking": "The user provided their date of birth, which directly updates the 'date_of_birth' field. The format needs to be adjusted to MM/DD/YYYY.",
+      "next_form_state": {
+        "Initial fields": {
+          "full_legal_name": "Michael Allen Jenkins",
+          "date_of_birth": "04/14/1988",
+          "residential_address": "N/A",
+          "mailing_address_if_different": "N/A",
+          "drivers_license_or_state_id": "N/A",
+          "last_4_ssn": "N/A",
+          "us_citizen_status": "N/A",
+          "eighteen_by_election": "N/A",
+          "political_party_affiliation": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The user's date of birth is '04/14/1988'. The paramedic is now asking for the home address."
+    },
+    "_conversation_id": "d10b7ed9"
+  },
+  {
+    "input": {
+      "new_line": "Driver Mike 1739900095: 124 Maple Street, Albany.",
+      "10_lines_before": {
+        "Paramedic Sarah 1739900000": "Okay, stay calm, we're here.",
+        "Driver Mike 1739900017": "My head hurts. So much.",
+        "Paramedic Sarah 1739900029": "We need your full name.",
+        "Driver Mike 1739900042": "Michael Allen Jenkins.",
+        "Paramedic Sarah 1739900055": "Date of birth?",
+        "Driver Mike 1739900070": "April 14, 1988.",
+        "Paramedic Sarah 1739900083": "And your home address?"
+      },
+      "form_name": "Voter Registration Form",
+      "form_description": "A form used to register eligible citizens to vote in federal, state, and local elections.",
+      "current_form_state": {
+        "Initial fields": {
+          "full_legal_name": "Michael Allen Jenkins",
+          "date_of_birth": "04/14/1988",
+          "residential_address": "N/A",
+          "mailing_address_if_different": "N/A",
+          "drivers_license_or_state_id": "N/A",
+          "last_4_ssn": "N/A",
+          "us_citizen_status": "N/A",
+          "eighteen_by_election": "N/A",
+          "political_party_affiliation": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The user's full name is 'Michael Allen Jenkins' and their date of birth is '04/14/1988'. The paramedic is asking for the home address."
+    },
+    "ideal_output": {
+      "thinking": "The user provided their residential address. This directly updates the 'residential_address' field. The paramedic then asks if mail is sent there, which implies this is also the mailing address.",
+      "next_form_state": {
+        "Initial fields": {
+          "full_legal_name": "Michael Allen Jenkins",
+          "date_of_birth": "04/14/1988",
+          "residential_address": "124 Maple Street, Albany",
+          "mailing_address_if_different": "N/A",
+          "drivers_license_or_state_id": "N/A",
+          "last_4_ssn": "N/A",
+          "us_citizen_status": "N/A",
+          "eighteen_by_election": "N/A",
+          "political_party_affiliation": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The user's residential address is '124 Maple Street, Albany'. The paramedic is clarifying if mail is sent to this address."
+    },
+    "_conversation_id": "d10b7ed9"
+  },
+  {
+    "input": {
+      "new_line": "Driver Mike 1739900164: Seven-two-three-five.",
+      "10_lines_before": {
+        "Paramedic Sarah 1739900083": "And your home address?",
+        "Driver Mike 1739900095": "124 Maple Street, Albany.",
+        "Paramedic Sarah 1739900110": "Is mail sent there?",
+        "Driver Mike 1739900124": "Yes, it's fine.",
+        "Paramedic Sarah 1739900138": "Do you have a license?",
+        "Driver Mike 1739900150": "Yes, driver's license.",
+        "Paramedic Sarah 1739900164": "Last four of SSN?"
+      },
+      "form_name": "Voter Registration Form",
+      "form_description": "A form used to register eligible citizens to vote in federal, state, and local elections.",
+      "current_form_state": {
+        "Initial fields": {
+          "full_legal_name": "Michael Allen Jenkins",
+          "date_of_birth": "04/14/1988",
+          "residential_address": "124 Maple Street, Albany",
+          "mailing_address_if_different": "N/A",
+          "drivers_license_or_state_id": "N/A",
+          "last_4_ssn": "N/A",
+          "us_citizen_status": "N/A",
+          "eighteen_by_election": "N/A",
+          "political_party_affiliation": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The user's residential address is '124 Maple Street, Albany' and mail is sent there. The paramedic has confirmed the user has a driver's license and is asking for the last four digits of the SSN."
+    },
+    "ideal_output": {
+      "thinking": "The user provided the last four digits of their Social Security Number. This directly updates the 'last_4_ssn' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "full_legal_name": "Michael Allen Jenkins",
+          "date_of_birth": "04/14/1988",
+          "residential_address": "124 Maple Street, Albany",
+          "mailing_address_if_different": "N/A",
+          "drivers_license_or_state_id": "N/A",
+          "last_4_ssn": "7235",
+          "us_citizen_status": "N/A",
+          "eighteen_by_election": "N/A",
+          "political_party_affiliation": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The last four digits of the user's SSN are '7235'. The paramedic is now asking about US citizenship status."
+    },
+    "_conversation_id": "d10b7ed9"
+  },
+  {
+    "input": {
+      "new_line": "Driver Mike 1739900208: Yes, absolutely.",
+      "10_lines_before": {
+        "Driver Mike 1739900150": "Yes, driver's license.",
+        "Paramedic Sarah 1739900164": "Last four of SSN?",
+        "Driver Mike 1739900180": "Seven-two-three-five.",
+        "Paramedic Sarah 1739900194": "Are you a US citizen?"
+      },
+      "form_name": "Voter Registration Form",
+      "form_description": "A form used to register eligible citizens to vote in federal, state, and local elections.",
+      "current_form_state": {
+        "Initial fields": {
+          "full_legal_name": "Michael Allen Jenkins",
+          "date_of_birth": "04/14/1988",
+          "residential_address": "124 Maple Street, Albany",
+          "mailing_address_if_different": "N/A",
+          "drivers_license_or_state_id": "N/A",
+          "last_4_ssn": "7235",
+          "us_citizen_status": "N/A",
+          "eighteen_by_election": "N/A",
+          "political_party_affiliation": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The user's last four SSN digits are '7235'. The paramedic is asking if the user is a US citizen."
+    },
+    "ideal_output": {
+      "thinking": "The user confirmed they are a US citizen. This directly updates the 'us_citizen_status' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "full_legal_name": "Michael Allen Jenkins",
+          "date_of_birth": "04/14/1988",
+          "residential_address": "124 Maple Street, Albany",
+          "mailing_address_if_different": "N/A",
+          "drivers_license_or_state_id": "N/A",
+          "last_4_ssn": "7235",
+          "us_citizen_status": "Yes",
+          "eighteen_by_election": "N/A",
+          "political_party_affiliation": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The user has confirmed they are a US citizen. The paramedic is now asking if they will be 18 by the election."
+    },
+    "_conversation_id": "d10b7ed9"
+  },
+  {
+    "input": {
+      "new_line": "Mr. Davies 1739900015: Thomas Davies.",
+      "10_lines_before": {
+        "Officer Sterling 1739900000": "State your name for record."
+      },
+      "form_name": "Eviction Notice",
+      "form_description": "A formal document issued by a landlord to a tenant requesting them to vacate the rental property.",
+      "current_form_state": {
+        "Initial fields": {
+          "landlord_name": "N/A",
+          "tenant_name": "N/A",
+          "property_address": "N/A",
+          "reason_for_eviction": "N/A",
+          "notice_period_days": "N/A",
+          "amount_due_if_any": "N/A",
+          "lease_agreement_date": "N/A",
+          "date_issued": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The officer is asking for the tenant's name."
+    },
+    "ideal_output": {
+      "thinking": "The tenant is providing their name. This directly maps to the 'tenant_name' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "landlord_name": "N/A",
+          "tenant_name": "Thomas Davies",
+          "property_address": "N/A",
+          "reason_for_eviction": "N/A",
+          "notice_period_days": "N/A",
+          "amount_due_if_any": "N/A",
+          "lease_agreement_date": "N/A",
+          "date_issued": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The tenant's name is Thomas Davies."
+    },
+    "_conversation_id": "6293e353"
+  },
+  {
+    "input": {
+      "new_line": "Mr. Davies 1739900042: 14 Oak Street.",
+      "10_lines_before": {
+        "Officer Sterling 1739900000": "State your name for record.",
+        "Mr. Davies 1739900015": "Thomas Davies.",
+        "Officer Sterling 1739900029": "And your address?"
+      },
+      "form_name": "Eviction Notice",
+      "form_description": "A formal document issued by a landlord to a tenant requesting them to vacate the rental property.",
+      "current_form_state": {
+        "Initial fields": {
+          "landlord_name": "N/A",
+          "tenant_name": "Thomas Davies",
+          "property_address": "N/A",
+          "reason_for_eviction": "N/A",
+          "notice_period_days": "N/A",
+          "amount_due_if_any": "N/A",
+          "lease_agreement_date": "N/A",
+          "date_issued": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The tenant's name is Thomas Davies, and the officer is asking for the address."
+    },
+    "ideal_output": {
+      "thinking": "The tenant is providing the street address. This is part of the 'property_address' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "landlord_name": "N/A",
+          "tenant_name": "Thomas Davies",
+          "property_address": "14 Oak Street",
+          "reason_for_eviction": "N/A",
+          "notice_period_days": "N/A",
+          "amount_due_if_any": "N/A",
+          "lease_agreement_date": "N/A",
+          "date_issued": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The tenant is Thomas Davies at 14 Oak Street."
+    },
+    "_conversation_id": "6293e353"
+  },
+  {
+    "input": {
+      "new_line": "Mr. Davies 1739900101: Mrs. Eleanor Vance.",
+      "10_lines_before": {
+        "Officer Sterling 1739900058": "City?",
+        "Mr. Davies 1739900069": "Springfield.",
+        "Officer Sterling 1739900085": "Who is your landlord?"
+      },
+      "form_name": "Eviction Notice",
+      "form_description": "A formal document issued by a landlord to a tenant requesting them to vacate the rental property.",
+      "current_form_state": {
+        "Initial fields": {
+          "landlord_name": "N/A",
+          "tenant_name": "Thomas Davies",
+          "property_address": "14 Oak Street, Springfield",
+          "reason_for_eviction": "N/A",
+          "notice_period_days": "N/A",
+          "amount_due_if_any": "N/A",
+          "lease_agreement_date": "N/A",
+          "date_issued": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The tenant is Thomas Davies at 14 Oak Street, Springfield. The officer is asking for the landlord's name."
+    },
+    "ideal_output": {
+      "thinking": "The tenant is identifying their landlord. This information goes into the 'landlord_name' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "landlord_name": "Mrs. Eleanor Vance",
+          "tenant_name": "Thomas Davies",
+          "property_address": "14 Oak Street, Springfield",
+          "reason_for_eviction": "N/A",
+          "notice_period_days": "N/A",
+          "amount_due_if_any": "N/A",
+          "lease_agreement_date": "N/A",
+          "date_issued": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The landlord is Mrs. Eleanor Vance. The tenant is Thomas Davies at 14 Oak Street, Springfield."
+    },
+    "_conversation_id": "6293e353"
+  },
+  {
+    "input": {
+      "new_line": "Mr. Davies 1739900168: Unpaid rent.",
+      "10_lines_before": {
+        "Officer Sterling 1739900118": "Date of your lease?",
+        "Mr. Davies 1739900135": "August 1st, 2022.",
+        "Officer Sterling 1739900150": "Why are you being evicted?"
+      },
+      "form_name": "Eviction Notice",
+      "form_description": "A formal document issued by a landlord to a tenant requesting them to vacate the rental property.",
+      "current_form_state": {
+        "Initial fields": {
+          "landlord_name": "Mrs. Eleanor Vance",
+          "tenant_name": "Thomas Davies",
+          "property_address": "14 Oak Street, Springfield",
+          "reason_for_eviction": "N/A",
+          "notice_period_days": "N/A",
+          "amount_due_if_any": "N/A",
+          "lease_agreement_date": "August 1st, 2022",
+          "date_issued": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The lease date is August 1st, 2022. The officer is asking for the reason for eviction."
+    },
+    "ideal_output": {
+      "thinking": "The tenant is stating the reason for eviction. This directly maps to the 'reason_for_eviction' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "landlord_name": "Mrs. Eleanor Vance",
+          "tenant_name": "Thomas Davies",
+          "property_address": "14 Oak Street, Springfield",
+          "reason_for_eviction": "Unpaid rent",
+          "notice_period_days": "N/A",
+          "amount_due_if_any": "N/A",
+          "lease_agreement_date": "August 1st, 2022",
+          "date_issued": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The reason for eviction is unpaid rent. The lease date is August 1st, 2022."
+    },
+    "_conversation_id": "6293e353"
+  },
+  {
+    "input": {
+      "new_line": "Mr. Davies 1739900263: Thirty days.",
+      "10_lines_before": {
+        "Officer Sterling 1739900185": "How much is owed?",
+        "Mr. Davies 1739900203": "Two months rent.",
+        "Officer Sterling 1739900220": "That's $1800?",
+        "Mr. Davies 1739900232": "Yes, that's right.",
+        "Officer Sterling 1739900248": "Notice period?"
+      },
+      "form_name": "Eviction Notice",
+      "form_description": "A formal document issued by a landlord to a tenant requesting them to vacate the rental property.",
+      "current_form_state": {
+        "Initial fields": {
+          "landlord_name": "Mrs. Eleanor Vance",
+          "tenant_name": "Thomas Davies",
+          "property_address": "14 Oak Street, Springfield",
+          "reason_for_eviction": "Unpaid rent",
+          "notice_period_days": "N/A",
+          "amount_due_if_any": "$1800",
+          "lease_agreement_date": "August 1st, 2022",
+          "date_issued": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The amount due is $1800. The officer is asking for the notice period."
+    },
+    "ideal_output": {
+      "thinking": "The tenant is specifying the notice period for the eviction. This directly maps to the 'notice_period_days' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "landlord_name": "Mrs. Eleanor Vance",
+          "tenant_name": "Thomas Davies",
+          "property_address": "14 Oak Street, Springfield",
+          "reason_for_eviction": "Unpaid rent",
+          "notice_period_days": "30",
+          "amount_due_if_any": "$1800",
+          "lease_agreement_date": "August 1st, 2022",
+          "date_issued": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The notice period is 30 days. The amount due is $1800."
+    },
+    "_conversation_id": "6293e353"
+  },
+  {
+    "input": {
+      "new_line": "Lena 1739900005: Okay, direct deposit form.",
+      "10_lines_before": {},
+      "form_name": "Direct Deposit Authorization",
+      "form_description": "Authorizes an employer to deposit an employee's wages directly into a specified bank account.",
+      "current_form_state": {
+        "Initial fields": {
+          "employee_name": "N/A",
+          "employee_id": "N/A",
+          "bank_name": "N/A",
+          "bank_account_type": "N/A",
+          "bank_account_number": "N/A",
+          "bank_routing_number": "N/A",
+          "deposit_amount_type": "N/A",
+          "amount_to_deposit": "N/A",
+          "employee_signature_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The user wants to fill out a direct deposit form."
+    },
+    "ideal_output": {
+      "thinking": "The user is initiating the form. This line is a confirmation and doesn't provide any specific data, so the form state remains unchanged. The summary state reflects the initiation of the form.",
+      "next_form_state": {
+        "Initial fields": {
+          "employee_name": "N/A",
+          "employee_id": "N/A",
+          "bank_name": "N/A",
+          "bank_account_type": "N/A",
+          "bank_account_number": "N/A",
+          "bank_routing_number": "N/A",
+          "deposit_amount_type": "N/A",
+          "amount_to_deposit": "N/A",
+          "employee_signature_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The user wants to fill out a direct deposit form."
+    },
+    "_conversation_id": "775450b6"
+  },
+  {
+    "input": {
+      "new_line": "Lena 1739900020: My name is Lena Hanson.",
+      "10_lines_before": {
+        "Lena 1739900005": "Okay, direct deposit form."
+      },
+      "form_name": "Direct Deposit Authorization",
+      "form_description": "Authorizes an employer to deposit an employee's wages directly into a specified bank account.",
+      "current_form_state": {
+        "Initial fields": {
+          "employee_name": "N/A",
+          "employee_id": "N/A",
+          "bank_name": "N/A",
+          "bank_account_type": "N/A",
+          "bank_account_number": "N/A",
+          "bank_routing_number": "N/A",
+          "deposit_amount_type": "N/A",
+          "amount_to_deposit": "N/A",
+          "employee_signature_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The user wants to fill out a direct deposit form."
+    },
+    "ideal_output": {
+      "thinking": "The user is providing their name, which directly maps to the 'employee_name' field. The form state is updated with this information.",
+      "next_form_state": {
+        "Initial fields": {
+          "employee_name": "Lena Hanson",
+          "employee_id": "N/A",
+          "bank_name": "N/A",
+          "bank_account_type": "N/A",
+          "bank_account_number": "N/A",
+          "bank_routing_number": "N/A",
+          "deposit_amount_type": "N/A",
+          "amount_to_deposit": "N/A",
+          "employee_signature_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The user has provided their name and wants to fill out a direct deposit form."
+    },
+    "_conversation_id": "775450b6"
+  },
+  {
+    "input": {
+      "new_line": "Lena 1739900035: Employee ID is 78901.",
+      "10_lines_before": {
+        "Lena 1739900005": "Okay, direct deposit form.",
+        "Lena 1739900020": "My name is Lena Hanson."
+      },
+      "form_name": "Direct Deposit Authorization",
+      "form_description": "Authorizes an employer to deposit an employee's wages directly into a specified bank account.",
+      "current_form_state": {
+        "Initial fields": {
+          "employee_name": "Lena Hanson",
+          "employee_id": "N/A",
+          "bank_name": "N/A",
+          "bank_account_type": "N/A",
+          "bank_account_number": "N/A",
+          "bank_routing_number": "N/A",
+          "deposit_amount_type": "N/A",
+          "amount_to_deposit": "N/A",
+          "employee_signature_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The user has provided their name and wants to fill out a direct deposit form."
+    },
+    "ideal_output": {
+      "thinking": "The user is providing their employee ID, which maps to the 'employee_id' field. The form state is updated.",
+      "next_form_state": {
+        "Initial fields": {
+          "employee_name": "Lena Hanson",
+          "employee_id": "78901",
+          "bank_name": "N/A",
+          "bank_account_type": "N/A",
+          "bank_account_number": "N/A",
+          "bank_routing_number": "N/A",
+          "deposit_amount_type": "N/A",
+          "amount_to_deposit": "N/A",
+          "employee_signature_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The user has provided their name and employee ID for the direct deposit form."
+    },
+    "_conversation_id": "775450b6"
+  },
+  {
+    "input": {
+      "new_line": "Lena 1739900058: Bank name... First National.",
+      "10_lines_before": {
+        "Lena 1739900005": "Okay, direct deposit form.",
+        "Lena 1739900020": "My name is Lena Hanson.",
+        "Lena 1739900035": "Employee ID is 78901."
+      },
+      "form_name": "Direct Deposit Authorization",
+      "form_description": "Authorizes an employer to deposit an employee's wages directly into a specified bank account.",
+      "current_form_state": {
+        "Initial fields": {
+          "employee_name": "Lena Hanson",
+          "employee_id": "78901",
+          "bank_name": "N/A",
+          "bank_account_type": "N/A",
+          "bank_account_number": "N/A",
+          "bank_routing_number": "N/A",
+          "deposit_amount_type": "N/A",
+          "amount_to_deposit": "N/A",
+          "employee_signature_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The user has provided their name and employee ID for the direct deposit form."
+    },
+    "ideal_output": {
+      "thinking": "The user is providing the bank name, which maps to the 'bank_name' field. The form state is updated.",
+      "next_form_state": {
+        "Initial fields": {
+          "employee_name": "Lena Hanson",
+          "employee_id": "78901",
+          "bank_name": "First National",
+          "bank_account_type": "N/A",
+          "bank_account_number": "N/A",
+          "bank_routing_number": "N/A",
+          "deposit_amount_type": "N/A",
+          "amount_to_deposit": "N/A",
+          "employee_signature_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The user has provided their name, employee ID, and bank name for the direct deposit form."
+    },
+    "_conversation_id": "775450b6"
+  },
+  {
+    "input": {
+      "new_line": "Lena 1739900080: Account type is checking.",
+      "10_lines_before": {
+        "Lena 1739900005": "Okay, direct deposit form.",
+        "Lena 1739900020": "My name is Lena Hanson.",
+        "Lena 1739900035": "Employee ID is 78901.",
+        "Lena 1739900058": "Bank name... First National."
+      },
+      "form_name": "Direct Deposit Authorization",
+      "form_description": "Authorizes an employer to deposit an employee's wages directly into a specified bank account.",
+      "current_form_state": {
+        "Initial fields": {
+          "employee_name": "Lena Hanson",
+          "employee_id": "78901",
+          "bank_name": "First National",
+          "bank_account_type": "N/A",
+          "bank_account_number": "N/A",
+          "bank_routing_number": "N/A",
+          "deposit_amount_type": "N/A",
+          "amount_to_deposit": "N/A",
+          "employee_signature_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The user has provided their name, employee ID, and bank name for the direct deposit form."
+    },
+    "ideal_output": {
+      "thinking": "The user is specifying the account type, which maps to 'bank_account_type'. The form state is updated.",
+      "next_form_state": {
+        "Initial fields": {
+          "employee_name": "Lena Hanson",
+          "employee_id": "78901",
+          "bank_name": "First National",
+          "bank_account_type": "checking",
+          "bank_account_number": "N/A",
+          "bank_routing_number": "N/A",
+          "deposit_amount_type": "N/A",
+          "amount_to_deposit": "N/A",
+          "employee_signature_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The user has provided their name, employee ID, bank name, and account type for the direct deposit form."
+    },
+    "_conversation_id": "775450b6"
+  },
+  {
+    "input": {
+      "new_line": "Patient [1678886415]: It's more like 'hardly at all.'",
+      "10_lines_before": {
+        "Patient [1678886400]": "Okay, for little interest.",
+        "Patient [1678886405]": "I said 'not much.'",
+        "Patient [1678886410]": "Actually, that's wrong."
+      },
+      "form_name": "PHQ-9 (Patient Health Questionnaire)",
+      "form_description": "This screening tool assesses the severity of depression over the last two weeks by asking about common symptoms.",
+      "current_form_state": {
+        "Initial fields": {
+          "little_interest_pleasure": "not much",
+          "feeling_down_depressed_hopeless": "N/A",
+          "sleep_trouble": "N/A",
+          "feeling_tired_low_energy": "N/A",
+          "poor_appetite_overeating": "N/A",
+          "feeling_bad_about_self": "N/A",
+          "trouble_concentrating": "N/A",
+          "slow_fast_movement": "N/A",
+          "thoughts_of_self_harm": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The patient initially stated 'not much' for 'little interest or pleasure in doing things?' but then corrected themselves to 'hardly at all.'"
+    },
+    "ideal_output": {
+      "thinking": "The patient is revising their previous answer for 'little_interest_pleasure' from 'not much' to 'hardly at all'. This is a state change from a previous answer.",
+      "next_form_state": {
+        "Initial fields": {
+          "little_interest_pleasure": "hardly at all",
+          "feeling_down_depressed_hopeless": "N/A",
+          "sleep_trouble": "N/A",
+          "feeling_tired_low_energy": "N/A",
+          "poor_appetite_overeating": "N/A",
+          "feeling_bad_about_self": "N/A",
+          "trouble_concentrating": "N/A",
+          "slow_fast_movement": "N/A",
+          "thoughts_of_self_harm": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The patient corrected their answer for 'little interest or pleasure in doing things?' from 'not much' to 'hardly at all'."
+    },
+    "_conversation_id": "5faff562"
+  },
+  {
+    "input": {
+      "new_line": "Patient [1678886440]: It's 'nearly every day.'",
+      "10_lines_before": {
+        "Clinician [1678886425]": "Got it. Sleep trouble?",
+        "Patient [1678886430]": "I said 'several days.'",
+        "Patient [1678886435]": "Let me revise that."
+      },
+      "form_name": "PHQ-9 (Patient Health Questionnaire)",
+      "form_description": "This screening tool assesses the severity of depression over the last two weeks by asking about common symptoms.",
+      "current_form_state": {
+        "Initial fields": {
+          "little_interest_pleasure": "hardly at all",
+          "feeling_down_depressed_hopeless": "N/A",
+          "sleep_trouble": "several days",
+          "feeling_tired_low_energy": "N/A",
+          "poor_appetite_overeating": "N/A",
+          "feeling_bad_about_self": "N/A",
+          "trouble_concentrating": "N/A",
+          "slow_fast_movement": "N/A",
+          "thoughts_of_self_harm": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The patient initially stated 'several days' for 'trouble falling or staying asleep, or sleeping too much?' but then corrected themselves to 'nearly every day'."
+    },
+    "ideal_output": {
+      "thinking": "The patient is revising their previous answer for 'sleep_trouble' from 'several days' to 'nearly every day'. This is a state change from a previous answer.",
+      "next_form_state": {
+        "Initial fields": {
+          "little_interest_pleasure": "hardly at all",
+          "feeling_down_depressed_hopeless": "N/A",
+          "sleep_trouble": "nearly every day",
+          "feeling_tired_low_energy": "N/A",
+          "poor_appetite_overeating": "N/A",
+          "feeling_bad_about_self": "N/A",
+          "trouble_concentrating": "N/A",
+          "slow_fast_movement": "N/A",
+          "thoughts_of_self_harm": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The patient corrected their answer for 'trouble falling or staying asleep, or sleeping too much?' from 'several days' to 'nearly every day'."
+    },
+    "_conversation_id": "5faff562"
+  },
+  {
+    "input": {
+      "new_line": "Patient [1678886465]: It's been 'most days.'",
+      "10_lines_before": {
+        "Clinician [1678886450]": "Feeling down, depressed, hopeless?",
+        "Patient [1678886455]": "I think I said 'some days.'",
+        "Patient [1678886460]": "No, that's not right."
+      },
+      "form_name": "PHQ-9 (Patient Health Questionnaire)",
+      "form_description": "This screening tool assesses the severity of depression over the last two weeks by asking about common symptoms.",
+      "current_form_state": {
+        "Initial fields": {
+          "little_interest_pleasure": "hardly at all",
+          "feeling_down_depressed_hopeless": "some days",
+          "sleep_trouble": "nearly every day",
+          "feeling_tired_low_energy": "N/A",
+          "poor_appetite_overeating": "N/A",
+          "feeling_bad_about_self": "N/A",
+          "trouble_concentrating": "N/A",
+          "slow_fast_movement": "N/A",
+          "thoughts_of_self_harm": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The patient initially stated 'some days' for 'feeling down, depressed, or hopeless?' but then corrected themselves to 'most days'."
+    },
+    "ideal_output": {
+      "thinking": "The patient is revising their previous answer for 'feeling_down_depressed_hopeless' from 'some days' to 'most days'. This is a state change from a previous answer.",
+      "next_form_state": {
+        "Initial fields": {
+          "little_interest_pleasure": "hardly at all",
+          "feeling_down_depressed_hopeless": "most days",
+          "sleep_trouble": "nearly every day",
+          "feeling_tired_low_energy": "N/A",
+          "poor_appetite_overeating": "N/A",
+          "feeling_bad_about_self": "N/A",
+          "trouble_concentrating": "N/A",
+          "slow_fast_movement": "N/A",
+          "thoughts_of_self_harm": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The patient corrected their answer for 'feeling down, depressed, or hopeless?' from 'some days' to 'most days'."
+    },
+    "_conversation_id": "5faff562"
+  },
+  {
+    "input": {
+      "new_line": "Patient [1678886490]: It is 'very difficult.'",
+      "10_lines_before": {
+        "Clinician [1678886475]": "And concentration?",
+        "Patient [1678886480]": "I definitely said 'not difficult.'",
+        "Patient [1678886485]": "Revising that now."
+      },
+      "form_name": "PHQ-9 (Patient Health Questionnaire)",
+      "form_description": "This screening tool assesses the severity of depression over the last two weeks by asking about common symptoms.",
+      "current_form_state": {
+        "Initial fields": {
+          "little_interest_pleasure": "hardly at all",
+          "feeling_down_depressed_hopeless": "most days",
+          "sleep_trouble": "nearly every day",
+          "feeling_tired_low_energy": "N/A",
+          "poor_appetite_overeating": "N/A",
+          "feeling_bad_about_self": "N/A",
+          "trouble_concentrating": "not difficult",
+          "slow_fast_movement": "N/A",
+          "thoughts_of_self_harm": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The patient initially stated 'not difficult' for 'trouble concentrating on things, such as reading the newspaper or watching television?' but then corrected themselves to 'very difficult'."
+    },
+    "ideal_output": {
+      "thinking": "The patient is revising their previous answer for 'trouble_concentrating' from 'not difficult' to 'very difficult'. This is a state change from a previous answer.",
+      "next_form_state": {
+        "Initial fields": {
+          "little_interest_pleasure": "hardly at all",
+          "feeling_down_depressed_hopeless": "most days",
+          "sleep_trouble": "nearly every day",
+          "feeling_tired_low_energy": "N/A",
+          "poor_appetite_overeating": "N/A",
+          "feeling_bad_about_self": "N/A",
+          "trouble_concentrating": "very difficult",
+          "slow_fast_movement": "N/A",
+          "thoughts_of_self_harm": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The patient corrected their answer for 'trouble concentrating on things, such as reading the newspaper or watching television?' from 'not difficult' to 'very difficult'."
+    },
+    "_conversation_id": "5faff562"
+  },
+  {
+    "input": {
+      "new_line": "Patient [1678886410]: Actually, that's wrong.",
+      "10_lines_before": {
+        "Patient [1678886400]": "Okay, for little interest.",
+        "Patient [1678886405]": "I said 'not much.'"
+      },
+      "form_name": "PHQ-9 (Patient Health Questionnaire)",
+      "form_description": "This screening tool assesses the severity of depression over the last two weeks by asking about common symptoms.",
+      "current_form_state": {
+        "Initial fields": {
+          "little_interest_pleasure": "not much",
+          "feeling_down_depressed_hopeless": "N/A",
+          "sleep_trouble": "N/A",
+          "feeling_tired_low_energy": "N/A",
+          "poor_appetite_overeating": "N/A",
+          "feeling_bad_about_self": "N/A",
+          "trouble_concentrating": "N/A",
+          "slow_fast_movement": "N/A",
+          "thoughts_of_self_harm": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The patient initially stated 'not much' for 'little interest or pleasure in doing things?' but then indicated that this answer was incorrect."
+    },
+    "ideal_output": {
+      "thinking": "The patient is retracting their previous answer ('not much') for 'little_interest_pleasure' and indicating it is wrong. This is a retraction and a precursor to a correction.",
+      "next_form_state": {
+        "Initial fields": {
+          "little_interest_pleasure": "N/A",
+          "feeling_down_depressed_hopeless": "N/A",
+          "sleep_trouble": "N/A",
+          "feeling_tired_low_energy": "N/A",
+          "poor_appetite_overeating": "N/A",
+          "feeling_bad_about_self": "N/A",
+          "trouble_concentrating": "N/A",
+          "slow_fast_movement": "N/A",
+          "thoughts_of_self_harm": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The patient retracted their answer of 'not much' for 'little interest or pleasure in doing things?' indicating it was incorrect."
+    },
+    "_conversation_id": "5faff562"
+  },
+  {
+    "input": {
+      "new_line": "Owner 1701000030: Wait, I filed for Unit A. Big change.",
+      "10_lines_before": {
+        "Contractor 1701000000": "Regarding claimant_name, it's SteelPros. Not Steel Pro.",
+        "Owner 1701000010": "SteelPros, okay. Clarified.",
+        "Contractor 1701000020": "Property address. It's 123 Oak Street, Unit B."
+      },
+      "form_name": "Mechanic's Lien",
+      "form_description": "A legal claim placed on real property by a contractor, subcontractor, or supplier to secure payment for labor or materials provided for improvements.",
+      "current_form_state": {
+        "Initial fields": {
+          "claimant_name": "SteelPros",
+          "claimant_address": "N/A",
+          "property_owner_name": "N/A",
+          "property_address": "123 Oak Street, Unit B",
+          "description_of_work_materials": "N/A",
+          "date_work_completed_or_last_furnished": "N/A",
+          "amount_claimed": "N/A",
+          "date_lien_filed": "N/A",
+          "notice_of_intent_to_lien_sent_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Claimant is SteelPros. Property address is 123 Oak Street, Unit B."
+    },
+    "ideal_output": {
+      "thinking": "The owner is correcting the property address, changing it from Unit B to Unit A. This is a state change for the 'property_address' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "claimant_name": "SteelPros",
+          "claimant_address": "N/A",
+          "property_owner_name": "N/A",
+          "property_address": "123 Oak Street, Unit A",
+          "description_of_work_materials": "N/A",
+          "date_work_completed_or_last_furnished": "N/A",
+          "amount_claimed": "N/A",
+          "date_lien_filed": "N/A",
+          "notice_of_intent_to_lien_sent_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Claimant is SteelPros. Property address is 123 Oak Street, Unit A."
+    },
+    "_conversation_id": "bdd7d078"
+  },
+  {
+    "input": {
+      "new_line": "Owner 1701000070: Plumbing? You didn't list that. Significant deletion.",
+      "10_lines_before": {
+        "Contractor 1701000020": "Property address. It's 123 Oak Street, Unit B.",
+        "Owner 1701000030": "Wait, I filed for Unit A. Big change.",
+        "Contractor 1701000040": "Ah, right. Unit B. My mistake.",
+        "Owner 1701000050": "Description of work: HVAC installation. That's it.",
+        "Contractor 1701000060": "No, I did plumbing too. That's crucial."
+      },
+      "form_name": "Mechanic's Lien",
+      "form_description": "A legal claim placed on real property by a contractor, subcontractor, or supplier to secure payment for labor or materials provided for improvements.",
+      "current_form_state": {
+        "Initial fields": {
+          "claimant_name": "SteelPros",
+          "claimant_address": "N/A",
+          "property_owner_name": "N/A",
+          "property_address": "123 Oak Street, Unit A",
+          "description_of_work_materials": "HVAC installation",
+          "date_work_completed_or_last_furnished": "N/A",
+          "amount_claimed": "N/A",
+          "date_lien_filed": "N/A",
+          "notice_of_intent_to_lien_sent_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Claimant is SteelPros. Property address is 123 Oak Street, Unit A. Description of work is HVAC installation."
+    },
+    "ideal_output": {
+      "thinking": "The owner is pointing out that 'plumbing' was not listed in the description of work, which was previously stated as only 'HVAC installation'. This is a clarification of a deletion (plumbing was omitted).",
+      "next_form_state": {
+        "Initial fields": {
+          "claimant_name": "SteelPros",
+          "claimant_address": "N/A",
+          "property_owner_name": "N/A",
+          "property_address": "123 Oak Street, Unit A",
+          "description_of_work_materials": "HVAC installation, plumbing",
+          "date_work_completed_or_last_furnished": "N/A",
+          "amount_claimed": "N/A",
+          "date_lien_filed": "N/A",
+          "notice_of_intent_to_lien_sent_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Claimant is SteelPros. Property address is 123 Oak Street, Unit A. Description of work is HVAC installation and plumbing."
+    },
+    "_conversation_id": "bdd7d078"
+  },
+  {
+    "input": {
+      "new_line": "Contractor 1701000080: Yes, plumbing. My apologies. Re-add it please.",
+      "10_lines_before": {
+        "Contractor 1701000040": "Ah, right. Unit B. My mistake.",
+        "Owner 1701000050": "Description of work: HVAC installation. That's it.",
+        "Contractor 1701000060": "No, I did plumbing too. That's crucial.",
+        "Owner 1701000070": "Plumbing? You didn't list that. Significant deletion.",
+        "Contractor 1701000080": "Yes, plumbing. My apologies. Re-add it please."
+      },
+      "form_name": "Mechanic's Lien",
+      "form_description": "A legal claim placed on real property by a contractor, subcontractor, or supplier to secure payment for labor or materials provided for improvements.",
+      "current_form_state": {
+        "Initial fields": {
+          "claimant_name": "SteelPros",
+          "claimant_address": "N/A",
+          "property_owner_name": "N/A",
+          "property_address": "123 Oak Street, Unit A",
+          "description_of_work_materials": "HVAC installation",
+          "date_work_completed_or_last_furnished": "N/A",
+          "amount_claimed": "N/A",
+          "date_lien_filed": "N/A",
+          "notice_of_intent_to_lien_sent_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Claimant is SteelPros. Property address is 123 Oak Street, Unit A. Description of work is HVAC installation."
+    },
+    "ideal_output": {
+      "thinking": "This line confirms the contractor's intent to re-add 'plumbing' to the description of work, which was previously omitted. This is a correction after a deletion.",
+      "next_form_state": {
+        "Initial fields": {
+          "claimant_name": "SteelPros",
+          "claimant_address": "N/A",
+          "property_owner_name": "N/A",
+          "property_address": "123 Oak Street, Unit A",
+          "description_of_work_materials": "HVAC installation, plumbing",
+          "date_work_completed_or_last_furnished": "N/A",
+          "amount_claimed": "N/A",
+          "date_lien_filed": "N/A",
+          "notice_of_intent_to_lien_sent_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Claimant is SteelPros. Property address is 123 Oak Street, Unit A. Description of work is HVAC installation and plumbing."
+    },
+    "_conversation_id": "bdd7d078"
+  },
+  {
+    "input": {
+      "new_line": "Owner 1701000130: Interest! That's a new charge. Revise amount.",
+      "10_lines_before": {
+        "Contractor 1701000060": "No, I did plumbing too. That's crucial.",
+        "Owner 1701000070": "Plumbing? You didn't list that. Significant deletion.",
+        "Contractor 1701000080": "Yes, plumbing. My apologies. Re-add it please.",
+        "Owner 1701000090": "Date work completed. August 1st? Or 2nd?",
+        "Contractor 1701000100": "August 2nd. The final inspection was then.",
+        "Owner 1701000110": "Amount claimed. $15,000. Was that final?",
+        "Contractor 1701000120": "No, $16,500. With accrued interest."
+      },
+      "form_name": "Mechanic's Lien",
+      "form_description": "A legal claim placed on real property by a contractor, subcontractor, or supplier to secure payment for labor or materials provided for improvements.",
+      "current_form_state": {
+        "Initial fields": {
+          "claimant_name": "SteelPros",
+          "claimant_address": "N/A",
+          "property_owner_name": "N/A",
+          "property_address": "123 Oak Street, Unit A",
+          "description_of_work_materials": "HVAC installation, plumbing",
+          "date_work_completed_or_last_furnished": "August 2nd",
+          "amount_claimed": "$16,500",
+          "date_lien_filed": "N/A",
+          "notice_of_intent_to_lien_sent_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Claimant is SteelPros. Property address is 123 Oak Street, Unit A. Description of work is HVAC installation and plumbing. Date work completed is August 2nd. Amount claimed is $16,500."
+    },
+    "ideal_output": {
+      "thinking": "The owner is acknowledging that 'interest' is a new charge being added to the amount claimed, which was previously understood as $15,000 and then corrected to $16,500. This is a clarification and revision of the 'amount_claimed'.",
+      "next_form_state": {
+        "Initial fields": {
+          "claimant_name": "SteelPros",
+          "claimant_address": "N/A",
+          "property_owner_name": "N/A",
+          "property_address": "123 Oak Street, Unit A",
+          "description_of_work_materials": "HVAC installation, plumbing",
+          "date_work_completed_or_last_furnished": "August 2nd",
+          "amount_claimed": "$16,500 (with accrued interest)",
+          "date_lien_filed": "N/A",
+          "notice_of_intent_to_lien_sent_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Claimant is SteelPros. Property address is 123 Oak Street, Unit A. Description of work is HVAC installation and plumbing. Date work completed is August 2nd. Amount claimed is $16,500 (with accrued interest)."
+    },
+    "_conversation_id": "bdd7d078"
+  },
+  {
+    "input": {
+      "new_line": "Owner 1701000170: September 7th. Filing date change.",
+      "10_lines_before": {
+        "Contractor 1701000100": "August 2nd. The final inspection was then.",
+        "Owner 1701000110": "Amount claimed. $15,000. Was that final?",
+        "Contractor 1701000120": "No, $16,500. With accrued interest.",
+        "Owner 1701000130": "Interest! That's a new charge. Revise amount.",
+        "Contractor 1701000140": "Correcting amount to $16,500.",
+        "Owner 1701000150": "Date lien filed. September 5th.",
+        "Contractor 1701000160": "That's wrong. It was September 7th."
+      },
+      "form_name": "Mechanic's Lien",
+      "form_description": "A legal claim placed on real property by a contractor, subcontractor, or supplier to secure payment for labor or materials provided for improvements.",
+      "current_form_state": {
+        "Initial fields": {
+          "claimant_name": "SteelPros",
+          "claimant_address": "N/A",
+          "property_owner_name": "N/A",
+          "property_address": "123 Oak Street, Unit A",
+          "description_of_work_materials": "HVAC installation, plumbing",
+          "date_work_completed_or_last_furnished": "August 2nd",
+          "amount_claimed": "$16,500",
+          "date_lien_filed": "September 5th",
+          "notice_of_intent_to_lien_sent_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Claimant is SteelPros. Property address is 123 Oak Street, Unit A. Description of work is HVAC installation and plumbing. Date work completed is August 2nd. Amount claimed is $16,500. Date lien filed is September 5th."
+    },
+    "ideal_output": {
+      "thinking": "The owner is confirming the corrected date for filing the lien, changing it from September 5th to September 7th. This is a revision after a conflict.",
+      "next_form_state": {
+        "Initial fields": {
+          "claimant_name": "SteelPros",
+          "claimant_address": "N/A",
+          "property_owner_name": "N/A",
+          "property_address": "123 Oak Street, Unit A",
+          "description_of_work_materials": "HVAC installation, plumbing",
+          "date_work_completed_or_last_furnished": "August 2nd",
+          "amount_claimed": "$16,500",
+          "date_lien_filed": "September 7th",
+          "notice_of_intent_to_lien_sent_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Claimant is SteelPros. Property address is 123 Oak Street, Unit A. Description of work is HVAC installation and plumbing. Date work completed is August 2nd. Amount claimed is $16,500. Date lien filed is September 7th."
+    },
+    "_conversation_id": "bdd7d078"
+  },
+  {
+    "input": {
+      "new_line": "Applicant 1678886520: Oh, right. My mistake.\nApplicant 1678886530: It's Oak Avenue. Not street.",
+      "10_lines_before": {
+        "Agent 1678886475": "Okay. New address?",
+        "Applicant 1678886485": "22 Oak Avenue.",
+        "Agent 1678886495": "22 Oak Avenue. Hold on.",
+        "Agent 1678886510": "You entered 'Oak Street' earlier."
+      },
+      "form_name": "Change of Address Form",
+      "form_description": "A form used to notify government agencies, postal services, or other entities of a new residential or mailing address.",
+      "current_form_state": {
+        "Initial fields": {
+          "full_name": "Eleanor Vance",
+          "old_street_address": "14 Elm Street",
+          "old_city_state_zip": "Maplewood, CA 90210",
+          "new_street_address": "22 Oak Street",
+          "new_city_state_zip": "N/A",
+          "effective_date_of_change": "N/A",
+          "contact_phone_number": "N/A",
+          "contact_email_address": "N/A",
+          "forwarding_period_desired": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The applicant's new street address is 22 Oak Street. There was a prior mention of 'Oak Street' which has now been clarified to 'Oak Avenue'."
+    },
+    "ideal_output": {
+      "thinking": "The applicant corrects the street name from 'Oak Street' to 'Oak Avenue'. This is a direct correction of previously stated information for 'new_street_address'.",
+      "next_form_state": {
+        "Initial fields": {
+          "full_name": "Eleanor Vance",
+          "old_street_address": "14 Elm Street",
+          "old_city_state_zip": "Maplewood, CA 90210",
+          "new_street_address": "22 Oak Avenue",
+          "new_city_state_zip": "N/A",
+          "effective_date_of_change": "N/A",
+          "contact_phone_number": "N/A",
+          "contact_email_address": "N/A",
+          "forwarding_period_desired": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The applicant's new street address is 22 Oak Avenue. The initial mention of 'Oak Street' was a mistake."
+    },
+    "_conversation_id": "19dfc355"
+  },
+  {
+    "input": {
+      "new_line": "Applicant 1678886665: Wait, I need to change that.\nApplicant 1678886675: I entered three months.",
+      "10_lines_before": {
+        "Agent 1678886650": "Checking forwarding period desired.",
+        "Applicant 1678886665": "Wait, I need to change that.",
+        "Applicant 1678886675": "I entered three months."
+      },
+      "form_name": "Change of Address Form",
+      "form_description": "A form used to notify government agencies, postal services, or other entities of a new residential or mailing address.",
+      "current_form_state": {
+        "Initial fields": {
+          "full_name": "Eleanor Vance",
+          "old_street_address": "14 Elm Street",
+          "old_city_state_zip": "Maplewood, CA 90210",
+          "new_street_address": "22 Oak Avenue",
+          "new_city_state_zip": "Redwood City, CA 94063",
+          "effective_date_of_change": "06/01/2024",
+          "contact_phone_number": "555-123-4567",
+          "contact_email_address": "eleanor.v@example.com",
+          "forwarding_period_desired": "3 months"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The applicant's new street address is 22 Oak Avenue in Redwood City, CA 94063, effective June 1st, 2024. Contact details are 555-123-4567 and eleanor.v@example.com. The forwarding period desired was initially set to 3 months."
+    },
+    "ideal_output": {
+      "thinking": "The applicant states they need to change the forwarding period and reveals they previously entered 'three months'. This signifies a revision to a previously established field.",
+      "next_form_state": {
+        "Initial fields": {
+          "full_name": "Eleanor Vance",
+          "old_street_address": "14 Elm Street",
+          "old_city_state_zip": "Maplewood, CA 90210",
+          "new_street_address": "22 Oak Avenue",
+          "new_city_state_zip": "Redwood City, CA 94063",
+          "effective_date_of_change": "06/01/2024",
+          "contact_phone_number": "555-123-4567",
+          "contact_email_address": "eleanor.v@example.com",
+          "forwarding_period_desired": "3 months"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The applicant's new street address is 22 Oak Avenue in Redwood City, CA 94063, effective June 1st, 2024. Contact details are 555-123-4567 and eleanor.v@example.com. The forwarding period desired was initially set to 3 months, and the applicant wishes to change this."
+    },
+    "_conversation_id": "19dfc355"
+  },
+  {
+    "input": {
+      "new_line": "Applicant 1678886705: Yes. Six months, please.",
+      "10_lines_before": {
+        "Agent 1678886650": "Checking forwarding period desired.",
+        "Applicant 1678886665": "Wait, I need to change that.",
+        "Applicant 1678886675": "I entered three months.",
+        "Agent 1678886690": "You want to change the period?",
+        "Applicant 1678886705": "Yes. Six months, please."
+      },
+      "form_name": "Change of Address Form",
+      "form_description": "A form used to notify government agencies, postal services, or other entities of a new residential or mailing address.",
+      "current_form_state": {
+        "Initial fields": {
+          "full_name": "Eleanor Vance",
+          "old_street_address": "14 Elm Street",
+          "old_city_state_zip": "Maplewood, CA 90210",
+          "new_street_address": "22 Oak Avenue",
+          "new_city_state_zip": "Redwood City, CA 94063",
+          "effective_date_of_change": "06/01/2024",
+          "contact_phone_number": "555-123-4567",
+          "contact_email_address": "eleanor.v@example.com",
+          "forwarding_period_desired": "3 months"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The applicant's new street address is 22 Oak Avenue in Redwood City, CA 94063, effective June 1st, 2024. Contact details are 555-123-4567 and eleanor.v@example.com. The forwarding period desired was initially set to 3 months, and the applicant wishes to change this."
+    },
+    "ideal_output": {
+      "thinking": "The applicant explicitly states 'Six months, please,' overriding the previously implied 'three months'. This is a direct update to the 'forwarding_period_desired' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "full_name": "Eleanor Vance",
+          "old_street_address": "14 Elm Street",
+          "old_city_state_zip": "Maplewood, CA 90210",
+          "new_street_address": "22 Oak Avenue",
+          "new_city_state_zip": "Redwood City, CA 94063",
+          "effective_date_of_change": "06/01/2024",
+          "contact_phone_number": "555-123-4567",
+          "contact_email_address": "eleanor.v@example.com",
+          "forwarding_period_desired": "6 months"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The applicant's new street address is 22 Oak Avenue in Redwood City, CA 94063, effective June 1st, 2024. Contact details are 555-123-4567 and eleanor.v@example.com. The forwarding period desired has been updated to 6 months."
+    },
+    "_conversation_id": "19dfc355"
+  },
+  {
+    "input": {
+      "new_line": "Applicant 1678886750: No! It was 94000.\nApplicant 1678886765: Maplewood zip is 94000.",
+      "10_lines_before": {
+        "Agent 1678886720": "Six months. Okay, revised.",
+        "Agent 1678886735": "Your old zip was 90210?",
+        "Applicant 1678886750": "No! It was 94000.",
+        "Applicant 1678886765": "Maplewood zip is 94000."
+      },
+      "form_name": "Change of Address Form",
+      "form_description": "A form used to notify government agencies, postal services, or other entities of a new residential or mailing address.",
+      "current_form_state": {
+        "Initial fields": {
+          "full_name": "Eleanor Vance",
+          "old_street_address": "14 Elm Street",
+          "old_city_state_zip": "Maplewood, CA 90210",
+          "new_street_address": "22 Oak Avenue",
+          "new_city_state_zip": "Redwood City, CA 94063",
+          "effective_date_of_change": "06/01/2024",
+          "contact_phone_number": "555-123-4567",
+          "contact_email_address": "eleanor.v@example.com",
+          "forwarding_period_desired": "6 months"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The applicant's new street address is 22 Oak Avenue in Redwood City, CA 94063, effective June 1st, 2024. Contact details are 555-123-4567 and eleanor.v@example.com. The forwarding period desired has been updated to 6 months. The old zip code was initially recorded as 90210."
+    },
+    "ideal_output": {
+      "thinking": "The applicant emphatically corrects the 'old_city_state_zip' field, specifically the zip code, from '90210' to '94000'. This is a crucial correction of a previously entered piece of data.",
+      "next_form_state": {
+        "Initial fields": {
+          "full_name": "Eleanor Vance",
+          "old_street_address": "14 Elm Street",
+          "old_city_state_zip": "Maplewood, CA 94000",
+          "new_street_address": "22 Oak Avenue",
+          "new_city_state_zip": "Redwood City, CA 94063",
+          "effective_date_of_change": "06/01/2024",
+          "contact_phone_number": "555-123-4567",
+          "contact_email_address": "eleanor.v@example.com",
+          "forwarding_period_desired": "6 months"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The applicant's new street address is 22 Oak Avenue in Redwood City, CA 94063, effective June 1st, 2024. Contact details are 555-123-4567 and eleanor.v@example.com. The forwarding period desired has been updated to 6 months. The old zip code has been corrected to 94000."
+    },
+    "_conversation_id": "19dfc355"
+  },
+  {
+    "input": {
+      "new_line": "Agent 1678886780: Correction logged. Old zip 94000.",
+      "10_lines_before": {
+        "Agent 1678886735": "Your old zip was 90210?",
+        "Applicant 1678886750": "No! It was 94000.",
+        "Applicant 1678886765": "Maplewood zip is 94000.",
+        "Agent 1678886780": "Correction logged. Old zip 94000."
+      },
+      "form_name": "Change of Address Form",
+      "form_description": "A form used to notify government agencies, postal services, or other entities of a new residential or mailing address.",
+      "current_form_state": {
+        "Initial fields": {
+          "full_name": "Eleanor Vance",
+          "old_street_address": "14 Elm Street",
+          "old_city_state_zip": "Maplewood, CA 90210",
+          "new_street_address": "22 Oak Avenue",
+          "new_city_state_zip": "Redwood City, CA 94063",
+          "effective_date_of_change": "06/01/2024",
+          "contact_phone_number": "555-123-4567",
+          "contact_email_address": "eleanor.v@example.com",
+          "forwarding_period_desired": "6 months"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The applicant's new street address is 22 Oak Avenue in Redwood City, CA 94063, effective June 1st, 2024. Contact details are 555-123-4567 and eleanor.v@example.com. The forwarding period desired has been updated to 6 months. The old zip code has been corrected to 94000."
+    },
+    "ideal_output": {
+      "thinking": "This line confirms the logged correction of the old zip code. While it's an agent's confirmation, it directly relates to the applicant's correction, solidifying the change in the 'old_city_state_zip' field and confirming the state change.",
+      "next_form_state": {
+        "Initial fields": {
+          "full_name": "Eleanor Vance",
+          "old_street_address": "14 Elm Street",
+          "old_city_state_zip": "Maplewood, CA 94000",
+          "new_street_address": "22 Oak Avenue",
+          "new_city_state_zip": "Redwood City, CA 94063",
+          "effective_date_of_change": "06/01/2024",
+          "contact_phone_number": "555-123-4567",
+          "contact_email_address": "eleanor.v@example.com",
+          "forwarding_period_desired": "6 months"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The applicant's new street address is 22 Oak Avenue in Redwood City, CA 94063, effective June 1st, 2024. Contact details are 555-123-4567 and eleanor.v@example.com. The forwarding period desired has been updated to 6 months. The old zip code has been confirmed as 94000 following a correction."
+    },
+    "_conversation_id": "19dfc355"
+  },
+  {
+    "input": {
+      "new_line": "Applicant 1678886435: It's Anya Petrova.",
+      "10_lines_before": {
+        "Applicant 1678886400": "Applicant name: Anya Sharma.",
+        "Agent 1678886410": "Anya Sharma. Got it.",
+        "Applicant 1678886425": "Wait, scratch that. Wrong name."
+      },
+      "form_name": "International Driving Permit Application",
+      "form_description": "An application submitted to obtain an official translation of a national driving license, valid for driving in foreign countries.",
+      "current_form_state": {
+        "Initial fields": {
+          "applicant_full_name": "N/A",
+          "date_of_birth": "N/A",
+          "mailing_address": "N/A",
+          "national_license_country": "N/A",
+          "national_license_number": "N/A",
+          "national_license_expiration": "N/A",
+          "passport_number": "N/A",
+          "countries_of_intended_travel": "N/A",
+          "applicant_signature_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Applicant name: Anya Sharma. Date of birth: N/A. Mailing address: N/A. National license country: N/A. National license number: N/A. National license expiration: N/A. Passport number: N/A. Countries of intended travel: N/A. Applicant signature date: N/A."
+    },
+    "ideal_output": {
+      "thinking": "The applicant initially provided 'Anya Sharma' but then corrected it to 'Anya Petrova'. This line represents a correction to the applicant_full_name field.",
+      "next_form_state": {
+        "Initial fields": {
+          "applicant_full_name": "Anya Petrova",
+          "date_of_birth": "N/A",
+          "mailing_address": "N/A",
+          "national_license_country": "N/A",
+          "national_license_number": "N/A",
+          "national_license_expiration": "N/A",
+          "passport_number": "N/A",
+          "countries_of_intended_travel": "N/A",
+          "applicant_signature_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Applicant name: Anya Petrova. Date of birth: N/A. Mailing address: N/A. National license country: N/A. National license number: N/A. National license expiration: N/A. Passport number: N/A. Countries of intended travel: N/A. Applicant signature date: N/A."
+    },
+    "_conversation_id": "6fefcef2"
+  },
+  {
+    "input": {
+      "new_line": "Applicant 1678886510: March 15, 1993.",
+      "10_lines_before": {
+        "Applicant 1678886465": "Date of birth: March 15, 1992.",
+        "Agent 1678886480": "March 15, 1992. Noted.",
+        "Applicant 1678886500": "Never mind that. It's 1993."
+      },
+      "form_name": "International Driving Permit Application",
+      "form_description": "An application submitted to obtain an official translation of a national driving license, valid for driving in foreign countries.",
+      "current_form_state": {
+        "Initial fields": {
+          "applicant_full_name": "Anya Petrova",
+          "date_of_birth": "March 15, 1992",
+          "mailing_address": "N/A",
+          "national_license_country": "N/A",
+          "national_license_number": "N/A",
+          "national_license_expiration": "N/A",
+          "passport_number": "N/A",
+          "countries_of_intended_travel": "N/A",
+          "applicant_signature_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Applicant name: Anya Petrova. Date of birth: March 15, 1992. Mailing address: N/A. National license country: N/A. National license number: N/A. National license expiration: N/A. Passport number: N/A. Countries of intended travel: N/A. Applicant signature date: N/A."
+    },
+    "ideal_output": {
+      "thinking": "The applicant initially provided 'March 15, 1992' for their date of birth but then corrected it to 'March 15, 1993'. This line represents a correction to the date_of_birth field.",
+      "next_form_state": {
+        "Initial fields": {
+          "applicant_full_name": "Anya Petrova",
+          "date_of_birth": "March 15, 1993",
+          "mailing_address": "N/A",
+          "national_license_country": "N/A",
+          "national_license_number": "N/A",
+          "national_license_expiration": "N/A",
+          "passport_number": "N/A",
+          "countries_of_intended_travel": "N/A",
+          "applicant_signature_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Applicant name: Anya Petrova. Date of birth: March 15, 1993. Mailing address: N/A. National license country: N/A. National license number: N/A. National license expiration: N/A. Passport number: N/A. Countries of intended travel: N/A. Applicant signature date: N/A."
+    },
+    "_conversation_id": "6fefcef2"
+  },
+  {
+    "input": {
+      "new_line": "Applicant 1678886580: It's 123 Elm Street, Apt 4B.",
+      "10_lines_before": {
+        "Applicant 1678886540": "Mailing address: 123 Oak Street.",
+        "Agent 1678886555": "123 Oak Street.",
+        "Applicant 1678886570": "Wait, is it Oak or Elm?"
+      },
+      "form_name": "International Driving Permit Application",
+      "form_description": "An application submitted to obtain an official translation of a national driving license, valid for driving in foreign countries.",
+      "current_form_state": {
+        "Initial fields": {
+          "applicant_full_name": "Anya Petrova",
+          "date_of_birth": "March 15, 1993",
+          "mailing_address": "123 Oak Street",
+          "national_license_country": "N/A",
+          "national_license_number": "N/A",
+          "national_license_expiration": "N/A",
+          "passport_number": "N/A",
+          "countries_of_intended_travel": "N/A",
+          "applicant_signature_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Applicant name: Anya Petrova. Date of birth: March 15, 1993. Mailing address: 123 Oak Street. National license country: N/A. National license number: N/A. National license expiration: N/A. Passport number: N/A. Countries of intended travel: N/A. Applicant signature date: N/A."
+    },
+    "ideal_output": {
+      "thinking": "The applicant initially provided '123 Oak Street' for their mailing address but then corrected it to '123 Elm Street, Apt 4B'. This line represents a correction to the mailing_address field.",
+      "next_form_state": {
+        "Initial fields": {
+          "applicant_full_name": "Anya Petrova",
+          "date_of_birth": "March 15, 1993",
+          "mailing_address": "123 Elm Street, Apt 4B",
+          "national_license_country": "N/A",
+          "national_license_number": "N/A",
+          "national_license_expiration": "N/A",
+          "passport_number": "N/A",
+          "countries_of_intended_travel": "N/A",
+          "applicant_signature_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Applicant name: Anya Petrova. Date of birth: March 15, 1993. Mailing address: 123 Elm Street, Apt 4B. National license country: N/A. National license number: N/A. National license expiration: N/A. Passport number: N/A. Countries of intended travel: N/A. Applicant signature date: N/A."
+    },
+    "_conversation_id": "6fefcef2"
+  },
+  {
+    "input": {
+      "new_line": "Applicant 1678886655: My license is from France.",
+      "10_lines_before": {
+        "Applicant 1678886615": "National license country: Germany.",
+        "Agent 1678886630": "Germany. Okay.",
+        "Applicant 1678886645": "Actually, it's France."
+      },
+      "form_name": "International Driving Permit Application",
+      "form_description": "An application submitted to obtain an official translation of a national driving license, valid for driving in foreign countries.",
+      "current_form_state": {
+        "Initial fields": {
+          "applicant_full_name": "Anya Petrova",
+          "date_of_birth": "March 15, 1993",
+          "mailing_address": "123 Elm Street, Apt 4B",
+          "national_license_country": "Germany",
+          "national_license_number": "N/A",
+          "national_license_expiration": "N/A",
+          "passport_number": "N/A",
+          "countries_of_intended_travel": "N/A",
+          "applicant_signature_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Applicant name: Anya Petrova. Date of birth: March 15, 1993. Mailing address: 123 Elm Street, Apt 4B. National license country: Germany. National license number: N/A. National license expiration: N/A. Passport number: N/A. Countries of intended travel: N/A. Applicant signature date: N/A."
+    },
+    "ideal_output": {
+      "thinking": "The applicant initially stated 'Germany' as the national license country but then corrected it to 'France'. This line confirms the correction, representing a correction to the national_license_country field.",
+      "next_form_state": {
+        "Initial fields": {
+          "applicant_full_name": "Anya Petrova",
+          "date_of_birth": "March 15, 1993",
+          "mailing_address": "123 Elm Street, Apt 4B",
+          "national_license_country": "France",
+          "national_license_number": "N/A",
+          "national_license_expiration": "N/A",
+          "passport_number": "N/A",
+          "countries_of_intended_travel": "N/A",
+          "applicant_signature_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Applicant name: Anya Petrova. Date of birth: March 15, 1993. Mailing address: 123 Elm Street, Apt 4B. National license country: France. National license number: N/A. National license expiration: N/A. Passport number: N/A. Countries of intended travel: N/A. Applicant signature date: N/A."
+    },
+    "_conversation_id": "6fefcef2"
+  },
+  {
+    "input": {
+      "new_line": "Applicant 1678886725: It's ABCDE12345.",
+      "10_lines_before": {
+        "Applicant 1678886685": "License number: 789012345.",
+        "Agent 1678886700": "789012345. Good.",
+        "Applicant 1678886715": "Oh, that's the old one."
+      },
+      "form_name": "International Driving Permit Application",
+      "form_description": "An application submitted to obtain an official translation of a national driving license, valid for driving in foreign countries.",
+      "current_form_state": {
+        "Initial fields": {
+          "applicant_full_name": "Anya Petrova",
+          "date_of_birth": "March 15, 1993",
+          "mailing_address": "123 Elm Street, Apt 4B",
+          "national_license_country": "France",
+          "national_license_number": "789012345",
+          "national_license_expiration": "N/A",
+          "passport_number": "N/A",
+          "countries_of_intended_travel": "N/A",
+          "applicant_signature_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Applicant name: Anya Petrova. Date of birth: March 15, 1993. Mailing address: 123 Elm Street, Apt 4B. National license country: France. National license number: 789012345. National license expiration: N/A. Passport number: N/A. Countries of intended travel: N/A. Applicant signature date: N/A."
+    },
+    "ideal_output": {
+      "thinking": "The applicant initially provided '789012345' as their license number but then clarified it was the old one and provided 'ABCDE12345'. This line represents a correction to the national_license_number field.",
+      "next_form_state": {
+        "Initial fields": {
+          "applicant_full_name": "Anya Petrova",
+          "date_of_birth": "March 15, 1993",
+          "mailing_address": "123 Elm Street, Apt 4B",
+          "national_license_country": "France",
+          "national_license_number": "ABCDE12345",
+          "national_license_expiration": "N/A",
+          "passport_number": "N/A",
+          "countries_of_intended_travel": "N/A",
+          "applicant_signature_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Applicant name: Anya Petrova. Date of birth: March 15, 1993. Mailing address: 123 Elm Street, Apt 4B. National license country: France. National license number: ABCDE12345. National license expiration: N/A. Passport number: N/A. Countries of intended travel: N/A. Applicant signature date: N/A."
+    },
+    "_conversation_id": "6fefcef2"
+  },
+  {
+    "input": {
+      "new_line": "Applicant_Jane Doe 1701081602: My desired salary. Forget I said that.",
+      "10_lines_before": {
+        "Applicant_Jane Doe 1701081600": "Can we delete that?",
+        "Recruiter_Sarah Chen 1701081601": "Delete which field, Jane?"
+      },
+      "form_name": "Job Application",
+      "form_description": "Used by employers to collect information from candidates interested in a specific position within the company.",
+      "current_form_state": {
+        "Initial fields": {
+          "full_name": "N/A",
+          "contact_phone": "N/A",
+          "email_address": "N/A",
+          "position_applied_for": "N/A",
+          "desired_salary": "N/A",
+          "previous_employer": "N/A",
+          "employment_start_date": "N/A",
+          "education_level": "N/A",
+          "available_start_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The applicant wants to delete their desired salary."
+    },
+    "ideal_output": {
+      "thinking": "The applicant explicitly states 'Forget I said that' regarding desired salary, indicating a deletion/retraction. The recruiter confirms the deletion.",
+      "next_form_state": {
+        "Initial fields": {
+          "full_name": "N/A",
+          "contact_phone": "N/A",
+          "email_address": "N/A",
+          "position_applied_for": "N/A",
+          "desired_salary": "N/A",
+          "previous_employer": "N/A",
+          "employment_start_date": "N/A",
+          "education_level": "N/A",
+          "available_start_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The applicant requested to delete their desired salary, and it has been cleared from the application."
+    },
+    "_conversation_id": "45fbdc08"
+  },
+  {
+    "input": {
+      "new_line": "Applicant_Jane Doe 1701081604: And my previous employer? Remove it.",
+      "10_lines_before": {
+        "Applicant_Jane Doe 1701081600": "Can we delete that?",
+        "Recruiter_Sarah Chen 1701081601": "Delete which field, Jane?",
+        "Applicant_Jane Doe 1701081602": "My desired salary. Forget I said that.",
+        "Recruiter_Sarah Chen 1701081603": "Understood. Desired salary cleared from your application."
+      },
+      "form_name": "Job Application",
+      "form_description": "Used by employers to collect information from candidates interested in a specific position within the company.",
+      "current_form_state": {
+        "Initial fields": {
+          "full_name": "N/A",
+          "contact_phone": "N/A",
+          "email_address": "N/A",
+          "position_applied_for": "N/A",
+          "desired_salary": "N/A",
+          "previous_employer": "N/A",
+          "employment_start_date": "N/A",
+          "education_level": "N/A",
+          "available_start_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The applicant wants to delete their previous employer information."
+    },
+    "ideal_output": {
+      "thinking": "The applicant explicitly asks to 'Remove' their previous employer, indicating a deletion or retraction. The recruiter confirms the deletion.",
+      "next_form_state": {
+        "Initial fields": {
+          "full_name": "N/A",
+          "contact_phone": "N/A",
+          "email_address": "N/A",
+          "position_applied_for": "N/A",
+          "desired_salary": "N/A",
+          "previous_employer": "N/A",
+          "employment_start_date": "N/A",
+          "education_level": "N/A",
+          "available_start_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The applicant requested to delete their previous employer information, and it has been removed."
+    },
+    "_conversation_id": "45fbdc08"
+  },
+  {
+    "input": {
+      "new_line": "Applicant_Jane Doe 1701081608: Yes, but with the middle initial.",
+      "10_lines_before": {
+        "Applicant_Jane Doe 1701081600": "Can we delete that?",
+        "Recruiter_Sarah Chen 1701081601": "Delete which field, Jane?",
+        "Applicant_Jane Doe 1701081602": "My desired salary. Forget I said that.",
+        "Recruiter_Sarah Chen 1701081603": "Understood. Desired salary cleared from your application.",
+        "Applicant_Jane Doe 1701081604": "And my previous employer? Remove it.",
+        "Recruiter_Sarah Chen 1701081605": "Okay. Previous employer information is now deleted.",
+        "Applicant_Jane Doe 1701081606": "Wait. My name. It's Jane R. Doe.",
+        "Recruiter_Sarah Chen 1701081607": "You previously entered Jane Doe. Is that right?"
+      },
+      "form_name": "Job Application",
+      "form_description": "Used by employers to collect information from candidates interested in a specific position within the company.",
+      "current_form_state": {
+        "Initial fields": {
+          "full_name": "Jane Doe",
+          "contact_phone": "N/A",
+          "email_address": "N/A",
+          "position_applied_for": "N/A",
+          "desired_salary": "N/A",
+          "previous_employer": "N/A",
+          "employment_start_date": "N/A",
+          "education_level": "N/A",
+          "available_start_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The applicant is clarifying their full name, adding a middle initial."
+    },
+    "ideal_output": {
+      "thinking": "This line represents a correction of previously provided information ('Jane Doe' to 'Jane R. Doe'). The recruiter's previous line confirms the prior state and prompts for correction.",
+      "next_form_state": {
+        "Initial fields": {
+          "full_name": "Jane R. Doe",
+          "contact_phone": "N/A",
+          "email_address": "N/A",
+          "position_applied_for": "N/A",
+          "desired_salary": "N/A",
+          "previous_employer": "N/A",
+          "employment_start_date": "N/A",
+          "education_level": "N/A",
+          "available_start_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The applicant corrected their full name to include a middle initial, updating it to Jane R. Doe."
+    },
+    "_conversation_id": "45fbdc08"
+  },
+  {
+    "input": {
+      "new_line": "Applicant_Jane Doe 1701081612: Yes, entirely. Please change it.",
+      "10_lines_before": {
+        "Applicant_Jane Doe 1701081600": "Can we delete that?",
+        "Recruiter_Sarah Chen 1701081601": "Delete which field, Jane?",
+        "Applicant_Jane Doe 1701081602": "My desired salary. Forget I said that.",
+        "Recruiter_Sarah Chen 1701081603": "Understood. Desired salary cleared from your application.",
+        "Applicant_Jane Doe 1701081604": "And my previous employer? Remove it.",
+        "Recruiter_Sarah Chen 1701081605": "Okay. Previous employer information is now deleted.",
+        "Applicant_Jane Doe 1701081606": "Wait. My name. It's Jane R. Doe.",
+        "Recruiter_Sarah Chen 1701081607": "You previously entered Jane Doe. Is that right?",
+        "Applicant_Jane Doe 1701081608": "Yes, but with the middle initial.",
+        "Recruiter_Sarah Chen 1701081609": "Correction noted. Full name updated to Jane R. Doe.",
+        "Applicant_Jane Doe 1701081610": "My phone number. It's 555-123-4567.",
+        "Recruiter_Sarah Chen 1701081611": "Your application shows 555-987-6543. Was that a typo?"
+      },
+      "form_name": "Job Application",
+      "form_description": "Used by employers to collect information from candidates interested in a specific position within the company.",
+      "current_form_state": {
+        "Initial fields": {
+          "full_name": "Jane R. Doe",
+          "contact_phone": "555-987-6543",
+          "email_address": "N/A",
+          "position_applied_for": "N/A",
+          "desired_salary": "N/A",
+          "previous_employer": "N/A",
+          "employment_start_date": "N/A",
+          "education_level": "N/A",
+          "available_start_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "The applicant confirms the previous phone number was a typo and requests a change."
+    },
+    "ideal_output": {
+      "thinking": "The applicant states 'Yes, entirely. Please change it.' in response to a discrepancy in their phone number, indicating a correction of existing data.",
+      "next_form_state": {
+        "Initial fields": {
+          "full_name": "Jane R. Doe",
+          "contact_phone": "555-123-4567",
+          "email_address": "N/A",
+          "position_applied_for": "N/A",
+          "desired_salary": "N/A",
+          "previous_employer": "N/A",
+          "employment_start_date": "N/A",
+          "education_level": "N/A",
+          "available_start_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The applicant confirmed the previously entered phone number was a typo and has updated it to 555-123-4567."
+    },
+    "_conversation_id": "45fbdc08"
+  },
+  {
+    "input": {
+      "new_line": "Applicant_Jane Doe 1701081616: That old email. Please replace it.",
+      "10_lines_before": {
+        "Applicant_Jane Doe 1701081600": "Can we delete that?",
+        "Recruiter_Sarah Chen 1701081601": "Delete which field, Jane?",
+        "Applicant_Jane Doe 1701081602": "My desired salary. Forget I said that.",
+        "Recruiter_Sarah Chen 1701081603": "Understood. Desired salary cleared from your application.",
+        "Applicant_Jane Doe 1701081604": "And my previous employer? Remove it.",
+        "Recruiter_Sarah Chen 1701081605": "Okay. Previous employer information is now deleted.",
+        "Applicant_Jane Doe 1701081606": "Wait. My name. It's Jane R. Doe.",
+        "Recruiter_Sarah Chen 1701081607": "You previously entered Jane Doe. Is that right?",
+        "Applicant_Jane Doe 1701081608": "Yes, but with the middle initial.",
+        "Recruiter_Sarah Chen 1701081609": "Correction noted. Full name updated to Jane R. Doe.",
+        "Applicant_Jane Doe 1701081610": "My phone number. It's 555-123-4567.",
+        "Recruiter_Sarah Chen 1701081611": "Your application shows 555-987-6543. Was that a typo?",
+        "Applicant_Jane Doe 1701081612": "Yes, entirely. Please change it.",
+        "Recruiter_Sarah Chen 1701081613": "Phone number revised to 555-123-4567. Correct?",
+        "Applicant_Jane Doe 1701081614": "Yes, correct. My email too.  It's jdoe.nyc@email.com",
+        "Recruiter_Sarah Chen 1701081615": "Your entered email is jane.doe@email.com.  This conflicts."
+      },
+      "form_name": "Job Application",
+      "form_description": "Used by employers to collect information from candidates interested in a specific position within the company.",
+      "current_form_state": {
+        "Initial fields": {
+          "full_name": "Jane R. Doe",
+          "contact_phone": "555-123-4567",
+          "email_address": "jane.doe@email.com",
+          "position_applied_for": "N/A",
+          "desired_salary": "N/A",
+          "previous_employer": "N/A",
+          "employment_start_date": "N/A",
+          "education_level": "N/A",
+          "available_start_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "A conflict has been identified between the entered email and the application's current email, and the applicant wishes to replace the old one."
+    },
+    "ideal_output": {
+      "thinking": "The applicant states 'That old email. Please replace it.' in response to a conflict, indicating a replacement/correction of existing data.",
+      "next_form_state": {
+        "Initial fields": {
+          "full_name": "Jane R. Doe",
+          "contact_phone": "555-123-4567",
+          "email_address": "jdoe.nyc@email.com",
+          "position_applied_for": "N/A",
+          "desired_salary": "N/A",
+          "previous_employer": "N/A",
+          "employment_start_date": "N/A",
+          "education_level": "N/A",
+          "available_start_date": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "The applicant clarified that the previously entered email was outdated and requested to replace it with jdoe.nyc@email.com."
+    },
+    "_conversation_id": "45fbdc08"
+  },
+  {
+    "input": {
+      "new_line": "User 1678886550: Acme Corp USA. Not New York.",
+      "10_lines_before": {
+        "User 1678886400": "Hazmat shipping paper.",
+        "Agent 1678886405": "Yes, what do you need?",
+        "User 1678886410": "Shipper is Acme Corp. New York.",
+        "Agent 1678886415": "Got it. Acme Corp. Proceed.",
+        "User 1678886420": "Consignee: Bobs Big Boxes, LA.",
+        "Agent 1678886425": "Okay. Shipping name?",
+        "User 1678886430": "Um, chemicals. Acetone.",
+        "Agent 1678886435": "Proper name: Acetone, please.",
+        "User 1678886440": "Right. Acetone. UN number?",
+        "Agent 1678886445": "UN number for Acetone."
+      },
+      "form_name": "Hazmat Shipping Paper",
+      "form_description": "A document required for the transportation of hazardous materials, detailing the substance, quantity, and emergency procedures.",
+      "current_form_state": {
+        "Initial fields": {
+          "shipper_name": "Acme Corp. New York",
+          "consignee_name": "Bobs Big Boxes, LA",
+          "hazardous_material_proper_shipping_name": "Acetone",
+          "un_na_number": "1090",
+          "hazard_class_division": "3",
+          "packing_group": "II",
+          "quantity_type_packaging": "5 x 55 gallon drums",
+          "emergency_contact_number": "800-555-1212",
+          "shipper_certification_signature": "N/A",
+          "date_of_shipment": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Shipper: Acme Corp. New York. Consignee: Bobs Big Boxes, LA. Material: Acetone, UN1090, Class 3, PG II. Quantity: 5 x 55 gallon drums. Emergency Contact: 800-555-1212. Date: N/A."
+    },
+    "ideal_output": {
+      "thinking": "The user is correcting the shipper's name. The previous entry was 'Acme Corp. New York' and the user is changing it to 'Acme Corp USA'. This represents a state change for the 'shipper_name' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "shipper_name": "Acme Corp USA",
+          "consignee_name": "Bobs Big Boxes, LA",
+          "hazardous_material_proper_shipping_name": "Acetone",
+          "un_na_number": "1090",
+          "hazard_class_division": "3",
+          "packing_group": "II",
+          "quantity_type_packaging": "5 x 55 gallon drums",
+          "emergency_contact_number": "800-555-1212",
+          "shipper_certification_signature": "N/A",
+          "date_of_shipment": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Shipper: Acme Corp USA. Consignee: Bobs Big Boxes, LA. Material: Acetone, UN1090, Class 3, PG II. Quantity: 5 x 55 gallon drums. Emergency Contact: 800-555-1212. Date: N/A."
+    },
+    "_conversation_id": "1197cd12"
+  },
+  {
+    "input": {
+      "new_line": "Agent 1678886555: Change shipper to Acme Corp USA.",
+      "10_lines_before": {
+        "User 1678886410": "Shipper is Acme Corp. New York.",
+        "Agent 1678886415": "Got it. Acme Corp. Proceed.",
+        "User 1678886420": "Consignee: Bobs Big Boxes, LA.",
+        "Agent 1678886425": "Okay. Shipping name?",
+        "User 1678886430": "Um, chemicals. Acetone.",
+        "Agent 1678886435": "Proper name: Acetone, please.",
+        "User 1678886440": "Right. Acetone. UN number?",
+        "Agent 1678886445": "UN number for Acetone.",
+        "User 1678886450": "Is it 1090?",
+        "Agent 1678886455": "Yes, UN 1090. Hazard class?"
+      },
+      "form_name": "Hazmat Shipping Paper",
+      "form_description": "A document required for the transportation of hazardous materials, detailing the substance, quantity, and emergency procedures.",
+      "current_form_state": {
+        "Initial fields": {
+          "shipper_name": "Acme Corp. New York",
+          "consignee_name": "Bobs Big Boxes, LA",
+          "hazardous_material_proper_shipping_name": "Acetone",
+          "un_na_number": "1090",
+          "hazard_class_division": "3",
+          "packing_group": "II",
+          "quantity_type_packaging": "5 x 55 gallon drums",
+          "emergency_contact_number": "800-555-1212",
+          "shipper_certification_signature": "N/A",
+          "date_of_shipment": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Shipper: Acme Corp. New York. Consignee: Bobs Big Boxes, LA. Material: Acetone, UN1090, Class 3, PG II. Quantity: 5 x 55 gallon drums. Emergency Contact: 800-555-1212. Date: N/A."
+    },
+    "ideal_output": {
+      "thinking": "This line is the agent confirming the user's correction to the shipper's name. It reflects the state change that occurred with the previous user input. The form state has already been updated by the previous turn based on the user's correction, so this line confirms that update.",
+      "next_form_state": {
+        "Initial fields": {
+          "shipper_name": "Acme Corp USA",
+          "consignee_name": "Bobs Big Boxes, LA",
+          "hazardous_material_proper_shipping_name": "Acetone",
+          "un_na_number": "1090",
+          "hazard_class_division": "3",
+          "packing_group": "II",
+          "quantity_type_packaging": "5 x 55 gallon drums",
+          "emergency_contact_number": "800-555-1212",
+          "shipper_certification_signature": "N/A",
+          "date_of_shipment": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Shipper: Acme Corp USA. Consignee: Bobs Big Boxes, LA. Material: Acetone, UN1090, Class 3, PG II. Quantity: 5 x 55 gallon drums. Emergency Contact: 800-555-1212. Date: N/A."
+    },
+    "_conversation_id": "1197cd12"
+  },
+  {
+    "input": {
+      "new_line": "User 1678886570: Yes. July fourth.",
+      "10_lines_before": {
+        "Agent 1678886495": "Need packaging detail, sir.",
+        "User 1678886500": "Oh, right. Fifty-five gallon drums.",
+        "Agent 1678886505": "Okay. Emergency contact number?",
+        "User 1678886510": "123-456-7890.",
+        "Agent 1678886515": "That's the emergency number?",
+        "User 1678886520": "No, that's my cell. Oops.",
+        "Agent 1678886525": "Please provide the correct number.",
+        "User 1678886530": "It's 800-555-1212.",
+        "Agent 1678886535": "Thank you. Signature needed.",
+        "User 1678886540": "Hold on. Acme Corp is wrong."
+      },
+      "form_name": "Hazmat Shipping Paper",
+      "form_description": "A document required for the transportation of hazardous materials, detailing the substance, quantity, and emergency procedures.",
+      "current_form_state": {
+        "Initial fields": {
+          "shipper_name": "Acme Corp USA",
+          "consignee_name": "Bobs Big Boxes, LA",
+          "hazardous_material_proper_shipping_name": "Acetone",
+          "un_na_number": "1090",
+          "hazard_class_division": "3",
+          "packing_group": "II",
+          "quantity_type_packaging": "5 x 55 gallon drums",
+          "emergency_contact_number": "800-555-1212",
+          "shipper_certification_signature": "N/A",
+          "date_of_shipment": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Shipper: Acme Corp USA. Consignee: Bobs Big Boxes, LA. Material: Acetone, UN1090, Class 3, PG II. Quantity: 5 x 55 gallon drums. Emergency Contact: 800-555-1212. Date: N/A."
+    },
+    "ideal_output": {
+      "thinking": "The user is providing a date, but the agent interprets it as 'July fourth' while the user intended 'July third' (based on the next line). This represents a misinterpretation and a potential conflict that will be resolved in the next turn. The current input is an attempt to set the date.",
+      "next_form_state": {
+        "Initial fields": {
+          "shipper_name": "Acme Corp USA",
+          "consignee_name": "Bobs Big Boxes, LA",
+          "hazardous_material_proper_shipping_name": "Acetone",
+          "un_na_number": "1090",
+          "hazard_class_division": "3",
+          "packing_group": "II",
+          "quantity_type_packaging": "5 x 55 gallon drums",
+          "emergency_contact_number": "800-555-1212",
+          "shipper_certification_signature": "N/A",
+          "date_of_shipment": "July 4"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Shipper: Acme Corp USA. Consignee: Bobs Big Boxes, LA. Material: Acetone, UN1090, Class 3, PG II. Quantity: 5 x 55 gallon drums. Emergency Contact: 800-555-1212. Date: July 4."
+    },
+    "_conversation_id": "1197cd12"
+  },
+  {
+    "input": {
+      "new_line": "Agent 1678886575: August fourth. Final check, sir.",
+      "10_lines_before": {
+        "User 1678886500": "Oh, right. Fifty-five gallon drums.",
+        "Agent 1678886505": "Okay. Emergency contact number?",
+        "User 1678886510": "123-456-7890.",
+        "Agent 1678886515": "That's the emergency number?",
+        "User 1678886520": "No, that's my cell. Oops.",
+        "Agent 1678886525": "Please provide the correct number.",
+        "User 1678886530": "It's 800-555-1212.",
+        "Agent 1678886535": "Thank you. Signature needed.",
+        "User 1678886540": "Hold on. Acme Corp is wrong.",
+        "Agent 1678886545": "Which part is wrong?"
+      },
+      "form_name": "Hazmat Shipping Paper",
+      "form_description": "A document required for the transportation of hazardous materials, detailing the substance, quantity, and emergency procedures.",
+      "current_form_state": {
+        "Initial fields": {
+          "shipper_name": "Acme Corp USA",
+          "consignee_name": "Bobs Big Boxes, LA",
+          "hazardous_material_proper_shipping_name": "Acetone",
+          "un_na_number": "1090",
+          "hazard_class_division": "3",
+          "packing_group": "II",
+          "quantity_type_packaging": "5 x 55 gallon drums",
+          "emergency_contact_number": "800-555-1212",
+          "shipper_certification_signature": "N/A",
+          "date_of_shipment": "July 4"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Shipper: Acme Corp USA. Consignee: Bobs Big Boxes, LA. Material: Acetone, UN1090, Class 3, PG II. Quantity: 5 x 55 gallon drums. Emergency Contact: 800-555-1212. Date: July 4."
+    },
+    "ideal_output": {
+      "thinking": "The agent incorrectly interprets 'July fourth' as 'August fourth'. This is an edge case because the agent is making an assumption that contradicts the user's previous input, creating a conflict. The state change here is the agent's misinterpretation of the date.",
+      "next_form_state": {
+        "Initial fields": {
+          "shipper_name": "Acme Corp USA",
+          "consignee_name": "Bobs Big Boxes, LA",
+          "hazardous_material_proper_shipping_name": "Acetone",
+          "un_na_number": "1090",
+          "hazard_class_division": "3",
+          "packing_group": "II",
+          "quantity_type_packaging": "5 x 55 gallon drums",
+          "emergency_contact_number": "800-555-1212",
+          "shipper_certification_signature": "N/A",
+          "date_of_shipment": "August 4"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Shipper: Acme Corp USA. Consignee: Bobs Big Boxes, LA. Material: Acetone, UN1090, Class 3, PG II. Quantity: 5 x 55 gallon drums. Emergency Contact: 800-555-1212. Date: August 4."
+    },
+    "_conversation_id": "1197cd12"
+  },
+  {
+    "input": {
+      "new_line": "User 1678886580: No, July third. August is wrong.",
+      "10_lines_before": {
+        "Agent 1678886515": "That's the emergency number?",
+        "User 1678886520": "No, that's my cell. Oops.",
+        "Agent 1678886525": "Please provide the correct number.",
+        "User 1678886530": "It's 800-555-1212.",
+        "Agent 1678886535": "Thank you. Signature needed.",
+        "User 1678886540": "Hold on. Acme Corp is wrong.",
+        "Agent 1678886545": "Which part is wrong?",
+        "User 1678886550": "Acme Corp USA. Not New York.",
+        "Agent 1678886555": "Change shipper to Acme Corp USA.",
+        "User 1678886560": "And the date. Today is the third."
+      },
+      "form_name": "Hazmat Shipping Paper",
+      "form_description": "A document required for the transportation of hazardous materials, detailing the substance, quantity, and emergency procedures.",
+      "current_form_state": {
+        "Initial fields": {
+          "shipper_name": "Acme Corp USA",
+          "consignee_name": "Bobs Big Boxes, LA",
+          "hazardous_material_proper_shipping_name": "Acetone",
+          "un_na_number": "1090",
+          "hazard_class_division": "3",
+          "packing_group": "II",
+          "quantity_type_packaging": "5 x 55 gallon drums",
+          "emergency_contact_number": "800-555-1212",
+          "shipper_certification_signature": "N/A",
+          "date_of_shipment": "August 4"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Shipper: Acme Corp USA. Consignee: Bobs Big Boxes, LA. Material: Acetone, UN1090, Class 3, PG II. Quantity: 5 x 55 gallon drums. Emergency Contact: 800-555-1212. Date: August 4."
+    },
+    "ideal_output": {
+      "thinking": "The user is correcting the agent's misinterpretation of the date. The agent had 'August fourth' and the user is clarifying it should be 'July third'. This is a conflict resolution and a state change for the 'date_of_shipment' field.",
+      "next_form_state": {
+        "Initial fields": {
+          "shipper_name": "Acme Corp USA",
+          "consignee_name": "Bobs Big Boxes, LA",
+          "hazardous_material_proper_shipping_name": "Acetone",
+          "un_na_number": "1090",
+          "hazard_class_division": "3",
+          "packing_group": "II",
+          "quantity_type_packaging": "5 x 55 gallon drums",
+          "emergency_contact_number": "800-555-1212",
+          "shipper_certification_signature": "N/A",
+          "date_of_shipment": "July 3"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Shipper: Acme Corp USA. Consignee: Bobs Big Boxes, LA. Material: Acetone, UN1090, Class 3, PG II. Quantity: 5 x 55 gallon drums. Emergency Contact: 800-555-1212. Date: July 3."
+    },
+    "_conversation_id": "1197cd12"
+  },
+  {
+    "input": {
+      "new_line": "Applicant 1678886495: It's actually R-2. My mistake.",
+      "10_lines_before": {
+        "Applicant 1678886400": "Zoning variance form, please.",
+        "Officer 1678886410": "Sure. Applicant name organization?",
+        "Applicant 1678886425": "The Miller Group.",
+        "Officer 1678886435": "Address and parcel number?",
+        "Applicant 1678886450": "123 Elm Street. Parcel 7B.",
+        "Officer 1678886465": "Current zoning district?",
+        "Applicant 1678886480": "R-1 Residential. No, wait."
+      },
+      "form_name": "Zoning Variance Request",
+      "form_description": "A formal request to a local planning department to deviate from current zoning regulations due to unique property circumstances.",
+      "current_form_state": {
+        "Initial fields": {
+          "applicant_name_organization": "The Miller Group",
+          "property_address_parcel_number": "123 Elm Street. Parcel 7B.",
+          "current_zoning_district": "R-1 Residential",
+          "proposed_project_description": "N/A",
+          "specific_ordinance_to_vary": "N/A",
+          "reason_for_variance": "N/A",
+          "impact_on_adjacent_properties": "N/A",
+          "date_of_application": "N/A",
+          "contact_information": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Applicant: The Miller Group, Property: 123 Elm Street. Parcel 7B., Zoning: R-1 Residential."
+    },
+    "ideal_output": {
+      "thinking": "The applicant corrects a previous statement about the zoning district. This is a revision and state change.",
+      "next_form_state": {
+        "Initial fields": {
+          "applicant_name_organization": "The Miller Group",
+          "property_address_parcel_number": "123 Elm Street. Parcel 7B.",
+          "current_zoning_district": "R-2",
+          "proposed_project_description": "N/A",
+          "specific_ordinance_to_vary": "N/A",
+          "reason_for_variance": "N/A",
+          "impact_on_adjacent_properties": "N/A",
+          "date_of_application": "N/A",
+          "contact_information": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Applicant: The Miller Group, Property: 123 Elm Street. Parcel 7B., Zoning: R-2."
+    },
+    "_conversation_id": "9ce37a54"
+  },
+  {
+    "input": {
+      "new_line": "Applicant 1678886555: No, shop. Rephrase that.",
+      "10_lines_before": {
+        "Applicant 1678886480": "R-1 Residential. No, wait.",
+        "Applicant 1678886495": "It's actually R-2. My mistake.",
+        "Officer 1678886510": "Proposed project description?",
+        "Applicant 1678886525": "Adding a small shop.",
+        "Officer 1678886540": "Shop? Not accessory dwelling?"
+      },
+      "form_name": "Zoning Variance Request",
+      "form_description": "A formal request to a local planning department to deviate from current zoning regulations due to unique property circumstances.",
+      "current_form_state": {
+        "Initial fields": {
+          "applicant_name_organization": "The Miller Group",
+          "property_address_parcel_number": "123 Elm Street. Parcel 7B.",
+          "current_zoning_district": "R-2",
+          "proposed_project_description": "Adding a small shop.",
+          "specific_ordinance_to_vary": "N/A",
+          "reason_for_variance": "N/A",
+          "impact_on_adjacent_properties": "N/A",
+          "date_of_application": "N/A",
+          "contact_information": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Applicant: The Miller Group, Property: 123 Elm Street. Parcel 7B., Zoning: R-2, Project: Adding a small shop."
+    },
+    "ideal_output": {
+      "thinking": "The applicant clarifies that the project is a shop, not an accessory dwelling unit, implying a correction to a potential misunderstanding and a refinement of the description.",
+      "next_form_state": {
+        "Initial fields": {
+          "applicant_name_organization": "The Miller Group",
+          "property_address_parcel_number": "123 Elm Street. Parcel 7B.",
+          "current_zoning_district": "R-2",
+          "proposed_project_description": "Adding a small shop.",
+          "specific_ordinance_to_vary": "N/A",
+          "reason_for_variance": "N/A",
+          "impact_on_adjacent_properties": "N/A",
+          "date_of_application": "N/A",
+          "contact_information": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Applicant: The Miller Group, Property: 123 Elm Street. Parcel 7B., Zoning: R-2, Project: Adding a small shop."
+    },
+    "_conversation_id": "9ce37a54"
+  },
+  {
+    "input": {
+      "new_line": "Applicant 1678886570: Small commercial retail unit.",
+      "10_lines_before": {
+        "Applicant 1678886525": "Adding a small shop.",
+        "Officer 1678886540": "Shop? Not accessory dwelling?",
+        "Applicant 1678886555": "No, shop. Rephrase that."
+      },
+      "form_name": "Zoning Variance Request",
+      "form_description": "A formal request to a local planning department to deviate from current zoning regulations due to unique property circumstances.",
+      "current_form_state": {
+        "Initial fields": {
+          "applicant_name_organization": "The Miller Group",
+          "property_address_parcel_number": "123 Elm Street. Parcel 7B.",
+          "current_zoning_district": "R-2",
+          "proposed_project_description": "Adding a small shop.",
+          "specific_ordinance_to_vary": "N/A",
+          "reason_for_variance": "N/A",
+          "impact_on_adjacent_properties": "N/A",
+          "date_of_application": "N/A",
+          "contact_information": "N/A"
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Applicant: The Miller Group, Property: 123 Elm Street. Parcel 7B., Zoning: R-2, Project: Adding a small shop."
+    },
+    "ideal_output": {
+      "thinking": "The applicant provides a more precise description of the project, replacing the previous, less specific one. This is a refinement and state change.",
+      "next_form_state": {
+        "Initial fields": {
+          "applicant_name_organization": "The Miller Group",
+          "property_address_parcel_number": "123 Elm Street. Parcel 7B.",
+          "current_zoning_district": "R-2",
+          "proposed_project_description": "Small commercial retail unit.",
+          "specific_ordinance_to_vary": "N/A",
+          "reason_for_variance": "N/A",
+          "impact_on_adjacent_properties": "N/A",
+          "date_of_application": "N/A",
+          "contact_information": "N/A"
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Applicant: The Miller Group, Property: 123 Elm Street. Parcel 7B., Zoning: R-2, Project: Small commercial retail unit."
+    },
+    "_conversation_id": "9ce37a54"
+  },
+  {
+    "input": {
+      "new_line": "Applicant 1678886750: Not Miller Group. That's old.",
+      "10_lines_before": {
+        "Applicant 1678886600": "Section 5.3. Mixed-use.",
+        "Officer 1678886615": "Reason for variance?",
+        "Applicant 1678886630": "Unique property size limitations.",
+        "Officer 1678886645": "Impact on adjacent properties?",
+        "Applicant 1678886660": "Minimal. No negative effects.",
+        "Officer 1678886675": "Date of application?",
+        "Applicant 1678886690": "Today, March 15th, 2024.",
+        "Officer 1678886705": "Contact information?",
+        "Applicant 1678886720": "Jane Miller. 555-1234.",
+        "Applicant 1678886735": "Hold on. Organization is Miller Holdings."
+      },
+      "form_name": "Zoning Variance Request",
+      "form_description": "A formal request to a local planning department to deviate from current zoning regulations due to unique property circumstances.",
+      "current_form_state": {
+        "Initial fields": {
+          "applicant_name_organization": "The Miller Group",
+          "property_address_parcel_number": "123 Elm Street. Parcel 7B.",
+          "current_zoning_district": "R-2",
+          "proposed_project_description": "Small commercial retail unit.",
+          "specific_ordinance_to_vary": "Section 5.3. Mixed-use.",
+          "reason_for_variance": "Unique property size limitations.",
+          "impact_on_adjacent_properties": "Minimal. No negative effects.",
+          "date_of_application": "March 15th, 2024",
+          "contact_information": "Jane Miller. 555-1234."
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Applicant: The Miller Group, Property: 123 Elm Street. Parcel 7B., Zoning: R-2, Project: Small commercial retail unit., Ordinance: Section 5.3. Mixed-use., Reason: Unique property size limitations., Impact: Minimal. No negative effects., Date: March 15th, 2024, Contact: Jane Miller. 555-1234."
+    },
+    "ideal_output": {
+      "thinking": "The applicant retracts the previously stated organization name and indicates it is outdated. This is a retraction and state change.",
+      "next_form_state": {
+        "Initial fields": {
+          "applicant_name_organization": "Miller Holdings",
+          "property_address_parcel_number": "123 Elm Street. Parcel 7B.",
+          "current_zoning_district": "R-2",
+          "proposed_project_description": "Small commercial retail unit.",
+          "specific_ordinance_to_vary": "Section 5.3. Mixed-use.",
+          "reason_for_variance": "Unique property size limitations.",
+          "impact_on_adjacent_properties": "Minimal. No negative effects.",
+          "date_of_application": "March 15th, 2024",
+          "contact_information": "Jane Miller. 555-1234."
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Applicant: Miller Holdings, Property: 123 Elm Street. Parcel 7B., Zoning: R-2, Project: Small commercial retail unit., Ordinance: Section 5.3. Mixed-use., Reason: Unique property size limitations., Impact: Minimal. No negative effects., Date: March 15th, 2024, Contact: Jane Miller. 555-1234."
+    },
+    "_conversation_id": "9ce37a54"
+  },
+  {
+    "input": {
+      "new_line": "Officer 1678886765: Okay, Miller Holdings. Got it.",
+      "10_lines_before": {
+        "Applicant 1678886630": "Unique property size limitations.",
+        "Officer 1678886645": "Impact on adjacent properties?",
+        "Applicant 1678886660": "Minimal. No negative effects.",
+        "Officer 1678886675": "Date of application?",
+        "Applicant 1678886690": "Today, March 15th, 2024.",
+        "Officer 1678886705": "Contact information?",
+        "Applicant 1678886720": "Jane Miller. 555-1234.",
+        "Applicant 1678886735": "Hold on. Organization is Miller Holdings.",
+        "Applicant 1678886750": "Not Miller Group. That's old."
+      },
+      "form_name": "Zoning Variance Request",
+      "form_description": "A formal request to a local planning department to deviate from current zoning regulations due to unique property circumstances.",
+      "current_form_state": {
+        "Initial fields": {
+          "applicant_name_organization": "Miller Holdings",
+          "property_address_parcel_number": "123 Elm Street. Parcel 7B.",
+          "current_zoning_district": "R-2",
+          "proposed_project_description": "Small commercial retail unit.",
+          "specific_ordinance_to_vary": "Section 5.3. Mixed-use.",
+          "reason_for_variance": "Unique property size limitations.",
+          "impact_on_adjacent_properties": "Minimal. No negative effects.",
+          "date_of_application": "March 15th, 2024",
+          "contact_information": "Jane Miller. 555-1234."
+        },
+        "New fields": {}
+      },
+      "current_summary_state": "Applicant: Miller Holdings, Property: 123 Elm Street. Parcel 7B., Zoning: R-2, Project: Small commercial retail unit., Ordinance: Section 5.3. Mixed-use., Reason: Unique property size limitations., Impact: Minimal. No negative effects., Date: March 15th, 2024, Contact: Jane Miller. 555-1234."
+    },
+    "ideal_output": {
+      "thinking": "The officer acknowledges and confirms the corrected applicant organization name. This confirms a previous correction and state change.",
+      "next_form_state": {
+        "Initial fields": {
+          "applicant_name_organization": "Miller Holdings",
+          "property_address_parcel_number": "123 Elm Street. Parcel 7B.",
+          "current_zoning_district": "R-2",
+          "proposed_project_description": "Small commercial retail unit.",
+          "specific_ordinance_to_vary": "Section 5.3. Mixed-use.",
+          "reason_for_variance": "Unique property size limitations.",
+          "impact_on_adjacent_properties": "Minimal. No negative effects.",
+          "date_of_application": "March 15th, 2024",
+          "contact_information": "Jane Miller. 555-1234."
+        },
+        "New fields": {}
+      },
+      "new_summary_state": "Applicant: Miller Holdings, Property: 123 Elm Street. Parcel 7B., Zoning: R-2, Project: Small commercial retail unit., Ordinance: Section 5.3. Mixed-use., Reason: Unique property size limitations., Impact: Minimal. No negative effects., Date: March 15th, 2024, Contact: Jane Miller. 555-1234."
+    },
+    "_conversation_id": "9ce37a54"
+  }
+]

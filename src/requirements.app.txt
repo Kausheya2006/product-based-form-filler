@@ -21,3 +21,4 @@ soundfile
 noisereduce
 SpeechRecognition
 httpx
+modal
