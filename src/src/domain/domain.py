@@ -1,8 +1,8 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 
-from .speakers import render_history_for_model
+from .speakers import render_history_for_model, normalize_history_value
 
 class ConversationVersion(BaseModel):
     version_index: int
@@ -13,6 +13,16 @@ class ConversationVersion(BaseModel):
     input_language: str | None = None
     raw_transcript: str | None = None
     translated_transcript: str | None = None
+
+    @field_validator("history", mode="before")
+    @classmethod
+    def normalize_history(cls, value):
+        if not isinstance(value, dict):
+            return value
+        return {
+            str(speaker): normalize_history_value(text)
+            for speaker, text in value.items()
+        }
 
 class Conversation(BaseModel):
     id: str = Field(alias="conversation_id")

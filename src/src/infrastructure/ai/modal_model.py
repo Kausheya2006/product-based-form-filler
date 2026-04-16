@@ -117,6 +117,7 @@ class ModalExtractionModel(IExtractionModel):
             "field_keys": field_keys,
             "accepted_new_fields": accepted_new_fields or {},
         }
+        logger.info(payload)
         try:
             if self.use_sdk:
                 data = await self._call_sdk(payload)
