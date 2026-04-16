@@ -147,7 +147,6 @@ async def lifespan(app: FastAPI):
     await container.runlog_repo.ensure_indexes()
     await _user_repo().create_index("username", unique=True)
     await _user_repo().create_index("email", unique=True)
-    await seed_data()
     logger.info("Application started.")
     yield
 

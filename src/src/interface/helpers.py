@@ -142,30 +142,6 @@ def _convert_mongo_types(obj):
         return [_convert_mongo_types(i) for i in obj]
     return obj
 
-async def seed_data():
-    """Seed MongoDB from JSON files (global/shared starter data)."""
-    if os.path.exists("data/conversations.json"):
-        with open("data/conversations.json", "r") as f:
-            for raw in json.load(f):
-                data = _convert_mongo_types(raw)
-                data["conversation_id"] = str(data.get("conversation_id", ""))
-                history = data.pop("history", data.pop("conversation", None))
-                if history and not data.get("versions"):
-                    data["versions"] = [
-                        ConversationVersion(version_index=0, history=history).model_dump()
-                    ]
-                data.setdefault("owner_id", None)
-                await container.convo_repo.save(Conversation(**data))
-        logger.info("Conversations seeded.")
-    if os.path.exists("data/forms.json"):
-        with open("data/forms.json", "r") as f:
-            for raw in json.load(f):
-                data = _convert_mongo_types(raw)
-                data["form_id"] = str(data.get("form_id", ""))
-                data.setdefault("owner_id", None)
-                await container.form_repo.save(FormSchema(**data))
-        logger.info("Forms seeded.")
-
 def _is_global(obj) -> bool:
     """Return True if the object is a global/shared starter (owner_id is None)."""
     return getattr(obj, "owner_id", None) is None
