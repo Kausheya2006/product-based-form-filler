@@ -429,21 +429,23 @@ async def _get_convo_for_user(convo_id: str, user: dict):
     return await ConvoQueryService.get_for_user(convo_id, user)
 
 
-def _parse_conversation_text(text: str) -> Dict[str, Any]:
+def _parse_conversation_text(text: str) -> Dict[str, str]:
     lines   = (text or "").strip().splitlines()
-    history: Dict[str, Any] = {}
+    history: Dict[str, str] = {}
     re_line = re.compile(r'^\s*([^:\n]{1,40})\s*:\s*(.*)\s*$')
-    current_speaker = None
+    current_key = None
+    turn_index = 0
 
     for line in lines:
         m = re_line.match(line)
         if m:
-            current_speaker = m.group(1).strip()
-            utterance       = m.group(2).rstrip()
-            history.setdefault(current_speaker, [])
-            history[current_speaker].append(utterance)
-        elif current_speaker and line.strip():
-            history[current_speaker][-1] += "\n" + line.rstrip()
+            speaker = m.group(1).strip()
+            utterance = m.group(2).rstrip()
+            turn_index += 1
+            current_key = f"{speaker} {turn_index:06d}"
+            history[current_key] = utterance
+        elif current_key and line.strip():
+            history[current_key] += "\n" + line.rstrip()
 
     return history
 
@@ -1320,34 +1322,16 @@ class ExtractionHandler:
             if not form:
                 raise HTTPException(404, "Form not found")
 
-            latest_version   = convo.versions[-1]
-            result           = None
-            used_saved_result = False
-
-            if latest_version.run_id:
-                saved_output = await OutputRepository.find_by_run_id(latest_version.run_id, user)
-                if saved_output:
-                    result = ExtractionResult(**{
-                        "conversation_id": saved_output.get("conversation_id", convo_id),
-                        "form_id":         saved_output.get("form_id", form_id),
-                        "filled_data":     saved_output.get("filled_data", {}),
-                        "accepted_new_fields": saved_output.get("accepted_new_fields", {}),
-                        "run_id":          saved_output.get("run_id", latest_version.run_id),
-                        "summary":         saved_output.get("summary", ""),
-                    })
-                    used_saved_result = True
-
-            if result is None:
-                result = await container.pipeline.run(
-                    convo_id, form_id,
-                    version_index=latest_version.version_index,
-                    owner_id=user["user_id"],
-                )
+            latest_version = convo.versions[-1]
+            result = await container.pipeline.run(
+                convo_id, form_id,
+                version_index=latest_version.version_index,
+                owner_id=user["user_id"],
+            )
 
             latest_version.run_id = result.run_id
             await container.convo_repo.save(convo)
-            if not used_saved_result:
-                await OutputRepository.save(result, owner_id=user["user_id"])
+            await OutputRepository.save(result, owner_id=user["user_id"])
 
             display_fields = FieldMerger.merge_display(result.filled_data, result.accepted_new_fields)
             result_payload = {

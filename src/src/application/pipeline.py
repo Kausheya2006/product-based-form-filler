@@ -108,6 +108,30 @@ class FormFillingService(IPipeline):
         self.summarizer = summarizer 
         self.model_type = model_type
 
+    @staticmethod
+    def _flatten_dict(data: dict, prefix: str = "", out: dict | None = None) -> dict:
+        if out is None:
+            out = {}
+        for key, value in (data or {}).items():
+            dotted_key = f"{prefix}.{key}" if prefix else key
+            if isinstance(value, dict):
+                FormFillingService._flatten_dict(value, dotted_key, out)
+            else:
+                out[dotted_key] = value
+        return out
+
+    @staticmethod
+    def _answers_for_field_keys(raw_answers, field_keys: list[str], fallback_state: dict) -> list:
+        if isinstance(raw_answers, dict):
+            filled_data = raw_answers.get("filled_data", raw_answers)
+            flat = (
+                FormFillingService._flatten_dict(filled_data)
+                if isinstance(filled_data, dict)
+                else {}
+            )
+            return [flat.get(key, fallback_state.get(key, "N/A")) for key in field_keys]
+        return list(raw_answers or [])
+
     async def run(self, conversation_id: str, form_id: str, version_index: int, owner_id: str = None) -> ExtractionResult:
         run_id = str(uuid4())
 
@@ -169,12 +193,13 @@ class FormFillingService(IPipeline):
                 running_state = dict(empty_fields)
                 lines = [line for line in full_convo.splitlines() if line.strip()]
                 for index in range(len(lines)):
-                    answers = await self.model.process_live_update(
+                    raw_answers = await self.model.process_live_update(
                         conversation_text="\n".join(lines[:index + 1]),
                         form_name=form.name,
                         current_field_state=running_state,
                         field_keys=field_keys,
                     )
+                    answers = self._answers_for_field_keys(raw_answers, field_keys, running_state)
                     running_state = {
                         field_key: value
                         for field_key, value in zip(field_keys, answers)
