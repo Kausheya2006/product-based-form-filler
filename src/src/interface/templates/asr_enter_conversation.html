@@ -11,6 +11,7 @@
         <input type="hidden" name="form_id" value="{{ form.id }}">
         <input type="hidden" name="translated_text_override" id="translatedTextOverride" value="">
         <input type="hidden" name="raw_transcript_override" id="rawTranscriptOverride" value="">
+        <input type="hidden" name="num_speakers" id="numSpeakersHidden" value="0">
 
         <div class="asr-mode-wrap">
             <p class="form-hint" style="margin:0 0 8px 0;">Choose one input method:</p>
@@ -56,18 +57,45 @@
             <audio id="recordingPreview" controls style="width:100%; display:none; margin-top:8px;"></audio>
         </div>
 
+        <!-- ── Speaker Detection ──────────────────────────────────────── -->
+        <div class="form-group" style="border-top: 1px solid var(--border); padding-top: 16px; margin-top: 8px;">
+            <label style="display:flex; align-items:center; gap:10px; cursor:pointer; user-select:none;">
+                <input type="checkbox" id="enableDiarization" style="width:18px; height:18px; accent-color: var(--accent, #5b5fcf); cursor:pointer;">
+                <span style="font-weight:600;">Enable Speaker Detection (Diarization)</span>
+            </label>
+            <p class="form-hint" style="margin-top:4px;">
+                Automatically identify and label each speaker in the audio.
+                Requires you to specify how many speakers are present.
+            </p>
+            <div id="diarizationOptions" style="display:none; margin-top:12px;">
+                <label for="numSpeakersInput" style="margin-bottom:4px; display:block;">Number of Speakers</label>
+                <input
+                    type="number"
+                    id="numSpeakersInput"
+                    min="2"
+                    max="10"
+                    value="2"
+                    style="width:80px; padding:6px 10px; border:1px solid var(--border); border-radius:8px; font-size:1rem;"
+                >
+                <p class="form-hint" style="margin-top:4px;">
+                    Set this to the total number of distinct speakers in the recording.
+                </p>
+            </div>
+        </div>
+        <!-- ─────────────────────────────────────────────────────────── -->
+
         <div class="action-row asr-submit-row">
-            <button type="submit" class="btn btn-success asr-submit-btn" id="asrSubmitBtn">Transcribe, Translate & Run Extraction</button>
+            <button type="submit" class="btn btn-success asr-submit-btn" id="asrSubmitBtn">Transcribe, Translate &amp; Run Extraction</button>
             <a href="/forms/{{ form.id }}" class="btn">Cancel</a>
         </div>
     </form>
 </div>
 
 <div class="card" id="translatedOutputCard" style="display:none;">
-    <h3 style="margin-top:0;">Translated Text (English)</h3>
+    <h3 style="margin-top:0;" id="previewCardTitle">Translated Text (English)</h3>
     <p class="form-hint" id="translatedOutputStatus">Generating translated text...</p>
     <textarea id="translatedOutputText" rows="8" readonly style="width:100%; font-family:monospace; border:1px solid var(--border); border-radius:10px; padding:12px; background:var(--bg-gray);"></textarea>
 </div>
 
-<script src="/static/js/asr_extraction.js?v=2"></script>
+<script src="/static/js/asr_extraction.js?v=3"></script>
 {% endblock %}

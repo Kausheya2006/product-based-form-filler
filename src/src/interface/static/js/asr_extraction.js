@@ -10,12 +10,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const translatedOutputCard = document.getElementById("translatedOutputCard");
   const translatedOutputStatus = document.getElementById("translatedOutputStatus");
   const translatedOutputText = document.getElementById("translatedOutputText");
+  const previewCardTitle = document.getElementById("previewCardTitle");
   const translatedTextOverride = document.getElementById("translatedTextOverride");
   const rawTranscriptOverride = document.getElementById("rawTranscriptOverride");
+  const numSpeakersHidden = document.getElementById("numSpeakersHidden");
   const modeUploadBtn = document.getElementById("modeUploadBtn");
   const modeRecordBtn = document.getElementById("modeRecordBtn");
   const uploadSection = document.getElementById("uploadSection");
   const recordSection = document.getElementById("recordSection");
+  const enableDiarization = document.getElementById("enableDiarization");
+  const diarizationOptions = document.getElementById("diarizationOptions");
+  const numSpeakersInput = document.getElementById("numSpeakersInput");
 
   if (!form || !submitBtn || !languageSelect || !audioFileInput) return;
 
@@ -24,6 +29,17 @@ document.addEventListener("DOMContentLoaded", () => {
   let chunks = [];
   let selectedInputMode = "upload";
 
+  // ── Speaker detection toggle ─────────────────────────────────────────────
+  if (enableDiarization && diarizationOptions) {
+    enableDiarization.addEventListener("change", () => {
+      diarizationOptions.style.display = enableDiarization.checked ? "block" : "none";
+      submitBtn.textContent = enableDiarization.checked
+        ? "Detect Speakers & Run Extraction"
+        : "Transcribe, Translate & Run Extraction";
+    });
+  }
+
+  // ── Input-mode switching ─────────────────────────────────────────────────
   function clearSelectedAudioFile() {
     audioFileInput.value = "";
   }
@@ -57,6 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // ── Recording ────────────────────────────────────────────────────────────
   async function startRecording() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder === "undefined") {
       if (recordingStatus) recordingStatus.textContent = "Recording is not supported in this browser.";
@@ -129,6 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setInputMode("upload");
   }
 
+  // ── Form submit ──────────────────────────────────────────────────────────
   form.addEventListener("submit", async (event) => {
     if (selectedInputMode === "upload" && (!audioFileInput.files || audioFileInput.files.length === 0)) {
       event.preventDefault();
@@ -144,9 +162,75 @@ document.addEventListener("DOMContentLoaded", () => {
 
     event.preventDefault();
 
+    const useDiarization = enableDiarization && enableDiarization.checked;
+    const numSpeakers = numSpeakersInput ? parseInt(numSpeakersInput.value, 10) || 2 : 2;
+
     submitBtn.disabled = true;
     const languageLabel = languageSelect.options[languageSelect.selectedIndex]?.text || "selected language";
-    submitBtn.textContent = `Transcribing ${languageLabel} audio and translating...`;
+
+    // ── Diarization path ───────────────────────────────────────────────────
+    if (useDiarization) {
+      submitBtn.textContent = `Detecting speakers in ${languageLabel} audio…`;
+
+      try {
+        const previewBody = new FormData();
+        previewBody.append("input_language", languageSelect.value);
+        previewBody.append("num_speakers", String(numSpeakers));
+        previewBody.append("audio_file", audioFileInput.files[0]);
+
+        const previewRes = await fetch("/asr/diarize-preview", {
+          method: "POST",
+          body: previewBody,
+        });
+
+        const previewData = await previewRes.json();
+        if (!previewRes.ok) {
+          throw new Error(previewData.detail || previewData.error || "Speaker detection failed.");
+        }
+
+        const diarizedText = String(previewData.diarized_text || "").trim();
+        const rawText = String(previewData.raw_text || "").trim();
+
+        if (!diarizedText) {
+          throw new Error("Diarization produced empty output.");
+        }
+
+        // Show preview
+        if (translatedOutputCard) translatedOutputCard.style.display = "block";
+        if (previewCardTitle) previewCardTitle.textContent = `Detected ${numSpeakers} Speaker(s) — Labelled Transcript`;
+        if (translatedOutputText) translatedOutputText.value = diarizedText;
+        if (translatedOutputStatus) {
+          translatedOutputStatus.textContent =
+            "Speaker-labelled transcript generated. Submitting for extraction…";
+        }
+
+        // Pass the diarized conversation text as override so the backend
+        // skips re-transcription and uses speaker labels directly.
+        if (translatedTextOverride) translatedTextOverride.value = diarizedText;
+        if (rawTranscriptOverride) rawTranscriptOverride.value = rawText;
+        // num_speakers = 0 tells backend to skip diarization (overrides already set)
+        if (numSpeakersHidden) numSpeakersHidden.value = "0";
+
+        // Clear the audio file so the backend uses the text overrides
+        audioFileInput.value = "";
+        const englishOption = Array.from(languageSelect.options).find((opt) => opt.value === "en");
+        if (englishOption) languageSelect.value = "en";
+
+        submitBtn.textContent = "Submitting speaker-labelled transcript…";
+        setTimeout(() => form.submit(), 700);
+
+      } catch (error) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Detect Speakers & Run Extraction";
+        alert(error?.message || String(error));
+      }
+
+      return;
+    }
+
+    // ── Standard single-speaker path ───────────────────────────────────────
+    submitBtn.textContent = `Transcribing ${languageLabel} audio and translating…`;
+    if (numSpeakersHidden) numSpeakersHidden.value = "0";
 
     try {
       const previewBody = new FormData();
@@ -170,6 +254,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (translatedOutputCard) translatedOutputCard.style.display = "block";
+      if (previewCardTitle) previewCardTitle.textContent = "Translated Text (English)";
       if (translatedOutputText) translatedOutputText.value = translatedText;
       if (translatedOutputStatus) {
         translatedOutputStatus.textContent = "Translated text generated. Running extraction next...";
@@ -181,9 +266,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Prevent re-transcription in the second step; backend will use overrides.
       audioFileInput.value = "";
       const englishOption = Array.from(languageSelect.options).find((opt) => opt.value === "en");
-      if (englishOption) {
-        languageSelect.value = "en";
-      }
+      if (englishOption) languageSelect.value = "en";
 
       submitBtn.textContent = "Submitting translated text for extraction...";
       setTimeout(() => form.submit(), 700);

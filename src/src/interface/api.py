@@ -65,6 +65,21 @@ def _transcript_to_conversation_text(transcript: str) -> str:
     return "\n".join(f"Speaker: {chunk}" for chunk in chunks if chunk)
 
 
+def _diarized_to_conversation_text(diarized_turns: list) -> str:
+    """
+    Convert a list of {"speaker": "SPEAKER 1", "text": "..."} dicts produced by
+    LocalSpeakerDiarizer into the pipe-delimited conversation text format used
+    by the rest of the system (same format as _parse_conversation_text expects).
+    """
+    lines = []
+    for turn in diarized_turns:
+        speaker = (turn.get("speaker") or "Speaker").strip()
+        text = (turn.get("text") or "").strip()
+        if text:
+            lines.append(f"{speaker}: {text}")
+    return "\n".join(lines)
+
+
 async def _persist_conversation_and_extract(
     *,
     form_id: str,
@@ -771,6 +786,7 @@ async def create_conversation_asr(
     conversation_text: str = Form(""),
     translated_text_override: str = Form(""),
     raw_transcript_override: str = Form(""),
+    num_speakers: int = Form(0),
     audio_file: UploadFile | None = File(default=None),
 ):
     user = await _get_current_user(request)
@@ -783,16 +799,32 @@ async def create_conversation_asr(
 
     transcript_text = ""
     translated_text = ""
+    diarized_turns: list = []
+
     if audio_file is not None and (audio_file.filename or "").strip():
         raw_audio = await audio_file.read()
         if not raw_audio:
             raise HTTPException(400, "Uploaded audio file is empty.")
-        transcript_text = await container.asr_transcriber.transcribe_to_text(
-            audio_bytes=raw_audio,
-            filename=audio_file.filename,
-            input_language=input_language,
-        )
-        translated_text = await container.translator.translate_to_english(transcript_text, input_language)
+
+        if num_speakers and num_speakers >= 2:
+            # Diarization path: identify who spoke when
+            diarized_turns = await container.diarizer.diarize(
+                audio_bytes=raw_audio,
+                filename=audio_file.filename,
+                num_speakers=num_speakers,
+                input_language=input_language,
+            )
+            raw_joined = " ".join(t["text"] for t in diarized_turns)
+            transcript_text = raw_joined
+            translated_text = _diarized_to_conversation_text(diarized_turns)
+        else:
+            # Standard single-speaker path
+            transcript_text = await container.asr_transcriber.transcribe_to_text(
+                audio_bytes=raw_audio,
+                filename=audio_file.filename,
+                input_language=input_language,
+            )
+            translated_text = await container.translator.translate_to_english(transcript_text, input_language)
     elif translated_text_override.strip():
         translated_text = translated_text_override.strip()
         transcript_text = raw_transcript_override.strip() or translated_text
@@ -802,7 +834,12 @@ async def create_conversation_asr(
     else:
         raise HTTPException(400, "Please upload an audio file or record audio.")
 
-    conversation_payload = _transcript_to_conversation_text(translated_text)
+    # Use diarized conversation text if available, otherwise fall back to
+    # the single-speaker flat transcript conversion.
+    if diarized_turns:
+        conversation_payload = translated_text  # already formatted with speaker labels
+    else:
+        conversation_payload = _transcript_to_conversation_text(translated_text)
     if not conversation_payload:
         raise HTTPException(400, "Transcription produced empty text.")
 
@@ -855,6 +892,53 @@ async def asr_translate_preview(
     return JSONResponse({
         "raw_text": transcript_text.strip(),
         "translated_text": translated_text.strip(),
+    })
+
+@app.post("/asr/diarize-preview", response_class=JSONResponse)
+async def asr_diarize_preview(
+    request: Request,
+    input_language: str = Form("en"),
+    num_speakers: int = Form(2),
+    audio_file: UploadFile | None = File(default=None),
+):
+    """
+    Run speaker diarization on an uploaded audio file and return a
+    speaker-labelled conversation transcript for preview before final submission.
+    """
+    user = await _get_current_user(request)
+    if not user:
+        return JSONResponse({"error": "Not authenticated"}, status_code=401)
+
+    if audio_file is None or not (audio_file.filename or "").strip():
+        raise HTTPException(400, "Audio file is required.")
+
+    raw_audio = await audio_file.read()
+    if not raw_audio:
+        raise HTTPException(400, "Uploaded audio file is empty.")
+
+    num_speakers = max(1, int(num_speakers))
+
+    try:
+        diarized_turns = await container.diarizer.diarize(
+            audio_bytes=raw_audio,
+            filename=audio_file.filename,
+            num_speakers=num_speakers,
+            input_language=input_language,
+        )
+    except RuntimeError as exc:
+        logger.warning("[Diarize] Runtime error: %s", exc)
+        raise HTTPException(500, str(exc)) from exc
+    except Exception as exc:
+        logger.exception("[Diarize] Unexpected failure")
+        raise HTTPException(500, f"Diarization failed: {str(exc)}") from exc
+
+    diarized_text = _diarized_to_conversation_text(diarized_turns)
+    raw_text = " ".join(t.get("text", "") for t in diarized_turns).strip()
+
+    return JSONResponse({
+        "diarized_text": diarized_text,
+        "raw_text": raw_text,
+        "turns": diarized_turns,
     })
 
 @app.get("/extract/{form_id}/{convo_id}", response_class=HTMLResponse)

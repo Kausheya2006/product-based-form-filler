@@ -31,3 +31,5 @@ pytest
 playwright
 pytest-playwright
 pytest-html
+pyannote.audio
+scikit-learn

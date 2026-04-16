@@ -11,6 +11,7 @@ from ..infrastructure.ai.mock_models import MockExtractionModel, MockSummarizer
 from ..infrastructure.ai.translator import LocalTranslator
 from ..infrastructure.ai.asr import LocalASRTranscriber
 from ..infrastructure.ai.stt import LocalSpeechToText
+from ..infrastructure.ai.diarizer import LocalSpeakerDiarizer
 from ..infrastructure.config import settings
 from ..application.pipeline import FormFillingService
 
@@ -25,6 +26,7 @@ class Container:
     translator: LocalTranslator = None
     asr_transcriber: LocalASRTranscriber = None
     stt_service: LocalSpeechToText = None
+    diarizer: LocalSpeakerDiarizer = None
 
     @classmethod
     def initialize(cls):
@@ -103,6 +105,7 @@ class Container:
         cls.translator = LocalTranslator()
         cls.asr_transcriber = LocalASRTranscriber()
         cls.stt_service = LocalSpeechToText()
+        cls.diarizer = LocalSpeakerDiarizer()
 
         # Log which Mongo host is being used (mask credentials)
         uri = settings.MONGO_URI
