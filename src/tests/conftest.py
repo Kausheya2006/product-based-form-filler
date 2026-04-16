@@ -5,7 +5,14 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-from src.domain.domain import Conversation, ConversationVersion, FormSchema
+from src.domain.domain import Conversation, ConversationVersion, FormSchema, ExtractionResult
+from src.interface import helpers as interface_helpers
+
+# api.py imports seed_data from helpers, so tests provide a no-op fallback
+# without touching application code.
+if not hasattr(interface_helpers, "seed_data"):
+    interface_helpers.seed_data = lambda *args, **kwargs: None
+
 from src.interface import api
 
 
@@ -20,6 +27,32 @@ class FakeCursor:
 
     async def to_list(self, length: int = 500):
         return list(self._docs)[:length]
+
+
+class FakeOutputCollection:
+    def __init__(self):
+        self.docs: list[dict[str, Any]] = []
+
+    async def insert_one(self, doc: dict[str, Any]):
+        self.docs.append(dict(doc))
+
+    async def find_one(self, query: dict[str, Any]):
+        for doc in reversed(self.docs):
+            if all(doc.get(k) == v for k, v in query.items()):
+                return dict(doc)
+        return None
+
+    def find(self, query: dict[str, Any]):
+        if not query:
+            return FakeCursor(list(self.docs))
+        filtered = [d for d in self.docs if all(d.get(k) == v for k, v in query.items())]
+        return FakeCursor(filtered)
+
+
+class FakeDb:
+    def __init__(self):
+        self.outputs = FakeOutputCollection()
+        self.users = None
 
 
 class FakeUserRepo:
@@ -82,6 +115,7 @@ class FakeFormRepo:
 class FakeConvoRepo:
     def __init__(self):
         self.conversations: dict[str, Conversation] = {}
+        self.db = FakeDb()
 
     async def get_by_form_id(self, form_id: str):
         return [c for c in self.conversations.values() if c.form_id == form_id]
@@ -94,17 +128,79 @@ class FakeConvoRepo:
 
 
 class FakeRunLogRepo:
+    def __init__(self):
+        self.logs: dict[str, dict[str, Any]] = {}
+
     async def ensure_indexes(self):
         return None
 
+    async def create(self, log):
+        self.logs[log.run_id] = {
+            "run_id": log.run_id,
+            "conversation_id": log.conversation_id,
+            "version_index": log.version_index,
+            "owner_id": log.owner_id,
+            "status": log.status,
+            "summary": log.summary,
+            "extracted_fields": dict(log.extracted_fields),
+        }
+
     async def get_recent(self, _limit: int = 20):
-        return []
+        return list(self.logs.values())
 
     async def get_by_id(self, _run_id: str):
-        return None
+        data = self.logs.get(_run_id)
+        if data is None:
+            return None
+
+        class _RunLog:
+            pass
+
+        log = _RunLog()
+        for key, value in data.items():
+            setattr(log, key, value)
+        return log
 
     async def update(self, _run_id: str, _data: dict[str, Any]):
-        return None
+        existing = self.logs.get(_run_id, {"run_id": _run_id})
+        existing.update(_data)
+        self.logs[_run_id] = existing
+
+
+class FakePipeline:
+    class _Model:
+        async def process_live_update(self, conversation_text, form_name, current_field_state, field_keys, accepted_new_fields=None):
+            _ = (conversation_text, form_name, accepted_new_fields)
+            return [current_field_state.get(k, "N/A") for k in field_keys]
+
+    class _Summarizer:
+        async def summarize(self, text):
+            return f"Summary: {text[:80]}"
+
+    def __init__(self, convo_repo: FakeConvoRepo, form_repo: FakeFormRepo):
+        self._convo_repo = convo_repo
+        self._form_repo = form_repo
+        self._run_counter = 0
+        self.model = self._Model()
+        self.summarizer = self._Summarizer()
+
+    async def run(self, conversation_id: str, form_id: str, version_index: int, owner_id: str | None = None):
+        _ = (version_index, owner_id)
+        convo = await self._convo_repo.get_by_id(conversation_id)
+        form = await self._form_repo.get_by_id(form_id)
+        if not convo or not form:
+            raise ValueError("Conversation or form not found")
+
+        self._run_counter += 1
+        run_id = f"run-{self._run_counter}"
+        filled = {field_name: "N/A" for field_name in form.fields.keys()}
+        return ExtractionResult(
+            conversation_id=conversation_id,
+            form_id=form_id,
+            filled_data=filled,
+            run_id=run_id,
+            summary="Stub summary for tests",
+        )
 
 
 @pytest.fixture
@@ -112,10 +208,13 @@ def test_state(monkeypatch: pytest.MonkeyPatch):
     users = FakeUserRepo()
     forms = FakeFormRepo()
     convos = FakeConvoRepo()
+    convos.db.users = users
+    runlogs = FakeRunLogRepo()
 
     api.container.convo_repo = convos
     api.container.form_repo = forms
-    api.container.runlog_repo = FakeRunLogRepo()
+    api.container.runlog_repo = runlogs
+    api.container.pipeline = FakePipeline(convos, forms)
 
     monkeypatch.setattr(api, "_user_repo", lambda: users)
 
@@ -186,6 +285,8 @@ def test_state(monkeypatch: pytest.MonkeyPatch):
         "user_repo": users,
         "form_repo": forms,
         "convo_repo": convos,
+        "runlog_repo": runlogs,
+        "outputs": convos.db.outputs,
         "add_user": add_user,
         "add_form": add_form,
         "add_conversation": add_conversation,

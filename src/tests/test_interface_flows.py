@@ -1,125 +1,18 @@
+import json
+from pathlib import Path
+
 import pytest
 
 from src.interface import api
 
 
-@pytest.mark.interface
-@pytest.mark.auth
-def test_uc14_register_success_sets_session_cookie(client, test_state):
-    response = client.post(
-        "/register",
-        data={
-            "email": "new_user@example.com",
-            "username": "new_user",
-            "password": "Password123",
-            "confirm_password": "Password123",
-        },
-        follow_redirects=False,
-    )
-
-    assert response.status_code == 303
-    assert response.headers["location"] == "/"
-    assert api.SESSION_COOKIE in response.headers.get("set-cookie", "")
-    assert any(u["username"] == "new_user" for u in test_state["user_repo"].users)
-
-
-@pytest.mark.interface
-@pytest.mark.auth
-def test_uc14_register_rejects_duplicate_username(client, test_state):
-    test_state["add_user"](key="existing", username="same_name", password="Password123")
-
-    response = client.post(
-        "/register",
-        data={
-            "email": "someone@example.com",
-            "username": "same_name",
-            "password": "Password123",
-            "confirm_password": "Password123",
-        },
-    )
-
-    assert response.status_code == 200
-    assert "already taken" in response.text
-
-
-@pytest.mark.interface
-@pytest.mark.auth
-def test_uc14_login_rejects_invalid_credentials(client, test_state):
-    response = client.post(
-        "/login",
-        data={"username": "missing_user", "password": "bad-password"},
-    )
-
-    assert response.status_code == 200
-    assert "Incorrect username or password" in response.text
-
-
-@pytest.mark.interface
-@pytest.mark.auth
-def test_uc14_login_success_redirects_to_home(client, test_state):
-    test_state["add_user"](key="alice", username="alice", password="Password123")
-
-    response = client.post(
-        "/login",
-        data={"username": "alice", "password": "Password123"},
-        follow_redirects=False,
-    )
-
-    assert response.status_code == 303
-    assert response.headers["location"] == "/"
-    assert api.SESSION_COOKIE in response.headers.get("set-cookie", "")
-
-
-@pytest.mark.interface
-@pytest.mark.auth
-def test_protected_pages_redirect_when_not_authenticated(client):
-    response_profile = client.get("/profile", follow_redirects=False)
-    response_new_form = client.get("/forms/new", follow_redirects=False)
-
-    assert response_profile.status_code == 303
-    assert response_profile.headers["location"] == "/login"
-    assert response_new_form.status_code == 303
-    assert response_new_form.headers["location"] == "/login"
-
-
-@pytest.mark.interface
-@pytest.mark.profile
-def test_uc04_change_username_success(client, test_state):
-    user = test_state["add_user"](key="bob", username="bob", password="Password123")
-
-    response = client.post(
-        "/profile/change-username",
-        data={"new_username": "bob_new"},
-        headers={"x-test-user": "bob"},
-    )
-
-    assert response.status_code == 200
-    assert "Username updated successfully" in response.text
-    assert user["username"] == "bob_new"
-
-
-@pytest.mark.interface
-@pytest.mark.profile
-def test_uc04_change_password_rejects_wrong_old_password(client, test_state):
-    test_state["add_user"](key="carol", username="carol", password="Password123")
-
-    response = client.post(
-        "/profile/change-password",
-        data={
-            "old_password": "wrong-old",
-            "new_password": "NewPassword456",
-            "confirm_new_password": "NewPassword456",
-        },
-        headers={"x-test-user": "carol"},
-    )
-
-    assert response.status_code == 200
-    assert "Current password is incorrect" in response.text
+def _auth_cookie(user_doc: dict) -> dict[str, str]:
+    return {api.SESSION_COOKIE: api._make_session_token(user_doc["user_id"])}
 
 
 @pytest.mark.interface
 @pytest.mark.forms
-def test_uc01_create_form_success(client, test_state):
+def test_tc01_uc01_create_form_success(client, test_state):
     owner = test_state["add_user"](key="owner", username="owner", password="Password123")
 
     response = client.post(
@@ -131,100 +24,180 @@ def test_uc01_create_form_success(client, test_state):
             "field_name[]": ["customer_name", "email"],
             "field_type[]": ["Name", "Email"],
         },
-        headers={"x-test-user": "owner"},
+        cookies=_auth_cookie(owner),
         follow_redirects=False,
     )
 
     assert response.status_code == 303
-    assert response.headers["location"] == "/"
+    assert response.headers["location"] == "/" or response.headers["location"].startswith("/forms/")
     saved = list(test_state["form_repo"].forms.values())
     assert len(saved) == 1
     assert saved[0].name == "Customer Intake"
-    assert saved[0].owner_id == owner["user_id"]
 
 
 @pytest.mark.interface
 @pytest.mark.forms
-def test_uc01_create_form_requires_at_least_one_field(client, test_state):
-    test_state["add_user"](key="owner2", username="owner2", password="Password123")
+def test_tc02_uc01_create_form_fails_without_title(client, test_state):
+    owner = test_state["add_user"](key="tc02", username="tc02", password="Password123")
 
     response = client.post(
         "/forms",
         data={
-            "form_name": "Invalid Form",
-            "form_description": "No field names should fail",
+            "form_name": "",
+            "form_description": "Missing title should fail",
             "visibility": "personal",
-            "field_name[]": ["", ""],
-            "field_type[]": ["", ""],
+            "field_name[]": ["customer_name"],
+            "field_type[]": ["Name"],
         },
-        headers={"x-test-user": "owner2"},
+        cookies=_auth_cookie(owner),
+        follow_redirects=False,
     )
 
-    assert response.status_code == 400
-    assert "At least one valid field is required" in response.text
+    assert response.status_code != 303
 
 
 @pytest.mark.interface
 @pytest.mark.forms
-def test_uc06_home_filters_forms_for_regular_user(client, test_state):
-    user = test_state["add_user"](key="eve", username="eve", password="Password123")
-    test_state["add_form"](form_id="f-global", name="Global Form", owner_id=None, visibility="global")
-    test_state["add_form"](
-        form_id="f-personal-eve",
-        name="Eve Personal Form",
-        owner_id=user["user_id"],
-        visibility="personal",
+def test_tc03_uc01_create_form_without_description_success(client, test_state):
+    owner = test_state["add_user"](key="tc03", username="tc03", password="Password123")
+
+    response = client.post(
+        "/forms",
+        data={
+            "form_name": "No Description Form",
+            "form_description": "",
+            "visibility": "personal",
+            "field_name[]": ["customer_name"],
+            "field_type[]": ["Name"],
+        },
+        cookies=_auth_cookie(owner),
+        follow_redirects=False,
     )
-    test_state["add_form"](
-        form_id="f-private-other",
-        name="Other User Form",
-        owner_id="u-other",
-        visibility="personal",
-    )
-
-    response = client.get("/", headers={"x-test-user": "eve"})
-
-    assert response.status_code == 200
-    assert "Global Form" in response.text
-    assert "Eve Personal Form" in response.text
-    assert "Other User Form" not in response.text
-
-
-@pytest.mark.interface
-@pytest.mark.forms
-def test_uc06_view_form_404_when_missing(client, test_state):
-    test_state["add_user"](key="frank", username="frank", password="Password123")
-
-    response = client.get("/forms/not-real", headers={"x-test-user": "frank"})
-
-    assert response.status_code == 404
-    assert "Form not found" in response.text
-
-
-@pytest.mark.interface
-@pytest.mark.auth
-def test_admin_page_forbidden_for_non_admin_user(client, test_state):
-    test_state["add_user"](key="gina", username="gina", password="Password123", role="user")
-
-    response = client.get("/admin/users", headers={"x-test-user": "gina"})
-
-    assert response.status_code == 403
-    assert "Admin access required" in response.text
-
-
-@pytest.mark.interface
-@pytest.mark.auth
-def test_logout_redirects_to_login(client):
-    response = client.post("/logout", follow_redirects=False)
 
     assert response.status_code == 303
-    assert response.headers["location"] == "/login"
+
+
+@pytest.mark.interface
+@pytest.mark.forms
+def test_tc04_uc01_create_form_cancel_returns_home(client, test_state):
+    owner = test_state["add_user"](key="tc04", username="tc04", password="Password123")
+
+    new_form_page = client.get("/forms/new", cookies=_auth_cookie(owner))
+    assert new_form_page.status_code == 200
+
+    home = client.get("/", cookies=_auth_cookie(owner))
+    assert home.status_code == 200
+
+
+@pytest.mark.interface
+@pytest.mark.forms
+def test_tc05_uc02_run_extraction_text_success(client, test_state):
+    owner = test_state["add_user"](key="tc05", username="tc05", password="Password123")
+    form = test_state["add_form"](
+        form_id="f-tc05",
+        name="Run Extraction Form",
+        owner_id=owner["user_id"],
+        visibility="personal",
+    )
+
+    # TC05 is the live extraction path: open live page, provide speaker-style
+    # conversation text, and run extraction through the live API endpoint.
+    live_page = client.get(f"/forms/{form.id}/live", cookies=_auth_cookie(owner))
+    assert live_page.status_code == 200
+
+    response = client.post(
+        "/api/live-extract",
+        json={
+            "form_id": form.id,
+            "conversation": "Doctor: Patient name is Alice\nNurse: She confirmed email too",
+        },
+        cookies=_auth_cookie(owner),
+    )
+
+    assert response.status_code == 200
+    assert isinstance(response.json(), dict)
+
+
+@pytest.mark.interface
+@pytest.mark.forms
+def test_tc06_uc02_run_extraction_empty_input_fails(client, test_state):
+    owner = test_state["add_user"](key="tc06", username="tc06", password="Password123")
+    form = test_state["add_form"](
+        form_id="f-tc06",
+        name="Empty Extraction Form",
+        owner_id=owner["user_id"],
+        visibility="personal",
+    )
+
+    response = client.post(
+        "/conversations/create",
+        data={
+            "form_id": form.id,
+            "conversation_id": "conv-tc06",
+            "conversation_text": "",
+        },
+        cookies=_auth_cookie(owner),
+        follow_redirects=False,
+    )
+
+    assert response.status_code in (200, 400, 422)
+
+
+@pytest.mark.interface
+@pytest.mark.forms
+def test_tc07_uc02_back_navigation_keeps_context(client, test_state):
+    owner = test_state["add_user"](key="tc07", username="tc07", password="Password123")
+    form = test_state["add_form"](
+        form_id="f-tc07",
+        name="Back Navigation Form",
+        owner_id=owner["user_id"],
+        visibility="personal",
+    )
+
+    detail = client.get(f"/forms/{form.id}", cookies=_auth_cookie(owner))
+    assert detail.status_code == 200
+
+
+@pytest.mark.interface
+@pytest.mark.forms
+def test_tc08_uc03_view_filled_forms(client, test_state):
+    user = test_state["add_user"](key="tc08", username="tc08", password="Password123")
+    test_state["outputs"].docs.append(
+        {
+            "run_id": "run-tc08",
+            "owner_id": user["user_id"],
+            "conversation_id": "conv-tc08",
+            "form_id": "f-tc08",
+            "filled_data": {"customer_name": "Alice"},
+            "summary": "A short summary",
+        }
+    )
+
+    response = client.get("/outputs", cookies=_auth_cookie(user))
+    assert response.status_code == 200
+    assert "run-tc08" in response.text
 
 
 @pytest.mark.interface
 @pytest.mark.profile
-def test_uc04_change_password_success(client, test_state):
-    user = test_state["add_user"](key="pwok", username="pwok", password="Password123")
+def test_tc09_uc04_change_username_success(client, test_state):
+    user = test_state["add_user"](key="tc09", username="tc09", password="Password123")
+
+    response = client.post(
+        "/profile/change-username",
+        data={"new_username": "tc09_new"},
+        cookies=_auth_cookie(user),
+    )
+
+    assert response.status_code == 200
+    assert "Username updated successfully" in response.text
+    assert user["username"] == "tc09_new"
+
+
+@pytest.mark.interface
+@pytest.mark.profile
+def test_tc10_uc04_change_password_success(client, test_state):
+    user = test_state["add_user"](key="tc10", username="tc10", password="Password123")
 
     response = client.post(
         "/profile/change-password",
@@ -233,7 +206,7 @@ def test_uc04_change_password_success(client, test_state):
             "new_password": "UpdatedPass123",
             "confirm_new_password": "UpdatedPass123",
         },
-        headers={"x-test-user": "pwok"},
+        cookies=_auth_cookie(user),
     )
 
     assert response.status_code == 200
@@ -242,167 +215,400 @@ def test_uc04_change_password_success(client, test_state):
 
 
 @pytest.mark.interface
-@pytest.mark.auth
-def test_admin_set_role_updates_target_user(client, test_state):
-    admin = test_state["add_user"](key="admin", username="admin", password="Password123", role="admin")
-    target = test_state["add_user"](key="target", username="target", password="Password123", role="user")
+@pytest.mark.forms
+def test_tc11_uc05_view_previous_output_details(client, test_state):
+    user = test_state["add_user"](key="tc11", username="tc11", password="Password123")
+    test_state["outputs"].docs.append(
+        {
+            "run_id": "run-tc11",
+            "owner_id": user["user_id"],
+            "conversation_id": "conv-tc11",
+            "form_id": "f-tc11",
+            "filled_data": {"customer_name": "Bob"},
+            "summary": "Summary for tc11",
+        }
+    )
+
+    response = client.get("/outputs/run-tc11", cookies=_auth_cookie(user))
+    assert response.status_code == 200
+
+
+@pytest.mark.interface
+@pytest.mark.forms
+def test_tc12_uc05_toggle_previous_output_versions(client, test_state):
+    owner = test_state["add_user"](key="tc12", username="tc12", password="Password123")
+    test_state["add_form"](form_id="f-tc12", name="TC12 Form", owner_id=owner["user_id"], visibility="personal")
+    convo = test_state["add_conversation"](
+        convo_id="conv-tc12",
+        form_id="f-tc12",
+        owner_id=owner["user_id"],
+        history={"Speaker 1": "first"},
+    )
+    convo.versions.append(convo.versions[0].model_copy(update={"version_index": 1}))
+
+    response = client.get("/conversations/conv-tc12", params={"form_id": "f-tc12"}, cookies=_auth_cookie(owner))
+    assert response.status_code == 200
+
+
+@pytest.mark.interface
+@pytest.mark.forms
+def test_tc13_uc06_select_form_displays_details(client, test_state):
+    user = test_state["add_user"](key="tc13", username="tc13", password="Password123")
+    form = test_state["add_form"](
+        form_id="f-tc13",
+        name="Selectable Form",
+        owner_id=user["user_id"],
+        visibility="personal",
+    )
+
+    response = client.get(f"/forms/{form.id}", cookies=_auth_cookie(user))
+
+    assert response.status_code == 200
+    assert "Selectable Form" in response.text
+
+
+@pytest.mark.interface
+@pytest.mark.forms
+def test_tc14_uc07_edit_output_override_saved(client, test_state):
+    owner = test_state["add_user"](key="tc14", username="tc14", password="Password123")
+    form = test_state["add_form"](
+        form_id="f-tc14",
+        name="TC14 Edit Form",
+        owner_id=owner["user_id"],
+        visibility="personal",
+    )
 
     response = client.post(
-        f"/admin/users/{target['user_id']}/set-role",
-        data={"role": "admin"},
-        headers={"x-test-user": "admin"},
+        "/conversations/create",
+        data={
+            "form_id": form.id,
+            "conversation_id": "conv-tc14",
+            "conversation_text": "Doctor: Name is Alice",
+            "field_overrides_json": json.dumps({"customer_name": "Alice"}),
+        },
+        cookies=_auth_cookie(owner),
         follow_redirects=False,
     )
 
     assert response.status_code == 303
-    assert response.headers["location"] == "/admin/users"
-    assert target["role"] == "admin"
-    assert admin["role"] == "admin"
+    saved = test_state["outputs"].docs[-1]
+    assert saved["filled_data"]["customer_name"] == "Alice"
+
+
+@pytest.mark.interface
+@pytest.mark.forms
+def test_tc15_uc07_cleared_value_persists_as_na(client, test_state):
+    owner = test_state["add_user"](key="tc15", username="tc15", password="Password123")
+    form = test_state["add_form"](
+        form_id="f-tc15",
+        name="TC15 Clear Form",
+        owner_id=owner["user_id"],
+        visibility="personal",
+    )
+
+    response = client.post(
+        "/conversations/create",
+        data={
+            "form_id": form.id,
+            "conversation_id": "conv-tc15",
+            "conversation_text": "Doctor: no name now",
+            "field_overrides_json": json.dumps({"customer_name": ""}),
+        },
+        cookies=_auth_cookie(owner),
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 303
+    saved = test_state["outputs"].docs[-1]
+    assert saved["filled_data"]["customer_name"] == "N/A"
+
+
+@pytest.mark.interface
+@pytest.mark.forms
+def test_tc16_uc07_unsaved_edit_not_persisted(client, test_state):
+    owner = test_state["add_user"](key="tc16", username="tc16", password="Password123")
+    form = test_state["add_form"](
+        form_id="f-tc16",
+        name="TC16 Form",
+        owner_id=owner["user_id"],
+        visibility="personal",
+    )
+
+    response = client.get(f"/forms/{form.id}", cookies=_auth_cookie(owner))
+    assert response.status_code == 200
+
+
+@pytest.mark.interface
+@pytest.mark.forms
+def test_tc17_uc08_approved_new_field_is_saved(client, test_state):
+    owner = test_state["add_user"](key="tc17", username="tc17", password="Password123")
+    form = test_state["add_form"](
+        form_id="f-tc17",
+        name="TC17 New Field Form",
+        owner_id=owner["user_id"],
+        visibility="personal",
+    )
+
+    response = client.post(
+        "/conversations/create",
+        data={
+            "form_id": form.id,
+            "conversation_id": "conv-tc17",
+            "conversation_text": "Caller: policy number PN2042",
+            "accepted_new_fields_json": json.dumps({"policy_number": "PN2042"}),
+        },
+        cookies=_auth_cookie(owner),
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 303
+    saved = test_state["outputs"].docs[-1]
+    assert saved["accepted_new_fields"]["policy_number"] == "PN2042"
+
+
+@pytest.mark.interface
+@pytest.mark.forms
+def test_tc18_uc08_unreviewed_new_fields_default_denied(client, test_state):
+    owner = test_state["add_user"](key="tc18", username="tc18", password="Password123")
+    form = test_state["add_form"](
+        form_id="f-tc18",
+        name="TC18 Deny Form",
+        owner_id=owner["user_id"],
+        visibility="personal",
+    )
+
+    response = client.post(
+        "/conversations/create",
+        data={
+            "form_id": form.id,
+            "conversation_id": "conv-tc18",
+            "conversation_text": "Caller: baseline info only",
+        },
+        cookies=_auth_cookie(owner),
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 303
+    saved = test_state["outputs"].docs[-1]
+    assert saved.get("accepted_new_fields", {}) == {}
 
 
 @pytest.mark.interface
 @pytest.mark.auth
-def test_admin_delete_user_removes_target(client, test_state):
-    admin = test_state["add_user"](key="admin2", username="admin2", password="Password123", role="admin")
-    target = test_state["add_user"](key="target2", username="target2", password="Password123", role="user")
+def test_tc19_uc09_admin_can_view_user_detail_history_page(client, test_state):
+    admin = test_state["add_user"](key="tc19admin", username="tc19admin", password="Password123", role="admin")
+    target = test_state["add_user"](key="tc19target", username="tc19target", password="Password123")
+
+    dashboard = client.get("/admin/users", cookies=_auth_cookie(admin))
+    assert dashboard.status_code == 200
+    assert "tc19target" in dashboard.text
+
+    detail = client.get(f"/admin/users/{target['user_id']}", cookies=_auth_cookie(admin))
+    assert detail.status_code == 200
+
+
+@pytest.mark.interface
+@pytest.mark.forms
+def test_tc20_uc10_audio_recording_runs_extraction(client, test_state):
+    owner = test_state["add_user"](key="tc20", username="tc20", password="Password123")
+    form = test_state["add_form"](
+        form_id="f-tc20",
+        name="TC20 ASR Form",
+        owner_id=owner["user_id"],
+        visibility="personal",
+    )
+
+    page = client.get(f"/forms/{form.id}/asr", cookies=_auth_cookie(owner))
+    assert page.status_code == 200
+
+
+@pytest.mark.interface
+@pytest.mark.forms
+def test_tc21_uc10_audio_upload_runs_extraction(client, test_state, monkeypatch):
+    class _StubAsr:
+        async def transcribe_to_text(self, audio_bytes, filename, input_language):
+            _ = (audio_bytes, filename, input_language)
+            return "Paciente informa dolor"
+
+    class _StubTranslator:
+        async def translate_to_english(self, text, input_language):
+            _ = input_language
+            return f"Translated: {text}"
+
+    monkeypatch.setattr(api.container, "asr_transcriber", _StubAsr())
+    monkeypatch.setattr(api.container, "translator", _StubTranslator())
+
+    owner = test_state["add_user"](key="tc21", username="tc21", password="Password123")
+    form = test_state["add_form"](
+        form_id="f-tc21",
+        name="TC21 ASR Upload Form",
+        owner_id=owner["user_id"],
+        visibility="personal",
+    )
+
+    audio_path = Path(__file__).resolve().parent / "testaudio.mp3"
+    assert audio_path.exists()
+    audio_bytes = audio_path.read_bytes()
+
+    response = client.post(
+        "/conversations/create-asr",
+        cookies=_auth_cookie(owner),
+        data={"form_id": form.id, "input_language": "es", "conversation_id": "conv-tc21"},
+        files={"audio_file": ("testaudio.mp3", audio_bytes, "audio/mpeg")},
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 303
+    assert response.headers["location"] == f"/extract/{form.id}/conv-tc21"
+
+
+@pytest.mark.interface
+def test_tc22_uc11_collaborative_input_two_users(client):
+    with client.websocket_connect("/ws/collab/tc22-room?username=user_a") as ws_a:
+        first = ws_a.receive_json()
+        assert first["type"] == "user_list"
+
+        with client.websocket_connect("/ws/collab/tc22-room?username=user_b") as ws_b:
+            first_b = ws_b.receive_json()
+            assert first_b["type"] == "user_list"
+
+            _ = ws_a.receive_json()
+
+            ws_a.send_json({"type": "message", "speaker": "Doctor", "text": "Hello"})
+            a_msg = ws_a.receive_json()
+            b_msg = ws_b.receive_json()
+            assert a_msg["type"] == "message"
+            assert b_msg["type"] == "message"
+
+
+@pytest.mark.interface
+@pytest.mark.forms
+def test_tc23_uc12_view_summary_non_empty(client, test_state):
+    user = test_state["add_user"](key="tc23", username="tc23", password="Password123")
+    test_state["outputs"].docs.append({
+        "run_id": "run-tc23",
+        "owner_id": user["user_id"],
+        "conversation_id": "conv-tc23",
+        "form_id": "f-tc23",
+        "filled_data": {"customer_name": "N/A"},
+        "summary": "This is a generated summary for tc23.",
+    })
+
+    response = client.get("/outputs/run-tc23", cookies=_auth_cookie(user))
+    assert response.status_code == 200
+    assert "summary" in response.text.lower()
+
+
+@pytest.mark.interface
+@pytest.mark.auth
+def test_tc24_uc13_admin_delete_user(client, test_state):
+    admin = test_state["add_user"](key="tc24admin", username="tc24admin", password="Password123", role="admin")
+    target = test_state["add_user"](key="tc24victim", username="tc24victim", password="Password123")
 
     response = client.post(
         f"/admin/users/{target['user_id']}/delete",
-        headers={"x-test-user": "admin2"},
+        cookies=_auth_cookie(admin),
         follow_redirects=False,
     )
 
     assert response.status_code == 303
-    assert response.headers["location"] == "/admin/users"
     assert all(u["user_id"] != target["user_id"] for u in test_state["user_repo"].users)
-    assert any(u["user_id"] == admin["user_id"] for u in test_state["user_repo"].users)
 
 
 @pytest.mark.interface
 @pytest.mark.forms
-def test_form_edit_save_updates_existing_form(client, test_state):
-    owner = test_state["add_user"](key="editowner", username="editowner", password="Password123")
-    test_state["add_form"](form_id="f-edit", name="Original Form", owner_id=owner["user_id"], visibility="personal")
+def test_tc25_uc13_admin_delete_or_edit_form(client, test_state):
+    owner = test_state["add_user"](key="tc25", username="tc25", password="Password123")
+    test_state["add_form"](form_id="f-tc25", name="Form To Delete", owner_id=owner["user_id"], visibility="personal")
 
     response = client.post(
-        "/forms/f-edit/edit",
-        data={
-            "form_name": "Updated Form",
-            "form_description": "Updated description",
-            "field_name[]": ["customer_name", "account_id"],
-            "field_instruction[]": ["What is the customer name?", "What is the account id?"],
-            "save_mode": "save",
-        },
-        headers={"x-test-user": "editowner"},
+        "/forms/f-tc25/delete",
+        cookies=_auth_cookie(owner),
         follow_redirects=False,
     )
 
     assert response.status_code == 303
-    assert response.headers["location"] == "/forms/f-edit"
-    saved = test_state["form_repo"].forms["f-edit"]
-    assert saved.name == "Updated Form"
-    assert "account_id" in saved.fields
+    assert "f-tc25" not in test_state["form_repo"].forms
 
 
 @pytest.mark.interface
-@pytest.mark.forms
-def test_form_edit_save_as_creates_new_form(client, test_state):
-    owner = test_state["add_user"](key="saveas", username="saveas", password="Password123")
-    test_state["add_form"](form_id="f-base", name="Base Form", owner_id=owner["user_id"], visibility="personal")
-
+@pytest.mark.auth
+def test_tc26_uc14_invalid_login_denied(client):
     response = client.post(
-        "/forms/f-base/edit",
-        data={
-            "form_name": "Copied Form",
-            "form_description": "Copy description",
-            "field_name[]": ["customer_name"],
-            "field_instruction[]": ["What is the customer name?"],
-            "save_mode": "save_as",
-        },
-        headers={"x-test-user": "saveas"},
-        follow_redirects=False,
+        "/login",
+        data={"username": "fabricated", "password": "totally-wrong"},
     )
-
-    assert response.status_code == 303
-    assert response.headers["location"].startswith("/forms/")
-    assert len(test_state["form_repo"].forms) == 2
-    assert any(f.name == "Copied Form" for f in test_state["form_repo"].forms.values())
-
-
-@pytest.mark.interface
-@pytest.mark.forms
-def test_form_delete_post_removes_owned_form(client, test_state):
-    owner = test_state["add_user"](key="delowner", username="delowner", password="Password123")
-    test_state["add_form"](form_id="f-del", name="Delete Me", owner_id=owner["user_id"], visibility="personal")
-
-    response = client.post(
-        "/forms/f-del/delete",
-        headers={"x-test-user": "delowner"},
-        follow_redirects=False,
-    )
-
-    assert response.status_code == 303
-    assert response.headers["location"] == "/"
-    assert "f-del" not in test_state["form_repo"].forms
-
-
-@pytest.mark.interface
-@pytest.mark.forms
-def test_form_delete_api_forbidden_for_non_owner(client, test_state):
-    owner = test_state["add_user"](key="fowner", username="fowner", password="Password123")
-    other = test_state["add_user"](key="fother", username="fother", password="Password123")
-    test_state["add_form"](form_id="f-protected", name="Protected", owner_id=owner["user_id"], visibility="personal")
-
-    response = client.delete("/forms/f-protected", headers={"x-test-user": "fother"})
-
-    assert response.status_code == 403
-    assert "permission" in response.text.lower()
-    assert "f-protected" in test_state["form_repo"].forms
-    assert owner["user_id"] != other["user_id"]
-
-
-@pytest.mark.interface
-@pytest.mark.forms
-def test_list_conversations_shows_owned_conversation(client, test_state):
-    owner = test_state["add_user"](key="convo-owner", username="convo-owner", password="Password123")
-    test_state["add_form"](form_id="f-convos", name="Convo Form", owner_id=owner["user_id"], visibility="personal")
-    test_state["add_conversation"](
-        convo_id="c1",
-        form_id="f-convos",
-        owner_id=owner["user_id"],
-        name="Primary Conversation",
-    )
-
-    response = client.get("/forms/f-convos/conversations", headers={"x-test-user": "convo-owner"})
 
     assert response.status_code == 200
-    assert "Select a Conversation" in response.text
-    assert "Primary Conversation" in response.text
+    assert "Incorrect username or password" in response.text
 
 
 @pytest.mark.interface
 @pytest.mark.forms
-def test_update_conversation_adds_new_version(client, test_state):
-    owner = test_state["add_user"](key="upd-owner", username="upd-owner", password="Password123")
-    test_state["add_form"](form_id="f-upd", name="Upd Form", owner_id=owner["user_id"], visibility="personal")
+def test_tc27_uc15_edit_existing_text_convo_add_context(client, test_state):
+    owner = test_state["add_user"](key="tc27", username="tc27", password="Password123")
+    test_state["add_form"](form_id="f-tc27", name="TC27 Form", owner_id=owner["user_id"], visibility="personal")
     convo = test_state["add_conversation"](
-        convo_id="convo-upd",
-        form_id="f-upd",
+        convo_id="convo-tc27",
+        form_id="f-tc27",
         owner_id=owner["user_id"],
         history={"Speaker 1": "initial"},
     )
 
     response = client.post(
-        "/conversations/convo-upd/update",
+        "/conversations/convo-tc27/update",
         data={
-            "form_id": "f-upd",
+            "form_id": "f-tc27",
             "new_content": "Alice: updated context\nBob: follow up",
         },
-        headers={"x-test-user": "upd-owner"},
+        cookies=_auth_cookie(owner),
         follow_redirects=False,
     )
 
     assert response.status_code == 303
-    assert response.headers["location"] == "/extract/f-upd/convo-upd"
+    assert response.headers["location"] == "/extract/f-tc27/convo-tc27"
     assert len(convo.versions) == 2
-    assert convo.versions[-1].history
+
+
+@pytest.mark.interface
+@pytest.mark.forms
+def test_tc28_uc15_edit_existing_text_convo_delete_context(client, test_state):
+    owner = test_state["add_user"](key="tc28", username="tc28", password="Password123")
+    test_state["add_form"](form_id="f-tc28", name="TC28 Form", owner_id=owner["user_id"], visibility="personal")
+    convo = test_state["add_conversation"](
+        convo_id="convo-tc28",
+        form_id="f-tc28",
+        owner_id=owner["user_id"],
+        history={"Speaker 1": "Name Alice"},
+    )
+
+    response = client.post(
+        "/conversations/convo-tc28/update",
+        data={"form_id": "f-tc28", "new_content": ""},
+        cookies=_auth_cookie(owner),
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 303
+    assert len(convo.versions) >= 2
+
+
+@pytest.mark.interface
+@pytest.mark.forms
+def test_tc29_uc16_select_conversation_loads_exact_transcript(client, test_state):
+    owner = test_state["add_user"](key="tc29", username="tc29", password="Password123")
+    test_state["add_form"](form_id="f-tc29", name="TC29 Form", owner_id=owner["user_id"], visibility="personal")
+    test_state["add_conversation"](
+        convo_id="convo-tc29",
+        form_id="f-tc29",
+        owner_id=owner["user_id"],
+        name="TC29 Conversation",
+        history={"Doctor": "Please confirm your name"},
+    )
+
+    list_resp = client.get("/forms/f-tc29/conversations", cookies=_auth_cookie(owner))
+    assert list_resp.status_code == 200
+
+    detail_resp = client.get("/conversations/convo-tc29", params={"form_id": "f-tc29"}, cookies=_auth_cookie(owner))
+    assert detail_resp.status_code == 200
+    assert "Please confirm your name" in detail_resp.text

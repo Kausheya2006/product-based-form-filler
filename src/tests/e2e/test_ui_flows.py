@@ -1,6 +1,7 @@
 import os
 import re
 import time
+from pathlib import Path
 from uuid import uuid4
 
 import pytest
@@ -43,8 +44,24 @@ def _create_form(page, name: str, description: str = "Created by browser E2E"):
     page.locator("select[name='field_type[]']").first.select_option("string")
     page.get_by_role("button", name="Create Form").click()
 
-    page.wait_for_url(f"{APP_BASE_URL}/")
+    # App behavior may land on home or directly on /forms/{id} after create.
     page.wait_for_load_state("networkidle")
+    if re.search(r"/forms/[^/?#]+$", page.url):
+        page.goto(f"{APP_BASE_URL}/")
+        page.wait_for_load_state("networkidle")
+
+
+def _open_profile(page, username: str):
+    profile_link = page.get_by_role("link", name="Profile")
+    if profile_link.count() > 0:
+        profile_link.first.click()
+    else:
+        user_link = page.get_by_role("link", name=username)
+        if user_link.count() > 0:
+            user_link.first.click()
+        else:
+            page.goto(f"{APP_BASE_URL}/profile")
+    page.wait_for_url(f"{APP_BASE_URL}/profile")
 
 
 def _unique_form_name(prefix: str) -> str:
@@ -62,14 +79,27 @@ def _open_form_details(page, form_name: str) -> str:
     return match.group(1)
 
 
-def test_ui_register_flow_lands_on_home(page):
+def _run_static_text_extraction(page, form_id: str, conversation_id: str, speaker: str, message: str):
+    page.locator("#convIdInput").fill(conversation_id)
+    page.locator("#newSpeakerName").fill(speaker)
+    page.locator("#addSpeakerBtn").click()
+    page.locator("#msgInput").fill(message)
+    page.locator("#sendBtn").click()
+
+    page.locator("#runExtractionBtn").click()
+    page.wait_for_url(re.compile(rf"{re.escape(APP_BASE_URL)}/extract/{re.escape(form_id)}/{re.escape(conversation_id)}"), timeout=120000)
+    page.wait_for_load_state("networkidle")
+    assert page.locator("h1", has_text="Extraction Complete").count() > 0
+
+
+def test_tc01_ui_register_flow_lands_on_home(page):
     _register_and_login(page)
     page.wait_for_load_state("networkidle")
     assert page.url == f"{APP_BASE_URL}/"
     assert page.locator("text=New Form").count() > 0
 
 
-def test_ui_login_failure_shows_error(page):
+def test_tc26_ui_login_failure_shows_error(page):
     page.goto(f"{APP_BASE_URL}/login")
     page.get_by_label("Username").fill("missing_user")
     page.get_by_label("Password").fill("bad-password")
@@ -79,14 +109,14 @@ def test_ui_login_failure_shows_error(page):
     assert page.locator("text=Incorrect username or password").count() > 0
 
 
-def test_ui_create_form_flow(page):
+def test_tc01_ui_create_form_flow(page):
     _register_and_login(page)
     form_name = _unique_form_name("E2E Intake Form")
     _create_form(page, name=form_name)
     assert page.locator(".form-card", has_text=form_name).count() > 0
 
 
-def test_ui_form_selection_opens_form_details(page):
+def test_tc13_ui_form_selection_opens_form_details(page):
     _register_and_login(page)
     form_name = _unique_form_name("E2E Form Select")
     _create_form(page, name=form_name)
@@ -97,7 +127,7 @@ def test_ui_form_selection_opens_form_details(page):
     assert page.locator("text=Select a Conversation").count() > 0
 
 
-def test_ui_profile_change_username_flow(page):
+def test_tc09_ui_profile_change_username_flow(page):
     username, _password = _register_and_login(page)
     new_username = f"{username}_new"
 
@@ -112,7 +142,7 @@ def test_ui_profile_change_username_flow(page):
     assert page.locator("text=Account Info").count() > 0
 
 
-def test_ui_edit_form_fields_flow(page):
+def test_tc25_ui_edit_form_fields_flow(page):
     _register_and_login(page)
     original_name = _unique_form_name("E2E Edit Target")
     updated_name = _unique_form_name("E2E Edit Target Updated")
@@ -129,7 +159,7 @@ def test_ui_edit_form_fields_flow(page):
     assert page.locator("h1", has_text=updated_name).count() > 0
 
 
-def test_ui_select_conversation_page_flow(page):
+def test_tc29_ui_select_conversation_page_flow(page):
     _register_and_login(page)
     form_name = _unique_form_name("E2E Conversation List")
     _create_form(page, name=form_name)
@@ -141,7 +171,7 @@ def test_ui_select_conversation_page_flow(page):
     assert page.locator("text=No conversations yet").count() > 0
 
 
-def test_ui_delete_form_flow(page):
+def test_tc25_ui_delete_form_flow(page):
     _register_and_login(page)
     form_name = _unique_form_name("E2E Delete Form")
     _create_form(page, name=form_name)
@@ -162,7 +192,7 @@ def test_ui_logout_redirects_to_login(page):
     assert page.locator("text=Welcome back").count() > 0
 
 
-def test_ui_onboarding_live_extraction_page_loads(page):
+def test_tc05_ui_onboarding_live_extraction_page_loads(page):
     _register_and_login(page)
     form_name = _unique_form_name("E2E Onboarding Live")
     _create_form(page, name=form_name)
@@ -176,12 +206,12 @@ def test_ui_onboarding_live_extraction_page_loads(page):
     assert page.locator("#msgInput").count() > 0
 
 
-def test_ui_onboarding_static_text_page_loads(page):
+def test_tc05_ui_onboarding_static_text_page_loads(page):
     _register_and_login(page)
     form_name = _unique_form_name("E2E Onboarding Static Text")
     _create_form(page, name=form_name)
 
-    _open_form_details(page, form_name)
+    form_id = _open_form_details(page, form_name)
     page.get_by_role("link", name="Static Text Extraction").click()
     page.wait_for_load_state("networkidle")
 
@@ -189,8 +219,17 @@ def test_ui_onboarding_static_text_page_loads(page):
     assert page.locator("#runExtractionBtn").count() > 0
     assert page.locator("#newSpeakerName").count() > 0
 
+    conversation_id = f"tc05-{uuid4().hex[:8]}"
+    _run_static_text_extraction(
+        page,
+        form_id=form_id,
+        conversation_id=conversation_id,
+        speaker="Doctor",
+        message="Patient name is Alice",
+    )
 
-def test_ui_onboarding_static_audio_page_loads(page):
+
+def test_tc21_ui_onboarding_static_audio_page_loads(page):
     _register_and_login(page)
     form_name = _unique_form_name("E2E Onboarding Audio")
     _create_form(page, name=form_name)
@@ -202,3 +241,65 @@ def test_ui_onboarding_static_audio_page_loads(page):
     assert page.locator("h1", has_text="ASR + Static Extraction").count() > 0
     assert page.locator("#input_language").count() > 0
     assert page.locator("#asrSubmitBtn").count() > 0
+
+
+def test_tc26_ui_invalid_login_denied(page):
+    page.goto(f"{APP_BASE_URL}/login")
+    page.get_by_label("Username").fill("missing_user")
+    page.get_by_label("Password").fill("bad-password")
+    page.get_by_role("button", name="Sign In").click()
+
+    page.wait_for_load_state("networkidle")
+    assert page.locator("text=Incorrect username or password").count() > 0
+
+
+def test_tc10_ui_profile_change_password(page):
+    username, password = _register_and_login(page)
+    new_password = "UpdatedPass123"
+
+    _open_profile(page, username)
+
+    page.get_by_label("Current Password").fill(password)
+    page.locator("#new_password").fill(new_password)
+    page.locator("#confirm_new_password").fill(new_password)
+    page.get_by_role("button", name="Update Password").click()
+    page.wait_for_load_state("networkidle")
+
+    assert page.locator("text=Password updated successfully").count() > 0
+
+
+def test_tc21_ui_static_audio_extraction_page(page):
+    _register_and_login(page)
+    form_name = _unique_form_name("R2 Audio")
+    _create_form(page, name=form_name)
+
+    form_id = _open_form_details(page, form_name)
+    page.get_by_role("link", name="Static Audio Extraction").click()
+    page.wait_for_load_state("networkidle")
+
+    assert page.locator("h1", has_text="ASR + Static Extraction").count() > 0
+    assert page.locator("#asrSubmitBtn").count() > 0
+
+    audio_path = Path(__file__).resolve().parents[1] / "testaudio.mp3"
+    assert audio_path.exists()
+
+    conversation_id = f"tc21-{uuid4().hex[:8]}"
+    page.locator("#conversation_id").fill(conversation_id)
+    page.locator("#audio_file").set_input_files(str(audio_path))
+    page.locator("#asrSubmitBtn").click()
+
+    page.wait_for_url(
+        re.compile(rf"{re.escape(APP_BASE_URL)}/extract/{re.escape(form_id)}/{re.escape(conversation_id)}"),
+        timeout=180000,
+    )
+    page.wait_for_load_state("networkidle")
+    assert page.locator("h1", has_text="Extraction Complete").count() > 0
+
+
+def test_tc13_ui_create_and_open_form(page):
+    _register_and_login(page)
+    form_name = _unique_form_name("R2 Form")
+    _create_form(page, name=form_name)
+
+    _open_form_details(page, form_name)
+    assert page.locator("h1", has_text=form_name).count() > 0
