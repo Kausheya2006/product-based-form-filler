@@ -271,7 +271,7 @@ async def create_conversation_asr(
 ):
     return await ASRHandler.create_conversation_asr(
         request, form_id, input_language, conversation_id, conversation_name,
-        conversation_text, translated_text_override, raw_transcript_override, audio_file, num_speakers,
+        conversation_text, translated_text_override, raw_transcript_override, num_speakers, audio_file,
     )
 
 @app.post("/stt/transcribe", response_class=JSONResponse)

@@ -1,11 +1,16 @@
-from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Any
+from uuid import uuid4
+import os
 
 import pytest
 from fastapi.testclient import TestClient
+from pymongo import MongoClient
+from pymongo.database import Database
 
-from src.domain.domain import Conversation, ConversationVersion, FormSchema, ExtractionResult
+from src.domain.domain import Conversation, ConversationVersion, FormSchema
+from src.infrastructure.config import settings
+from src.interface import api
 from src.interface import helpers as interface_helpers
 
 # api.py imports seed_data from helpers, so tests provide a no-op fallback
@@ -13,230 +18,160 @@ from src.interface import helpers as interface_helpers
 if not hasattr(interface_helpers, "seed_data"):
     interface_helpers.seed_data = lambda *args, **kwargs: None
 
-from src.interface import api
+
+class _FormsView:
+    def __init__(self, db: Database):
+        self._db = db
+
+    def values(self):
+        docs = list(self._db.forms.find({}, {"_id": 0}))
+        return [FormSchema(**doc) for doc in docs]
+
+    def __contains__(self, form_id: str) -> bool:
+        return self._db.forms.count_documents({"form_id": form_id}, limit=1) > 0
 
 
-class FakeCursor:
-    def __init__(self, docs: list[dict[str, Any]]):
-        self._docs = list(docs)
-
-    def sort(self, field: str, order: int):
-        reverse = order == -1
-        self._docs.sort(key=lambda d: d.get(field), reverse=reverse)
-        return self
-
-    async def to_list(self, length: int = 500):
-        return list(self._docs)[:length]
+class _FormRepoView:
+    def __init__(self, db: Database):
+        self.forms = _FormsView(db)
 
 
-class FakeOutputCollection:
-    def __init__(self):
-        self.docs: list[dict[str, Any]] = []
+class _UserRepoView:
+    def __init__(self, db: Database):
+        self._db = db
 
-    async def insert_one(self, doc: dict[str, Any]):
-        self.docs.append(dict(doc))
-
-    async def find_one(self, query: dict[str, Any]):
-        for doc in reversed(self.docs):
-            if all(doc.get(k) == v for k, v in query.items()):
-                return dict(doc)
-        return None
-
-    def find(self, query: dict[str, Any]):
-        if not query:
-            return FakeCursor(list(self.docs))
-        filtered = [d for d in self.docs if all(d.get(k) == v for k, v in query.items())]
-        return FakeCursor(filtered)
+    @property
+    def users(self) -> list[dict[str, Any]]:
+        return list(self._db.users.find({}, {"_id": 0}))
 
 
-class FakeDb:
-    def __init__(self):
-        self.outputs = FakeOutputCollection()
-        self.users = None
+class _OutputDocsView:
+    def __init__(self, db: Database):
+        self._db = db
+
+    def append(self, doc: dict[str, Any]) -> None:
+        self._db.outputs.insert_one(dict(doc))
+
+    def __getitem__(self, index: int) -> dict[str, Any]:
+        docs = list(self._db.outputs.find({}).sort("_id", 1))
+        if not docs:
+            raise IndexError("No output docs present")
+        doc = dict(docs[index])
+        doc.pop("_id", None)
+        return doc
 
 
-class FakeUserRepo:
-    def __init__(self):
-        self.users: list[dict[str, Any]] = []
-
-    async def create_index(self, *_args, **_kwargs):
-        return None
-
-    async def find_one(self, query: dict[str, Any]):
-        for user in self.users:
-            if all(user.get(k) == v for k, v in query.items()):
-                return user
-        return None
-
-    async def insert_one(self, doc: dict[str, Any]):
-        self.users.append(dict(doc))
-
-    async def update_one(self, query: dict[str, Any], update: dict[str, Any]):
-        user = await self.find_one(query)
-        if not user:
-            return
-        for key, value in update.get("$set", {}).items():
-            user[key] = value
-
-    async def delete_one(self, query: dict[str, Any]):
-        for idx, user in enumerate(self.users):
-            if all(user.get(k) == v for k, v in query.items()):
-                del self.users[idx]
-                return
-
-    def find(self, query: dict[str, Any]):
-        if not query:
-            return FakeCursor(self.users)
-
-        if "user_id" in query and isinstance(query["user_id"], dict):
-            in_values = set(query["user_id"].get("$in", []))
-            return FakeCursor([u for u in self.users if u.get("user_id") in in_values])
-
-        return FakeCursor([u for u in self.users if all(u.get(k) == v for k, v in query.items())])
+class _OutputsView:
+    def __init__(self, db: Database):
+        self.docs = _OutputDocsView(db)
 
 
-class FakeFormRepo:
-    def __init__(self):
-        self.forms: dict[str, FormSchema] = {}
+class _ConversationRef:
+    def __init__(self, db: Database, conversation_id: str):
+        self._db = db
+        self.id = conversation_id
 
-    async def get_all(self):
-        return list(self.forms.values())
-
-    async def get_by_id(self, form_id: str):
-        return self.forms.get(form_id)
-
-    async def save(self, form: FormSchema):
-        self.forms[form.id] = form
-
-    async def delete_by_id(self, form_id: str):
-        self.forms.pop(form_id, None)
+    @property
+    def versions(self) -> list[ConversationVersion]:
+        doc = self._db.conversations.find_one({"conversation_id": self.id}, {"_id": 0})
+        if not doc:
+            return []
+        convo = Conversation(**doc)
+        return convo.versions
 
 
-class FakeConvoRepo:
-    def __init__(self):
-        self.conversations: dict[str, Conversation] = {}
-        self.db = FakeDb()
-
-    async def get_by_form_id(self, form_id: str):
-        return [c for c in self.conversations.values() if c.form_id == form_id]
-
-    async def get_by_id(self, convo_id: str):
-        return self.conversations.get(convo_id)
-
-    async def save(self, conversation: Conversation):
-        self.conversations[conversation.id] = conversation
+@pytest.fixture(scope="session", autouse=True)
+def configure_test_settings():
+    settings.MONGO_URI = "mongodb://localhost:27017"
+    settings.DB_NAME = "chat_db_pytest"
+    settings.MOCK_MODELS = os.getenv("MOCK_MODELS", "false").lower() == "true"
+    settings.USE_MODAL_INFERENCE = False
+    settings.USE_LOCAL_CONTAINER_GEMMA4 = False
+    settings.USE_OLLAMA = False
+    settings.MODEL_SERVICE_URL = ""
 
 
-class FakeRunLogRepo:
-    def __init__(self):
-        self.logs: dict[str, dict[str, Any]] = {}
+@pytest.fixture(scope="session")
+def mongo_db_session() -> Database:
+    client = MongoClient(settings.MONGO_URI, serverSelectionTimeoutMS=2000)
+    try:
+        client.admin.command("ping")
+    except Exception as exc:
+        pytest.skip(f"MongoDB is required for integration tests: {exc}")
 
-    async def ensure_indexes(self):
-        return None
+    db = client[settings.DB_NAME]
 
-    async def create(self, log):
-        self.logs[log.run_id] = {
-            "run_id": log.run_id,
-            "conversation_id": log.conversation_id,
-            "version_index": log.version_index,
-            "owner_id": log.owner_id,
-            "status": log.status,
-            "summary": log.summary,
-            "extracted_fields": dict(log.extracted_fields),
-        }
+    yield db
 
-    async def get_recent(self, _limit: int = 20):
-        return list(self.logs.values())
-
-    async def get_by_id(self, _run_id: str):
-        data = self.logs.get(_run_id)
-        if data is None:
-            return None
-
-        class _RunLog:
-            pass
-
-        log = _RunLog()
-        for key, value in data.items():
-            setattr(log, key, value)
-        return log
-
-    async def update(self, _run_id: str, _data: dict[str, Any]):
-        existing = self.logs.get(_run_id, {"run_id": _run_id})
-        existing.update(_data)
-        self.logs[_run_id] = existing
-
-
-class FakePipeline:
-    class _Model:
-        async def process_live_update(self, conversation_text, form_name, current_field_state, field_keys, accepted_new_fields=None):
-            _ = (conversation_text, form_name, accepted_new_fields)
-            return [current_field_state.get(k, "N/A") for k in field_keys]
-
-    class _Summarizer:
-        async def summarize(self, text):
-            return f"Summary: {text[:80]}"
-
-    def __init__(self, convo_repo: FakeConvoRepo, form_repo: FakeFormRepo):
-        self._convo_repo = convo_repo
-        self._form_repo = form_repo
-        self._run_counter = 0
-        self.model = self._Model()
-        self.summarizer = self._Summarizer()
-
-    async def run(self, conversation_id: str, form_id: str, version_index: int, owner_id: str | None = None):
-        _ = (version_index, owner_id)
-        convo = await self._convo_repo.get_by_id(conversation_id)
-        form = await self._form_repo.get_by_id(form_id)
-        if not convo or not form:
-            raise ValueError("Conversation or form not found")
-
-        self._run_counter += 1
-        run_id = f"run-{self._run_counter}"
-        filled = {field_name: "N/A" for field_name in form.fields.keys()}
-        return ExtractionResult(
-            conversation_id=conversation_id,
-            form_id=form_id,
-            filled_data=filled,
-            run_id=run_id,
-            summary="Stub summary for tests",
-        )
+    client.close()
 
 
 @pytest.fixture
-def test_state(monkeypatch: pytest.MonkeyPatch):
-    users = FakeUserRepo()
-    forms = FakeFormRepo()
-    convos = FakeConvoRepo()
-    convos.db.users = users
-    runlogs = FakeRunLogRepo()
+def mongo_db(mongo_db_session: Database) -> Database:
+    db = mongo_db_session
+    db.users.delete_many({})
+    db.forms.delete_many({})
+    db.conversations.delete_many({})
+    db.outputs.delete_many({})
+    db.run_logs.delete_many({})
 
-    api.container.convo_repo = convos
-    api.container.form_repo = forms
-    api.container.runlog_repo = runlogs
-    api.container.pipeline = FakePipeline(convos, forms)
+    yield db
 
-    monkeypatch.setattr(api, "_user_repo", lambda: users)
+    db.users.delete_many({})
+    db.forms.delete_many({})
+    db.conversations.delete_many({})
+    db.outputs.delete_many({})
+    db.run_logs.delete_many({})
 
-    seeded_users: dict[str, dict[str, Any]] = {}
 
-    async def _fake_get_current_user(request):
-        key = request.headers.get("x-test-user", "")
-        return seeded_users.get(key)
+@pytest.fixture(scope="session")
+def client(mongo_db_session: Database):
+    # Depend on Mongo availability; app lifespan (and model load) runs once per session.
+    _ = mongo_db_session
+    with TestClient(api.app) as test_client:
+        yield test_client
 
-    monkeypatch.setattr(api, "_get_current_user", _fake_get_current_user)
+
+@pytest.fixture
+def test_state(client: TestClient, mongo_db: Database):
+    users = mongo_db.users
+    forms = mongo_db.forms
+    conversations = mongo_db.conversations
+    credentials_by_user_id: dict[str, str] = {}
+
+    def _login_cookie(user_doc: dict[str, Any]) -> dict[str, str]:
+        password = credentials_by_user_id[user_doc["user_id"]]
+        response = client.post(
+            "/login",
+            data={"username": user_doc["username"], "password": password},
+            follow_redirects=False,
+        )
+        assert response.status_code == 303
+        token = response.cookies.get(api.SESSION_COOKIE)
+        assert token
+        return {api.SESSION_COOKIE: token}
 
     def add_user(*, key: str, username: str, password: str, role: str = "user"):
-        user_doc = {
-            "user_id": f"u-{key}",
-            "username": username,
-            "email": f"{username}@example.com",
-            "password_hash": api._hash_password(password),
-            "role": role,
-            "created_at": datetime.utcnow(),
-        }
-        users.users.append(user_doc)
-        seeded_users[key] = user_doc
+        email = f"{username}.{key}.{uuid4().hex[:6]}@example.com"
+        response = client.post(
+            "/register",
+            data={
+                "email": email,
+                "username": username,
+                "password": password,
+                "confirm_password": password,
+            },
+            follow_redirects=False,
+        )
+        assert response.status_code == 303
+
+        if role != "user":
+            users.update_one({"username": username}, {"$set": {"role": role}})
+
+        user_doc = users.find_one({"username": username}, {"_id": 0})
+        assert user_doc is not None
+        credentials_by_user_id[user_doc["user_id"]] = password
+        user_doc["__test_password"] = password
         return user_doc
 
     def add_form(
@@ -247,15 +182,41 @@ def test_state(monkeypatch: pytest.MonkeyPatch):
         visibility: str = "global",
         collaborators: list[str] | None = None,
     ):
-        form = FormSchema(
-            form_id=form_id,
-            form_name=name,
-            schema={"customer_name": "What is the customer name?"},
-            owner_id=owner_id,
-            visibility=visibility,
-            collaborators=collaborators or [],
+        _ = form_id
+        owner_doc = users.find_one({"user_id": owner_id}, {"_id": 0})
+        assert owner_doc is not None
+
+        response = client.post(
+            "/forms",
+            data={
+                "form_name": name,
+                "form_description": f"{name} description",
+                "visibility": visibility,
+                "field_name[]": ["customer_name"],
+                "field_type[]": ["Name"],
+                "collaborator[]": collaborators or [],
+            },
+            cookies=_login_cookie(owner_doc),
+            follow_redirects=False,
         )
-        forms.forms[form_id] = form
+        assert response.status_code == 303
+
+        location = response.headers.get("location", "")
+        created_form_id = ""
+        if location.startswith("/forms/"):
+            created_form_id = location.split("/forms/", 1)[1].split("?", 1)[0]
+
+        if not created_form_id:
+            latest = forms.find_one(
+                {"owner_id": owner_id, "form_name": name},
+                sort=[("_id", -1)],
+            )
+            assert latest is not None
+            created_form_id = latest["form_id"]
+
+        form_doc = forms.find_one({"form_id": created_form_id}, {"_id": 0})
+        assert form_doc is not None
+        form = FormSchema(**form_doc)
         return form
 
     def add_conversation(
@@ -266,39 +227,35 @@ def test_state(monkeypatch: pytest.MonkeyPatch):
         name: str = "",
         history: dict[str, str] | None = None,
     ):
-        convo = Conversation(
-            conversation_id=convo_id,
-            form_id=form_id,
-            conversation_name=name,
-            owner_id=owner_id,
-            versions=[
-                ConversationVersion(
-                    version_index=0,
-                    history=history or {"Speaker 1": "Hello there"},
-                )
-            ],
+        owner_doc = users.find_one({"user_id": owner_id}, {"_id": 0})
+        assert owner_doc is not None
+
+        seed_history = history or {"Speaker 1": "Hello there"}
+        conversation_text = "\n".join(f"{speaker}: {text}" for speaker, text in seed_history.items())
+
+        response = client.post(
+            "/conversations/create",
+            data={
+                "form_id": form_id,
+                "conversation_id": convo_id,
+                "conversation_name": name,
+                "conversation_text": conversation_text,
+                "extract": "false",
+            },
+            cookies=_login_cookie(owner_doc),
+            follow_redirects=False,
         )
-        convos.conversations[convo_id] = convo
-        return convo
+        assert response.status_code == 303
+
+        convo_doc = conversations.find_one({"conversation_id": convo_id}, {"_id": 0})
+        assert convo_doc is not None
+        return _ConversationRef(mongo_db, convo_id)
 
     return {
-        "user_repo": users,
-        "form_repo": forms,
-        "convo_repo": convos,
-        "runlog_repo": runlogs,
-        "outputs": convos.db.outputs,
+        "user_repo": _UserRepoView(mongo_db),
+        "form_repo": _FormRepoView(mongo_db),
+        "outputs": _OutputsView(mongo_db),
         "add_user": add_user,
         "add_form": add_form,
         "add_conversation": add_conversation,
     }
-
-
-@pytest.fixture
-def client():
-    @asynccontextmanager
-    async def _no_lifespan(_app):
-        yield
-
-    api.app.router.lifespan_context = _no_lifespan
-    with TestClient(api.app) as test_client:
-        yield test_client
