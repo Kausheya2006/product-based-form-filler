@@ -1,117 +1,272 @@
 # ProductLabs AI Form Filler
 
-Extracts structured form data from conversation logs using NLP.
+ProductLabs AI Form Filler is a FastAPI web app that turns conversations into structured form data. Users can create forms, enter or upload conversations, run extraction, review outputs, and manage saved runs.
 
-## Quick Start
+For architecture and implementation details, see [technical_readme.md](technical_readme.md).
 
-**Prerequisites:** Docker & Docker Compose
+## What You Can Do
 
-| Command | Action |
-|---------|--------|
-| `docker-compose up --build` | First run |
-| `docker-compose up` | Start |
-| `docker-compose down` | Stop |
+- Create forms with fields such as `patient_name`, `email`, `phone`, and `date`.
+- Run extraction from typed conversations, live conversation entry, or uploaded audio.
+- Review saved outputs and summaries.
+- Edit forms and conversations, then re-run extraction.
+- Use collaborative forms for shared conversation entry.
 
-Open http://localhost:8000 after `startup complete`
+## Quick Start With Docker
 
-### Steps to run locally : 
+This is the easiest way to run the full stack.
 
-```sh
-cd src/
+### Prerequisites
+
+- Docker
+- Docker Compose
+
+### Steps
+
+1. Open a terminal in `src/`.
+2. Make sure `src/.env` has at least these values:
+
+```env
+MONGO_URI=mongodb://mongodb:27017/chat_db
+DB_NAME=chat_db
+```
+
+3. Start the stack:
+
+```bash
+docker compose up --build
+```
+
+4. Open the app:
+
+```text
+http://localhost:8000
+```
+
+### What Starts
+
+- `mongodb` on port `27017`
+- `model-service` on port `8001`
+- `app` on port `8000`
+
+### Notes
+
+- The first real-model startup can take several minutes because model weights may be downloaded.
+- Docker volumes `mongo_data` and `hf_cache` keep database and Hugging Face cache data between runs.
+- Stop everything with:
+
+```bash
+docker compose down
+```
+
+## Local Run Without Full Docker
+
+This is useful if you want to run only MongoDB in Docker and run the FastAPI app directly on your machine.
+
+### Minimal app-only setup
+
+From `src/`:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.app.txt
 docker compose up -d mongodb
+
 export MONGO_URI="mongodb://localhost:27017/chat_db"
 export DB_NAME="chat_db"
-export MOCK_MODELS="false"
+export MOCK_MODELS="true"
+
 uvicorn src.interface.api:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-## Model switching (2-line quick use)
-In `src/.env`, set exactly one path: `USE_MODAL_INFERENCE=true` (cloud Qwen3), or `USE_LOCAL_CONTAINER_GEMMA4=true` (localhost Gemma container), or `USE_OLLAMA=true` (default local Ollama); keep others `false` and `MODEL_SERVICE_URL=` empty; for Modal SDK mode, run `modal setup` once (or use Modal token env vars).  
-Backend priority is fixed: `USE_MODAL_INFERENCE` → `USE_LOCAL_CONTAINER_GEMMA4` → `MODEL_SERVICE_URL` → `USE_OLLAMA` → bundled local model.
+Open `http://localhost:8000`.
 
-## Testing
+### Why `MOCK_MODELS=true`?
 
-Run all tests from `src/`.
+It lets the app start without loading extraction or summarization models. This is the fastest setup for UI work, flow testing, and general local development.
 
-### Interface tests (fast)
+## Model Runtime Options
 
-```sh
-export MONGO_URI="mongodb://localhost:27017/chat_db"
-export DB_NAME="chat_db"
+The app supports several inference backends. In normal use, choose one mode at a time through `src/.env` or exported environment variables.
+
+### Backend selection order
+
+The app resolves model backends in this order:
+
+```text
+MOCK_MODELS
+-> USE_MODAL_INFERENCE
+-> USE_LOCAL_CONTAINER_GEMMA4
+-> MODEL_SERVICE_URL
+-> USE_OLLAMA
+-> bundled local models
+```
+
+### Common modes
+
+#### 1. Fastest local development
+
+```env
+MOCK_MODELS=true
+```
+
+#### 2. Docker Compose default
+
+Use the bundled `model-service` container:
+
+```env
+MODEL_SERVICE_URL=http://model-service:8001
+```
+
+This is already the compose default for the `app` container.
+
+#### 3. Ollama
+
+```env
+USE_OLLAMA=true
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_EXTRACT_MODEL=qwen2.5:1.5b
+OLLAMA_SUMMARIZER_MODEL=qwen2.5:1.5b
+```
+
+#### 4. Modal
+
+```env
+USE_MODAL_INFERENCE=true
+MODAL_INFERENCE_USE_SDK=true
+MODAL_APP_NAME=monomodel-qwen3-4b-infer
+MODAL_EXTRACT_FUNCTION=modal_live_extract
+MODAL_SUMMARIZER_FUNCTION=modal_summarize
+```
+
+#### 5. Local container Gemma
+
+```env
+USE_LOCAL_CONTAINER_GEMMA4=true
+LOCAL_CONTAINER_BASE_URL=http://localhost:11434
+LOCAL_CONTAINER_EXTRACT_MODEL=gemma4-e2b:latest
+LOCAL_CONTAINER_SUMMARIZER_MODEL=gemma4-e2b:latest
+```
+
+## Typical User Workflow
+
+1. Register a user account.
+2. Create a form.
+3. Add fields you want extracted.
+4. Choose one of the extraction entry modes:
+   - Static text extraction
+   - Live extraction
+   - Static audio extraction
+5. Review the extracted output and summary.
+6. Open saved outputs later from the Outputs page.
+
+## Extraction Modes
+
+### Static Text Extraction
+
+- Enter a speaker-labelled conversation such as `Doctor: ...`
+- Save the conversation
+- Run extraction once
+- Review the output page
+
+### Live Extraction
+
+- Enter conversation turns as they happen
+- The UI can preview incremental extraction state
+- Useful when the conversation grows over time
+
+### Static Audio Extraction
+
+- Upload a conversation recording
+- The app transcribes audio
+- For supported non-English inputs, it translates to English before extraction
+- Optional diarization can split the transcript into speakers
+
+## Running Tests
+
+Run commands from `src/`.
+
+If you are running tests locally outside Docker, install the full test dependencies first:
+
+```bash
+pip install -r requirements.txt
+docker compose up -d mongodb
+```
+
+### Interface tests
+
+```bash
 export MOCK_MODELS="true"
 python -m pytest tests/test_interface_flows.py
 ```
 
-Run one test case:
+Run a single case:
 
-```sh
+```bash
 python -m pytest tests/test_interface_flows.py -k tc08
 ```
 
-### E2E tests (Playwright)
+### Browser E2E tests
 
-Install browser once:
+Install Playwright once:
 
-```sh
+```bash
 python -m playwright install chromium
 ```
 
-Start app in one terminal:
+Start the app, then in another terminal:
 
-```sh
-export MONGO_URI="mongodb://localhost:27017/chat_db"
-export DB_NAME="chat_db"
-uvicorn src.interface.api:app --host 0.0.0.0 --port 8000 --reload
+```bash
+bash scripts/run_e2e_headed.sh
 ```
 
-Run E2E in another terminal:
+or
 
-```sh
-bash scripts/run_e2e_headed.sh
-# or
+```bash
 bash scripts/run_e2e_headless.sh
 ```
 
+## Troubleshooting
 
-## Architecture
+### The app opens but extraction is slow or fails on first run
 
-Clean Architecture (Ports & Adapters) — dependencies point inward only.
+- Real models may still be downloading.
+- Check container logs with `docker compose logs app` and `docker compose logs model-service`.
 
-```
+### Mongo connection errors
+
+- In Docker Compose, use `mongodb://mongodb:27017/chat_db`.
+- For local `uvicorn`, use `mongodb://localhost:27017/chat_db`.
+
+### You only want to demo the UI
+
+- Set `MOCK_MODELS=true`.
+
+### Audio features fail
+
+- The app container expects `ffmpeg`.
+- Audio and diarization also depend on heavier ML libraries and may take longer to warm up.
+
+## Project Layout
+
+```text
 src/
-├── domain/         # Entities + Interfaces (pure Python, no frameworks)
-├── application/    # Use cases, orchestration (depends only on domain)
-├── infrastructure/ # Implementations: DB, AI models, configs
-└── interface/      # Entry points: API routes, DI wiring
+├── docker-compose.yml
+├── Dockerfile.app
+├── Dockerfile
+├── requirements.app.txt
+├── requirements.txt
+├── scripts/
+├── tests/
+└── src/
+    ├── application/
+    ├── domain/
+    ├── infrastructure/
+    └── interface/
 ```
 
-### Layers
+## Further Reading
 
-| Folder | What's inside | When to touch |
-|--------|---------------|---------------|
-| `domain/` | Data models, contracts | Changing what data looks like |
-| `application/` | Business logic | Changing how extraction works |
-| `infrastructure/` | DB, AI implementations | Swapping tech (new DB, new AI) |
-| `interface/` | API routes, startup | Adding endpoints |
-
-### Extending
-
-**Add/Change AI Model:**
-```
-infrastructure/ai/new_model.py  →  interface/dependencies.py
-```
-
-**Add/Change Database:**
-```
-infrastructure/persistence/new_db.py  →  interface/dependencies.py
-```
-
-**Change Extraction Logic:**
-```
-application/pipeline.py
-```
-
-**Add New Data Fields:**
-```
-domain/domain.py  →  domain/interfaces.py  →  infrastructure/persistence/mongo.py
-```
+- [technical_readme.md](technical_readme.md) for models, architecture, and design notes
+- [../docs/admin-setup.md](../docs/admin-setup.md) for admin setup
