@@ -11,5 +11,6 @@ venv/
 # --- OS Specific ---
 .DS_Store
 Thumbs.db
-
+None/
 .env
+TestPlan-Table\ 1.csv

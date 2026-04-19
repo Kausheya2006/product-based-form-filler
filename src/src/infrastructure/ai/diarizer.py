@@ -17,8 +17,10 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import inspect
 import logging
 import os
+import re
 import tempfile
 import wave
 from concurrent.futures import ThreadPoolExecutor
@@ -26,6 +28,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+from .asr import LocalASRTranscriber
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +40,35 @@ logger = logging.getLogger(__name__)
 
 _embedding_model: Any = None
 _audio_helper: Any = None
+_asr_transcriber: Any = None
+
+
+def _patch_speechbrain_token_kwarg() -> None:
+    """Patch older speechbrain versions by dropping unsupported init kwargs."""
+    from speechbrain.inference.interfaces import Pretrained
+
+    if getattr(Pretrained, "_pl_token_kwarg_patch", False):
+        return
+
+    init_sig = inspect.signature(Pretrained.__init__)
+    # If this speechbrain build already accepts common HF kwargs, no patch needed.
+    if (
+        "token" in init_sig.parameters
+        or "use_auth_token" in init_sig.parameters
+        or "huggingface_cache_dir" in init_sig.parameters
+    ):
+        Pretrained._pl_token_kwarg_patch = True
+        return
+
+    original_init = Pretrained.__init__
+    accepted = set(init_sig.parameters.keys())
+
+    def _patched_init(self, *args, **kwargs):
+        filtered_kwargs = {k: v for k, v in kwargs.items() if k in accepted}
+        return original_init(self, *args, **filtered_kwargs)
+
+    Pretrained.__init__ = _patched_init
+    Pretrained._pl_token_kwarg_patch = True
 
 
 def _get_embedding_model(device_str: str = "cpu"):
@@ -44,15 +76,22 @@ def _get_embedding_model(device_str: str = "cpu"):
     global _embedding_model
     if _embedding_model is None:
         try:
-            import torch
             from pyannote.audio.pipelines.speaker_verification import (
                 PretrainedSpeakerEmbedding,
             )
 
-            device = torch.device(device_str)
-            _embedding_model = PretrainedSpeakerEmbedding(
-                "speechbrain/spkrec-ecapa-voxceleb", device=device
-            )
+            _patch_speechbrain_token_kwarg()
+
+            # pyannote/speechbrain compatibility: prefer plain string device.
+            try:
+                _embedding_model = PretrainedSpeakerEmbedding(
+                    "speechbrain/spkrec-ecapa-voxceleb", device=device_str
+                )
+            except TypeError:
+                # Some builds infer device internally and reject the explicit kwarg.
+                _embedding_model = PretrainedSpeakerEmbedding(
+                    "speechbrain/spkrec-ecapa-voxceleb"
+                )
             logger.info("Speaker embedding model loaded (device=%s).", device_str)
         except Exception as exc:
             raise RuntimeError(
@@ -75,6 +114,14 @@ def _get_audio_helper():
                 f"Failed to load pyannote Audio helper: {exc}."
             ) from exc
     return _audio_helper
+
+
+def _get_asr_transcriber():
+    """Lazy-load ASR transcriber that avoids transformers pipeline/torchcodec path."""
+    global _asr_transcriber
+    if _asr_transcriber is None:
+        _asr_transcriber = LocalASRTranscriber(model_name="openai/whisper-small")
+    return _asr_transcriber
 
 
 # ---------------------------------------------------------------------------
@@ -121,6 +168,51 @@ def _wav_duration(wav_path: str) -> float:
         return f.getnframes() / float(f.getframerate())
 
 
+def _load_wav_array(wav_path: str):
+    import librosa
+
+    y, sr = librosa.load(wav_path, sr=16000, mono=True)
+    return y, sr
+
+
+def _build_time_windows(duration: float, window_sec: float = 2.0, hop_sec: float = 1.5) -> list[dict]:
+    if duration <= 0:
+        return []
+    if duration <= window_sec:
+        return [{"start": 0.0, "end": duration}]
+
+    windows: list[dict] = []
+    start = 0.0
+    while start < duration:
+        end = min(duration, start + window_sec)
+        windows.append({"start": start, "end": end})
+        if end >= duration:
+            break
+        start += hop_sec
+    return windows
+
+
+def _split_transcript_into_chunks(transcript: str, chunk_count: int) -> list[str]:
+    text = " ".join((transcript or "").split()).strip()
+    if not text:
+        return []
+    if chunk_count <= 1:
+        return [text]
+
+    sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", text) if s.strip()]
+    if not sentences:
+        sentences = [text]
+
+    buckets = ["" for _ in range(chunk_count)]
+    for i, sentence in enumerate(sentences):
+        idx = min(int(i * chunk_count / max(1, len(sentences))), chunk_count - 1)
+        buckets[idx] = (buckets[idx] + " " + sentence).strip()
+
+    if all(not b for b in buckets):
+        return [text]
+    return [b for b in buckets if b]
+
+
 # ---------------------------------------------------------------------------
 # Core synchronous diarization
 # ---------------------------------------------------------------------------
@@ -137,7 +229,6 @@ def _diarize_sync(
     Returns a list of dicts: [{"speaker": "SPEAKER 1", "text": "..."}, ...]
     where consecutive same-speaker entries are already merged.
     """
-    from transformers import pipeline as hf_pipeline
     from sklearn.cluster import AgglomerativeClustering
     from pyannote.core import Segment
 
@@ -146,53 +237,34 @@ def _diarize_sync(
 
     try:
         # ------------------------------------------------------------------
-        # 1. ASR — get time-stamped word/chunk segments
+        # 1. ASR — torchcodec-free transcription
         # ------------------------------------------------------------------
-        asr = hf_pipeline(
-            "automatic-speech-recognition",
-            model="openai/whisper-small",
-        )
-        lang = (input_language or "en").strip().lower()
-        generate_kwargs: dict[str, Any] = {"task": "transcribe"}
-        if lang and lang != "en":
-            generate_kwargs["language"] = lang
+        asr = _get_asr_transcriber()
+        transcript_text = asr._transcribe_sync(wav_path, input_language)
+        if not transcript_text:
+            return []
 
-        result = asr(
-            wav_path,
-            return_timestamps=True,
-            generate_kwargs=generate_kwargs,
-        )
+        duration = _wav_duration(wav_path)
+        if num_speakers <= 1:
+            return [{"speaker": "SPEAKER 1", "text": transcript_text}]
 
-        # Extract chunk-level segments (each has {"timestamp": (start, end), "text": ...})
-        segments: list[dict] = []
-        if isinstance(result, dict):
-            raw_chunks = result.get("chunks") or []
-            for chunk in raw_chunks:
-                ts = chunk.get("timestamp") or (None, None)
-                start, end = ts if (ts and len(ts) == 2) else (None, None)
-                text = str(chunk.get("text", "")).strip()
-                if text and start is not None and end is not None:
-                    segments.append({"start": float(start), "end": float(end), "text": text})
-
-        if not segments:
-            # Fallback: single segment covering the whole file
-            duration = _wav_duration(wav_path)
-            flat_text = str(result.get("text", "")).strip() if isinstance(result, dict) else str(result).strip()
-            if flat_text:
-                segments = [{"start": 0.0, "end": duration, "text": flat_text}]
-            else:
-                return []
-
-        if len(segments) == 1 or num_speakers <= 1:
-            # No diarization needed
-            return [{"speaker": "SPEAKER 1", "text": " ".join(s["text"] for s in segments)}]
+        segments = _build_time_windows(duration)
+        if len(segments) <= 1:
+            return [{"speaker": "SPEAKER 1", "text": transcript_text}]
 
         # ------------------------------------------------------------------
         # 2. Speaker embeddings
         # ------------------------------------------------------------------
-        duration = _wav_duration(wav_path)
         embedding_model = _get_embedding_model("cpu")
         audio_helper = _get_audio_helper()
+        full_waveform, _wave_sr = _load_wav_array(wav_path)
+
+        import torch
+
+        pyannote_audio = {
+            "waveform": torch.from_numpy(full_waveform).unsqueeze(0),
+            "sample_rate": 16000,
+        }
 
         embeddings = np.zeros(shape=(len(segments), 192))
         for i, seg in enumerate(segments):
@@ -202,7 +274,7 @@ def _diarize_sync(
                 end = min(duration, start + 0.5)
             try:
                 clip = Segment(start, end)
-                waveform, _sr = audio_helper.crop(wav_path, clip)
+                waveform, _sr = audio_helper.crop(pyannote_audio, clip)
                 emb = embedding_model(waveform[None])
                 embeddings[i] = emb.detach().cpu().numpy().squeeze()
             except Exception as exc:
@@ -220,16 +292,27 @@ def _diarize_sync(
         for i, seg in enumerate(segments):
             seg["speaker"] = f"SPEAKER {int(labels[i]) + 1}"
 
+        text_chunks = _split_transcript_into_chunks(transcript_text, len(segments))
+        if not text_chunks:
+            text_chunks = [transcript_text]
+
+        for i, seg in enumerate(segments):
+            seg["text"] = text_chunks[i] if i < len(text_chunks) else ""
+
         # ------------------------------------------------------------------
         # 4. Merge consecutive same-speaker segments
         # ------------------------------------------------------------------
         merged: list[dict] = []
         for seg in segments:
+            if not seg.get("text", "").strip():
+                continue
             if merged and merged[-1]["speaker"] == seg["speaker"]:
                 merged[-1]["text"] = merged[-1]["text"] + " " + seg["text"]
             else:
                 merged.append({"speaker": seg["speaker"], "text": seg["text"]})
 
+        if not merged:
+            return [{"speaker": "SPEAKER 1", "text": transcript_text}]
         return merged
 
     finally:

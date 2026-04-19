@@ -211,8 +211,6 @@ document.addEventListener("DOMContentLoaded", () => {
         // num_speakers = 0 tells backend to skip diarization (overrides already set)
         if (numSpeakersHidden) numSpeakersHidden.value = "0";
 
-        // Clear the audio file so the backend uses the text overrides
-        audioFileInput.value = "";
         const englishOption = Array.from(languageSelect.options).find((opt) => opt.value === "en");
         if (englishOption) languageSelect.value = "en";
 
@@ -263,8 +261,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (translatedTextOverride) translatedTextOverride.value = translatedText;
       if (rawTranscriptOverride) rawTranscriptOverride.value = rawText;
 
-      // Prevent re-transcription in the second step; backend will use overrides.
-      audioFileInput.value = "";
       const englishOption = Array.from(languageSelect.options).find((opt) => opt.value === "en");
       if (englishOption) languageSelect.value = "en";
 

@@ -1480,7 +1480,10 @@ class ASRHandler:
         translated_text = ""
         diarized_turns: list = []
 
-        if audio_file is not None and (audio_file.filename or "").strip():
+        if translated_text_override.strip():
+            translated_text = translated_text_override.strip()
+            transcript_text = raw_transcript_override.strip() or translated_text
+        elif audio_file is not None and (audio_file.filename or "").strip():
             raw_audio = await audio_file.read()
             if not raw_audio:
                 raise HTTPException(400, "Uploaded audio file is empty.")
@@ -1504,9 +1507,6 @@ class ASRHandler:
                     input_language=input_language,
                 )
                 translated_text = await container.translator.translate_to_english(transcript_text, input_language)
-        elif translated_text_override.strip():
-            translated_text = translated_text_override.strip()
-            transcript_text = raw_transcript_override.strip() or translated_text
         elif conversation_text.strip():
             transcript_text = conversation_text
             translated_text = await container.translator.translate_to_english(transcript_text, input_language)

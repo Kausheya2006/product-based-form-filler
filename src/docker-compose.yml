@@ -30,7 +30,7 @@ services:
       - ./src:/app/src
       - hf_cache:/root/.cache/huggingface
     command: uvicorn src.interface.model_service_api:app --host 0.0.0.0 --port 8001 --reload
-    gpus: all
+    #gpus: all
 
   app:
     build:

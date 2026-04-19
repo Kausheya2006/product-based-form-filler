@@ -19,12 +19,9 @@ Open http://localhost:8000 after `startup complete`
 ```sh
 cd src/
 docker compose up -d mongodb
-
 export MONGO_URI="mongodb://localhost:27017/chat_db"
 export DB_NAME="chat_db"
 export MOCK_MODELS="false"
-
-# in a venv
 uvicorn src.interface.api:app --host 0.0.0.0 --port 8000 --reload
 ```
 
