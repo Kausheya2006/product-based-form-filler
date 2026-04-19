@@ -23,3 +23,5 @@ SpeechRecognition
 httpx
 modal
 speechbrain
+pyannote.audio
+scikit-learn

@@ -1519,6 +1519,14 @@ class ASRHandler:
             conversation_payload = translated_text  # already formatted with speaker labels
         else:
             conversation_payload = _transcript_to_conversation_text(translated_text)
+
+        final_text = (translated_text_override or "").strip() or (raw_transcript_override or "").strip()
+        if final_text and num_speakers == 0 and "Speaker" not in final_text[:20]:
+            final_text = f"Speaker: {final_text}"
+            conversation_payload = final_text
+
+        should_use_live = num_speakers > 0
+
         if not conversation_payload:
             raise HTTPException(400, "Transcription produced empty text.")
 
@@ -1536,7 +1544,7 @@ class ASRHandler:
                     "raw_transcript": transcript_text,
                     "translated_transcript": translated_text,
                 },
-                use_live_extraction=True,
+                use_live_extraction=should_use_live,
             )
         except Exception as e:
             raise HTTPException(500, f"Conversation saved, but extraction failed: {str(e)}")

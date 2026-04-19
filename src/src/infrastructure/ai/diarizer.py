@@ -16,13 +16,10 @@ Pipeline steps:
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import inspect
 import logging
 import os
-import re
 import tempfile
-import wave
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
@@ -159,58 +156,11 @@ def _bytes_to_wav(audio_bytes: bytes, src_suffix: str) -> str:
             os.remove(src_path)
 
 
-# ---------------------------------------------------------------------------
-# Helper: get WAV duration in seconds
-# ---------------------------------------------------------------------------
-
-def _wav_duration(wav_path: str) -> float:
-    with contextlib.closing(wave.open(wav_path, "r")) as f:
-        return f.getnframes() / float(f.getframerate())
-
-
 def _load_wav_array(wav_path: str):
     import librosa
 
     y, sr = librosa.load(wav_path, sr=16000, mono=True)
     return y, sr
-
-
-def _build_time_windows(duration: float, window_sec: float = 2.0, hop_sec: float = 1.5) -> list[dict]:
-    if duration <= 0:
-        return []
-    if duration <= window_sec:
-        return [{"start": 0.0, "end": duration}]
-
-    windows: list[dict] = []
-    start = 0.0
-    while start < duration:
-        end = min(duration, start + window_sec)
-        windows.append({"start": start, "end": end})
-        if end >= duration:
-            break
-        start += hop_sec
-    return windows
-
-
-def _split_transcript_into_chunks(transcript: str, chunk_count: int) -> list[str]:
-    text = " ".join((transcript or "").split()).strip()
-    if not text:
-        return []
-    if chunk_count <= 1:
-        return [text]
-
-    sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", text) if s.strip()]
-    if not sentences:
-        sentences = [text]
-
-    buckets = ["" for _ in range(chunk_count)]
-    for i, sentence in enumerate(sentences):
-        idx = min(int(i * chunk_count / max(1, len(sentences))), chunk_count - 1)
-        buckets[idx] = (buckets[idx] + " " + sentence).strip()
-
-    if all(not b for b in buckets):
-        return [text]
-    return [b for b in buckets if b]
 
 
 # ---------------------------------------------------------------------------
@@ -237,18 +187,46 @@ def _diarize_sync(
 
     try:
         # ------------------------------------------------------------------
-        # 1. ASR — torchcodec-free transcription
+        # 1. ASR with timestamped chunks
         # ------------------------------------------------------------------
         asr = _get_asr_transcriber()
-        transcript_text = asr._transcribe_sync(wav_path, input_language)
-        if not transcript_text:
+        asr_chunks = asr._transcribe_sync(wav_path, input_language)
+        if not asr_chunks:
             return []
 
-        duration = _wav_duration(wav_path)
+        transcript_text = " ".join(
+            str(chunk.get("text", "")).strip()
+            for chunk in asr_chunks
+            if str(chunk.get("text", "")).strip()
+        ).strip()
+
+        segments: list[dict[str, Any]] = []
+        for chunk in asr_chunks:
+            if not isinstance(chunk, dict):
+                continue
+            timestamp = chunk.get("timestamp")
+            if not isinstance(timestamp, (tuple, list)) or len(timestamp) != 2:
+                continue
+            start, end = timestamp
+            if start is None or end is None:
+                continue
+            try:
+                start_f = float(start)
+                end_f = float(end)
+            except (TypeError, ValueError):
+                continue
+            if end_f <= start_f:
+                continue
+            text = str(chunk.get("text", "")).strip()
+            if not text:
+                continue
+            segments.append({"start": start_f, "end": end_f, "text": text})
+
+        if not segments:
+            return []
+
         if num_speakers <= 1:
             return [{"speaker": "SPEAKER 1", "text": transcript_text}]
-
-        segments = _build_time_windows(duration)
         if len(segments) <= 1:
             return [{"speaker": "SPEAKER 1", "text": transcript_text}]
 
@@ -269,9 +247,7 @@ def _diarize_sync(
         embeddings = np.zeros(shape=(len(segments), 192))
         for i, seg in enumerate(segments):
             start = seg["start"]
-            end = min(duration, seg["end"])
-            if end <= start:
-                end = min(duration, start + 0.5)
+            end = seg["end"]
             try:
                 clip = Segment(start, end)
                 waveform, _sr = audio_helper.crop(pyannote_audio, clip)
@@ -291,13 +267,6 @@ def _diarize_sync(
 
         for i, seg in enumerate(segments):
             seg["speaker"] = f"SPEAKER {int(labels[i]) + 1}"
-
-        text_chunks = _split_transcript_into_chunks(transcript_text, len(segments))
-        if not text_chunks:
-            text_chunks = [transcript_text]
-
-        for i, seg in enumerate(segments):
-            seg["text"] = text_chunks[i] if i < len(text_chunks) else ""
 
         # ------------------------------------------------------------------
         # 4. Merge consecutive same-speaker segments
