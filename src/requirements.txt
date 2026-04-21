@@ -32,5 +32,3 @@ playwright
 pytest-playwright
 pytest-html
 pyannote.audio
-speechbrain
-scikit-learn

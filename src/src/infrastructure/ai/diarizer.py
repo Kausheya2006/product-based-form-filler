@@ -1,22 +1,25 @@
 """
 Speaker Diarization Pipeline
 =============================
-Implements the approach described in:
-  "Speaker Diarization using Whisper, pyannote & Agglomerative Clustering"
+Uses pyannote/speaker-diarization@2.1 for speaker turn detection and
+Whisper (via LocalASRTranscriber) for timestamped transcription.
 
 Pipeline steps:
-  1. Write audio bytes to a temporary WAV file (converting via soundfile/librosa if needed).
-  2. Run Whisper ASR with return_timestamps=True to get time-stamped text segments.
-  3. For each segment, extract a speaker embedding from the pre-trained
-     speechbrain/spkrec-ecapa-voxceleb model via pyannote.
-  4. Cluster embeddings with AgglomerativeClustering (n_clusters = num_speakers).
-  5. Return a merged, speaker-labelled transcript list.
+  1. Convert audio bytes to a temporary 16 kHz mono WAV file.
+  2. Run pyannote/speaker-diarization@2.1 to get speaker-labelled time intervals.
+  3. Run Whisper ASR (return_timestamps=True) to get text chunks with timestamps.
+  4. Assign each Whisper chunk the dominant speaker from pyannote output by overlap.
+  5. Merge consecutive same-speaker chunks and return speaker-labelled transcript.
+
+Prerequisites:
+  - HUGGINGFACE_ACCESS_TOKEN env var (access must be granted to both
+    hf.co/pyannote/speaker-diarization and hf.co/pyannote/segmentation)
+  - ffmpeg installed on the system (required by pyannote's audio backend)
 """
 
 from __future__ import annotations
 
 import asyncio
-import inspect
 import logging
 import os
 import tempfile
@@ -24,97 +27,58 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
-import numpy as np
 from .asr import LocalASRTranscriber
 
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Lazy import helpers — kept outside the class so they are module-level
-# singletons once loaded, but the import only happens on first use so the
-# container still starts up even if pyannote is not yet installed.
+# Module-level singletons — loaded lazily on first use so the container
+# starts up even if pyannote or the HF token are not yet configured.
 # ---------------------------------------------------------------------------
 
-_embedding_model: Any = None
-_audio_helper: Any = None
+_diarization_pipeline: Any = None
 _asr_transcriber: Any = None
 
 
-def _patch_speechbrain_token_kwarg() -> None:
-    """Patch older speechbrain versions by dropping unsupported init kwargs."""
-    from speechbrain.inference.interfaces import Pretrained
-
-    if getattr(Pretrained, "_pl_token_kwarg_patch", False):
-        return
-
-    init_sig = inspect.signature(Pretrained.__init__)
-    # If this speechbrain build already accepts common HF kwargs, no patch needed.
-    if (
-        "token" in init_sig.parameters
-        or "use_auth_token" in init_sig.parameters
-        or "huggingface_cache_dir" in init_sig.parameters
-    ):
-        Pretrained._pl_token_kwarg_patch = True
-        return
-
-    original_init = Pretrained.__init__
-    accepted = set(init_sig.parameters.keys())
-
-    def _patched_init(self, *args, **kwargs):
-        filtered_kwargs = {k: v for k, v in kwargs.items() if k in accepted}
-        return original_init(self, *args, **filtered_kwargs)
-
-    Pretrained.__init__ = _patched_init
-    Pretrained._pl_token_kwarg_patch = True
-
-
-def _get_embedding_model(device_str: str = "cpu"):
-    """Lazy-load the pyannote PretrainedSpeakerEmbedding model."""
-    global _embedding_model
-    if _embedding_model is None:
+def _get_diarization_pipeline():
+    """Lazy-load the pyannote/speaker-diarization@2.1 pipeline."""
+    global _diarization_pipeline
+    if _diarization_pipeline is None:
         try:
-            from pyannote.audio.pipelines.speaker_verification import (
-                PretrainedSpeakerEmbedding,
+            from pyannote.audio import Pipeline
+            import torch
+
+            token = os.environ.get("HUGGINGFACE_ACCESS_TOKEN", "").strip()
+            if not token:
+                raise RuntimeError(
+                    "HUGGINGFACE_ACCESS_TOKEN is not set. "
+                    "Create a token at hf.co/settings/tokens, accept the model "
+                    "conditions at hf.co/pyannote/speaker-diarization and "
+                    "hf.co/pyannote/segmentation, then add the token to .env."
+                )
+
+            _diarization_pipeline = Pipeline.from_pretrained(
+                "pyannote/speaker-diarization@2.1",
+                use_auth_token=token,
             )
 
-            _patch_speechbrain_token_kwarg()
-
-            # pyannote/speechbrain compatibility: prefer plain string device.
-            try:
-                _embedding_model = PretrainedSpeakerEmbedding(
-                    "speechbrain/spkrec-ecapa-voxceleb", device=device_str
-                )
-            except TypeError:
-                # Some builds infer device internally and reject the explicit kwarg.
-                _embedding_model = PretrainedSpeakerEmbedding(
-                    "speechbrain/spkrec-ecapa-voxceleb"
-                )
-            logger.info("Speaker embedding model loaded (device=%s).", device_str)
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            _diarization_pipeline.to(device)
+            logger.info(
+                "pyannote speaker-diarization@2.1 pipeline loaded (device=%s).", device
+            )
+        except RuntimeError:
+            raise
         except Exception as exc:
             raise RuntimeError(
-                f"Failed to load speaker embedding model: {exc}. "
-                "Ensure pyannote.audio is installed."
+                f"Failed to load pyannote diarization pipeline: {exc}. "
+                "Ensure pyannote.audio is installed and HUGGINGFACE_ACCESS_TOKEN is set."
             ) from exc
-    return _embedding_model
-
-
-def _get_audio_helper():
-    """Lazy-load pyannote Audio helper."""
-    global _audio_helper
-    if _audio_helper is None:
-        try:
-            from pyannote.audio import Audio
-
-            _audio_helper = Audio()
-        except Exception as exc:
-            raise RuntimeError(
-                f"Failed to load pyannote Audio helper: {exc}."
-            ) from exc
-    return _audio_helper
+    return _diarization_pipeline
 
 
 def _get_asr_transcriber():
-    """Lazy-load ASR transcriber that avoids transformers pipeline/torchcodec path."""
+    """Lazy-load the Whisper ASR transcriber."""
     global _asr_transcriber
     if _asr_transcriber is None:
         _asr_transcriber = LocalASRTranscriber(model_name="openai/whisper-small")
@@ -122,14 +86,13 @@ def _get_asr_transcriber():
 
 
 # ---------------------------------------------------------------------------
-# Helper: convert arbitrary audio bytes to WAV (16 kHz mono)
+# Helper: convert arbitrary audio bytes to 16 kHz mono WAV
 # ---------------------------------------------------------------------------
 
 def _bytes_to_wav(audio_bytes: bytes, src_suffix: str) -> str:
     """
-    Write *audio_bytes* to a temp file, convert to 16 kHz mono WAV using
-    librosa + soundfile (both already in requirements.txt).
-    Returns the path to the resulting WAV tempfile (caller must delete).
+    Write *audio_bytes* to a temp file and convert to a 16 kHz mono WAV using
+    librosa + soundfile.  Returns the path to the WAV file (caller must delete).
     """
     import librosa
     import soundfile as sf
@@ -156,15 +119,28 @@ def _bytes_to_wav(audio_bytes: bytes, src_suffix: str) -> str:
             os.remove(src_path)
 
 
-def _load_wav_array(wav_path: str):
-    import librosa
+# ---------------------------------------------------------------------------
+# Helper: map a time window to a pyannote speaker label
+# ---------------------------------------------------------------------------
 
-    y, sr = librosa.load(wav_path, sr=16000, mono=True)
-    return y, sr
+def _assign_speaker(diarization: Any, start: float, end: float) -> str:
+    """
+    Given a pyannote ``Annotation`` and a time window [start, end], return the
+    speaker label with the greatest cumulative overlap in that window.
+    Falls back to ``"SPEAKER_00"`` if no diarized turn overlaps at all.
+    """
+    speaker_times: dict[str, float] = {}
+    for seg, _, label in diarization.itertracks(yield_label=True):
+        overlap = min(seg.end, end) - max(seg.start, start)
+        if overlap > 0.0:
+            speaker_times[label] = speaker_times.get(label, 0.0) + overlap
+    if not speaker_times:
+        return "SPEAKER_00"
+    return max(speaker_times, key=speaker_times.__getitem__)
 
 
 # ---------------------------------------------------------------------------
-# Core synchronous diarization
+# Core synchronous diarization (runs in a ThreadPoolExecutor)
 # ---------------------------------------------------------------------------
 
 def _diarize_sync(
@@ -174,33 +150,41 @@ def _diarize_sync(
     input_language: str,
 ) -> list[dict]:
     """
-    Blocking implementation — meant to be run in a ThreadPoolExecutor.
+    Blocking implementation — meant to be run inside a ThreadPoolExecutor.
 
-    Returns a list of dicts: [{"speaker": "SPEAKER 1", "text": "..."}, ...]
+    Returns a list of dicts: [{"speaker": "SPEAKER_00", "text": "..."}, ...]
     where consecutive same-speaker entries are already merged.
     """
-    from sklearn.cluster import AgglomerativeClustering
-    from pyannote.core import Segment
-
     suffix = Path(filename).suffix or ".wav"
     wav_path = _bytes_to_wav(audio_bytes, src_suffix=suffix)
 
     try:
         # ------------------------------------------------------------------
-        # 1. ASR with timestamped chunks
+        # 1. Run pyannote speaker diarization → time-labelled speaker turns
+        # ------------------------------------------------------------------
+        pipeline = _get_diarization_pipeline()
+
+        pipeline_kwargs: dict[str, Any] = {}
+        if num_speakers > 1:
+            pipeline_kwargs["num_speakers"] = num_speakers
+
+        logger.info("Running pyannote diarization (num_speakers=%d)...", num_speakers)
+        diarization = pipeline(wav_path, **pipeline_kwargs)
+
+        # ------------------------------------------------------------------
+        # 2. Run Whisper ASR → timestamped text chunks
         # ------------------------------------------------------------------
         asr = _get_asr_transcriber()
         asr_chunks = asr._transcribe_sync(wav_path, input_language)
+
         if not asr_chunks:
+            logger.warning("ASR returned no chunks; returning empty result.")
             return []
 
-        transcript_text = " ".join(
-            str(chunk.get("text", "")).strip()
-            for chunk in asr_chunks
-            if str(chunk.get("text", "")).strip()
-        ).strip()
-
-        segments: list[dict[str, Any]] = []
+        # ------------------------------------------------------------------
+        # 3. Assign each Whisper chunk a speaker from the pyannote output
+        # ------------------------------------------------------------------
+        segments: list[dict] = []
         for chunk in asr_chunks:
             if not isinstance(chunk, dict):
                 continue
@@ -220,68 +204,23 @@ def _diarize_sync(
             text = str(chunk.get("text", "")).strip()
             if not text:
                 continue
-            segments.append({"start": start_f, "end": end_f, "text": text})
+
+            speaker = _assign_speaker(diarization, start_f, end_f)
+            segments.append({"speaker": speaker, "text": text})
 
         if not segments:
             return []
-
-        if num_speakers <= 1:
-            return [{"speaker": "SPEAKER 1", "text": transcript_text}]
-        if len(segments) <= 1:
-            return [{"speaker": "SPEAKER 1", "text": transcript_text}]
-
-        # ------------------------------------------------------------------
-        # 2. Speaker embeddings
-        # ------------------------------------------------------------------
-        embedding_model = _get_embedding_model("cpu")
-        audio_helper = _get_audio_helper()
-        full_waveform, _wave_sr = _load_wav_array(wav_path)
-
-        import torch
-
-        pyannote_audio = {
-            "waveform": torch.from_numpy(full_waveform).unsqueeze(0),
-            "sample_rate": 16000,
-        }
-
-        embeddings = np.zeros(shape=(len(segments), 192))
-        for i, seg in enumerate(segments):
-            start = seg["start"]
-            end = seg["end"]
-            try:
-                clip = Segment(start, end)
-                waveform, _sr = audio_helper.crop(pyannote_audio, clip)
-                emb = embedding_model(waveform[None])
-                embeddings[i] = emb.detach().cpu().numpy().squeeze()
-            except Exception as exc:
-                logger.warning("Embedding failed for segment %d: %s", i, exc)
-
-        embeddings = np.nan_to_num(embeddings)
-
-        # ------------------------------------------------------------------
-        # 3. Cluster
-        # ------------------------------------------------------------------
-        n_clusters = min(num_speakers, len(segments))
-        clustering = AgglomerativeClustering(n_clusters=n_clusters).fit(embeddings)
-        labels = clustering.labels_
-
-        for i, seg in enumerate(segments):
-            seg["speaker"] = f"SPEAKER {int(labels[i]) + 1}"
 
         # ------------------------------------------------------------------
         # 4. Merge consecutive same-speaker segments
         # ------------------------------------------------------------------
         merged: list[dict] = []
         for seg in segments:
-            if not seg.get("text", "").strip():
-                continue
             if merged and merged[-1]["speaker"] == seg["speaker"]:
                 merged[-1]["text"] = merged[-1]["text"] + " " + seg["text"]
             else:
                 merged.append({"speaker": seg["speaker"], "text": seg["text"]})
 
-        if not merged:
-            return [{"speaker": "SPEAKER 1", "text": transcript_text}]
         return merged
 
     finally:
@@ -296,15 +235,18 @@ def _diarize_sync(
 class LocalSpeakerDiarizer:
     """
     Async-friendly speaker diarization using:
-      - Whisper (via HuggingFace transformers) for timestamped ASR
-      - speechbrain/spkrec-ecapa-voxceleb for speaker embeddings
-      - scikit-learn AgglomerativeClustering
+      - ``pyannote/speaker-diarization@2.1`` for speaker turn detection
+      - ``openai/whisper-small`` for timestamped transcription
+
+    Requires ``HUGGINGFACE_ACCESS_TOKEN`` in the environment, with access
+    granted to ``pyannote/speaker-diarization`` and ``pyannote/segmentation``
+    on huggingface.co.
 
     Usage::
 
         diarizer = LocalSpeakerDiarizer()
         turns = await diarizer.diarize(audio_bytes, "recording.webm", num_speakers=2)
-        # turns = [{"speaker": "SPEAKER 1", "text": "..."}, ...]
+        # turns = [{"speaker": "SPEAKER_00", "text": "Hello there."}, ...]
     """
 
     def __init__(self):
@@ -319,10 +261,18 @@ class LocalSpeakerDiarizer:
         input_language: str = "en",
     ) -> list[dict]:
         """
-        Returns a list of speaker-labelled turns:
-            [{"speaker": "SPEAKER 1", "text": "Hello there."}, ...]
+        Returns a list of speaker-labelled turns::
+
+            [{"speaker": "SPEAKER_00", "text": "Hello there."}, ...]
 
         Consecutive turns from the same speaker are merged into one entry.
+
+        Args:
+            audio_bytes:    Raw audio data (any format supported by librosa/ffmpeg).
+            filename:       Original filename — used only to infer the file suffix.
+            num_speakers:   Expected number of speakers (passed to pyannote pipeline).
+                            Set to 1 to skip diarization and return a single turn.
+            input_language: ISO 639-1 language code for Whisper (default: "en").
         """
         if not audio_bytes:
             return []
