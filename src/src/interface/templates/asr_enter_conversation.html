@@ -3,12 +3,13 @@
 {% block content %}
 <div class="page-header">
     <h1>ASR + Static Extraction</h1>
-    <p class="page-subtitle">Convert input language to English, then run static extraction.</p>
+    <p class="page-subtitle">Audio is processed using English by default before extraction.</p>
 </div>
 
 <div class="card">
     <form method="post" action="/conversations/create-asr" id="asrExtractionForm" enctype="multipart/form-data">
         <input type="hidden" name="form_id" value="{{ form.id }}">
+        <input type="hidden" id="input_language" name="input_language" value="en">
         <input type="hidden" name="translated_text_override" id="translatedTextOverride" value="">
         <input type="hidden" name="raw_transcript_override" id="rawTranscriptOverride" value="">
         <input type="hidden" name="num_speakers" id="numSpeakersHidden" value="0">
@@ -21,15 +22,7 @@
             </div>
         </div>
 
-        <div class="form-group">
-            <label for="input_language">Input Language</label>
-            <select id="input_language" name="input_language" required>
-                {% for code, label in input_languages %}
-                <option value="{{ code }}">{{ label }}</option>
-                {% endfor %}
-            </select>
-            <p class="form-hint">Audio is transcribed first, then translated to English before extraction.</p>
-        </div>
+        <p class="form-hint" style="margin:0 0 16px 0;">English is fixed as the input language for this flow.</p>
 
         <div class="form-group">
             <label for="conversation_name">Conversation Name (optional)</label>

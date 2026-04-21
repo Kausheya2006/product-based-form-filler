@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("asrExtractionForm");
   const submitBtn = document.getElementById("asrSubmitBtn");
-  const languageSelect = document.getElementById("input_language");
+  const languageInput = document.getElementById("input_language");
   const audioFileInput = document.getElementById("audio_file");
   const startRecordingBtn = document.getElementById("startRecordingBtn");
   const stopRecordingBtn = document.getElementById("stopRecordingBtn");
@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const diarizationOptions = document.getElementById("diarizationOptions");
   const numSpeakersInput = document.getElementById("numSpeakersInput");
 
-  if (!form || !submitBtn || !languageSelect || !audioFileInput) return;
+  if (!form || !submitBtn || !languageInput || !audioFileInput) return;
 
   let mediaRecorder = null;
   let mediaStream = null;
@@ -164,9 +164,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const useDiarization = enableDiarization && enableDiarization.checked;
     const numSpeakers = numSpeakersInput ? parseInt(numSpeakersInput.value, 10) || 2 : 2;
+    const selectedLanguage = languageInput.value || "en";
 
     submitBtn.disabled = true;
-    const languageLabel = languageSelect.options[languageSelect.selectedIndex]?.text || "selected language";
+    const languageLabel = "English";
 
     // ── Diarization path ───────────────────────────────────────────────────
     if (useDiarization) {
@@ -174,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       try {
         const previewBody = new FormData();
-        previewBody.append("input_language", languageSelect.value);
+        previewBody.append("input_language", selectedLanguage);
         previewBody.append("num_speakers", String(numSpeakers));
         previewBody.append("audio_file", audioFileInput.files[0]);
 
@@ -211,9 +212,6 @@ document.addEventListener("DOMContentLoaded", () => {
         // num_speakers = 0 tells backend to skip diarization (overrides already set)
         if (numSpeakersHidden) numSpeakersHidden.value = "0";
 
-        const englishOption = Array.from(languageSelect.options).find((opt) => opt.value === "en");
-        if (englishOption) languageSelect.value = "en";
-
         submitBtn.textContent = "Submitting speaker-labelled transcript…";
         setTimeout(() => form.submit(), 700);
 
@@ -232,7 +230,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       const previewBody = new FormData();
-      previewBody.append("input_language", languageSelect.value);
+      previewBody.append("input_language", selectedLanguage);
       previewBody.append("audio_file", audioFileInput.files[0]);
 
       const previewRes = await fetch("/asr/translate-preview", {
@@ -260,9 +258,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (translatedTextOverride) translatedTextOverride.value = translatedText;
       if (rawTranscriptOverride) rawTranscriptOverride.value = rawText;
-
-      const englishOption = Array.from(languageSelect.options).find((opt) => opt.value === "en");
-      if (englishOption) languageSelect.value = "en";
 
       submitBtn.textContent = "Submitting translated text for extraction...";
       setTimeout(() => form.submit(), 700);

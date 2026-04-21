@@ -1085,7 +1085,6 @@ body.live-page { overflow: hidden; height: 100%; }
 .voice-btn.active { background: #dc2626; }
 .icon-btn { width: 36px; min-width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
 .btn-icon-svg { width: 16px; height: 16px; display: block; }
-.lang-select { margin-top: 0; height: 36px; min-width: 72px; width: 72px !important; flex: 0 0 auto; border: 1px solid var(--border); border-radius: var(--radius); padding: 0 8px; font-size: 0.78rem; }
 
 .send-btn {
     background: var(--primary); color: #fff; border: none; border-radius: var(--radius);

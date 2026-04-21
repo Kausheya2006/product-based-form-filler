@@ -139,14 +139,6 @@
 
     <!-- Message input -->
     <div class="input-row">
-      <select id="sttLanguage" class="lang-select" title="Speech language">
-        <option value="en">EN</option>
-        <option value="es">ES</option>
-        <option value="fr">FR</option>
-        <option value="de">DE</option>
-        <option value="it">IT</option>
-        <option value="pt">PT</option>
-      </select>
       <textarea id="msgInput" rows="1" placeholder="Type a message and press Enter…"></textarea>
       <button type="button" class="voice-btn icon-btn" id="msgVoiceBtn" title="Record one message" aria-label="Record one message">
         <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -240,6 +232,7 @@
 
 <script>
   const FORM_ID = "{{ form.id }}";
+  const STT_LANGUAGE = "en";
   const formFields = JSON.parse('{{ form.fields | tojson }}');
   const DEBUG_LOGS = true;
 
@@ -283,7 +276,6 @@
   const msgInput = document.getElementById("msgInput");
   const sendBtn = document.getElementById("sendBtn");
   const msgVoiceBtn = document.getElementById("msgVoiceBtn");
-  const sttLanguage = document.getElementById("sttLanguage");
   const toggleSessionControlsBtn = document.getElementById("toggleSessionControlsBtn");
   const sessionControls = document.getElementById("sessionControls");
   const sessionOrderChips = document.getElementById("sessionOrderChips");
@@ -896,7 +888,7 @@
     const Ctor = getSpeechRecognitionCtor();
     if (!Ctor) return null;
     const recognition = new Ctor();
-    recognition.lang = sttLanguage?.value || "en";
+    recognition.lang = STT_LANGUAGE;
     recognition.interimResults = false;
     recognition.continuous = continuous;
     return recognition;
@@ -993,7 +985,7 @@
     const ext = (blob.type || "").includes("ogg") ? "ogg" : "webm";
     const file = new File([blob], `snippet.${ext}`, { type: blob.type || "audio/webm" });
     const formData = new FormData();
-    formData.append("input_language", sttLanguage?.value || "en");
+    formData.append("input_language", STT_LANGUAGE);
     formData.append("audio_file", file);
 
     const res = await fetch("/stt/transcribe", {

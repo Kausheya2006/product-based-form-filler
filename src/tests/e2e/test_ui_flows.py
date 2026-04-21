@@ -239,7 +239,8 @@ def test_tc21_ui_onboarding_static_audio_page_loads(page):
     page.wait_for_load_state("networkidle")
 
     assert page.locator("h1", has_text="ASR + Static Extraction").count() > 0
-    assert page.locator("#input_language").count() > 0
+    assert page.locator("select#input_language").count() == 0
+    assert page.locator("input#input_language[type='hidden']").count() > 0
     assert page.locator("#asrSubmitBtn").count() > 0
 
 
