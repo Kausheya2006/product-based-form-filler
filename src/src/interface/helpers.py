@@ -1567,31 +1567,34 @@ class ASRHandler:
             raise HTTPException(400, "Uploaded audio file is empty.")
 
         try:
-            transcript_text = await container.stt_service.transcribe_to_text(
+            transcript_text = await container.asr_transcriber.transcribe_to_text(
                 audio_bytes=raw_audio,
                 filename=audio_file.filename,
                 input_language=input_language,
             )
         except RuntimeError as exc:
             message = str(exc)
-            logger.warning("[STT] Runtime issue: %s", message)
-            if "Whisper STT is temporarily disabled" in message:
-                raise HTTPException(503, message) from exc
-            recoverable = ("audio preprocessing failed", "audio decode failed",
-                           "speechrecognition decode failed", "unknown format",
-                           "cannot read", "file does not start")
+            logger.warning("[ASR-Live] Runtime issue: %s", message)
+            recoverable = (
+                "audio decode failed",
+                "unknown format",
+                "cannot read",
+                "file does not start",
+                "ffmpeg",
+                "failed to open",
+            )
             if any(m in message.lower() for m in recoverable):
                 return JSONResponse({"text": "", "raw_text": "", "warning": message})
             raise HTTPException(500, message) from exc
         except Exception as exc:
-            logger.exception("[STT] Unexpected transcription failure")
-            raise HTTPException(500, f"STT failed: {str(exc)}") from exc
+            logger.exception("[ASR-Live] Unexpected transcription failure")
+            raise HTTPException(500, f"ASR failed: {str(exc)}") from exc
 
         try:
             translated_text = await container.translator.translate_to_english(transcript_text, input_language)
         except Exception as exc:
-            logger.exception("[STT] Translation step failed")
-            raise HTTPException(500, f"STT translation failed: {str(exc)}") from exc
+            logger.exception("[ASR-Live] Translation step failed")
+            raise HTTPException(500, f"ASR translation failed: {str(exc)}") from exc
 
         return JSONResponse({"text": translated_text.strip(), "raw_text": transcript_text.strip()})
 

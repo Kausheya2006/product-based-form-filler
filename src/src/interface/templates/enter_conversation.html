@@ -1000,9 +1000,6 @@
       data = { detail: raw || "Transcription failed" };
     }
     if (!res.ok) {
-      if (res.status === 503 && String(data.detail || "").includes("Whisper STT is temporarily disabled")) {
-        backendSttDisabled = true;
-      }
       throw new Error(data.detail || data.error || "Transcription failed");
     }
     return {
@@ -1274,7 +1271,7 @@
             debugWarn("[STT] single-message warning", sttResult.warning);
             backendSttDisabled = true;
             statusDot.style.background = "var(--primary)";
-            statusText.textContent = "Backend STT decode failed. Switching to browser STT...";
+            statusText.textContent = "Backend transcription decode failed. Switching to browser speech recognition...";
             try {
               const fallbackText = await browserSingleDictation();
               if (fallbackText) {
@@ -1296,21 +1293,19 @@
           statusText.textContent = "No speech captured. Please speak clearly and try again.";
         } catch (err) {
           debugError("[STT] single-message failed", err);
-          if (String(err.message || "").includes("Whisper STT is temporarily disabled")) {
-            backendSttDisabled = true;
-            try {
-              statusText.textContent = "Backend STT disabled. Switching to browser STT...";
-              const text = await browserSingleDictation();
-              if (text) {
-                await queueIncomingMessage(text, speakerAtRecordStart, { deferExtraction: false });
-              } else {
-                statusDot.style.background = "var(--danger)";
-                statusText.textContent = "No speech captured. Please speak clearly and try again.";
-              }
-              return;
-            } catch (fallbackErr) {
-              debugError("[STT] browser fallback failed", fallbackErr);
+          backendSttDisabled = true;
+          try {
+            statusText.textContent = "Backend transcription unavailable. Switching to browser speech recognition...";
+            const text = await browserSingleDictation();
+            if (text) {
+              await queueIncomingMessage(text, speakerAtRecordStart, { deferExtraction: false });
+            } else {
+              statusDot.style.background = "var(--danger)";
+              statusText.textContent = "No speech captured. Please speak clearly and try again.";
             }
+            return;
+          } catch (fallbackErr) {
+            debugError("[STT] browser fallback failed", fallbackErr);
           }
           statusDot.style.background = "var(--danger)";
           statusText.textContent = `STT error: ${err.message}`;
