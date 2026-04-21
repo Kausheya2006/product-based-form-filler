@@ -198,7 +198,9 @@ docker compose up -d mongodb
 
 ```bash
 export MOCK_MODELS="true"
-python -m pytest tests/test_interface_flows.py
+python -m pytest tests/test_interface_flows.py # integration tests
+python -m pytest tests/test_unit_domain_speakers. # unit tests
+python -m pytest tests/test_unit_interface_helpers.py # unit tests
 ```
 
 Run a single case:
@@ -218,13 +220,13 @@ python -m playwright install chromium
 Start the app, then in another terminal:
 
 ```bash
-bash scripts/run_e2e_headed.sh
+bash scripts/run_r2_e2e_headed.sh
 ```
 
 or
 
 ```bash
-bash scripts/run_e2e_headless.sh
+bash scripts/run_r2_e2e_headless.sh
 ```
 
 ## Troubleshooting
