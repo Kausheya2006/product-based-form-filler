@@ -22,7 +22,7 @@ fi
 
 python -m playwright install chromium
 RUN_E2E=1 APP_BASE_URL="$APP_BASE_URL" \
-python -m pytest tests/e2e -m e2e "${EXTRA_PYTEST_ARGS[@]}" \
+python -m pytest tests/e2e -m e2e "${EXTRA_PYTEST_ARGS[@]-}" \
   --headed --browser chromium \
   --html=reports/e2e_headed_report.html --self-contained-html \
   --tracing=retain-on-failure --video=retain-on-failure --screenshot=only-on-failure
