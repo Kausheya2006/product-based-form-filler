@@ -1,14 +1,14 @@
 # ProductLabs AI Form Filler
 
-# ProductLabs AI Form Filler
-
 [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
 [![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 [![Qwen](https://img.shields.io/badge/Model-Qwen--3-7c3aed?style=for-the-badge&logo=alibabacloud&logoColor=white)](https://github.com/QwenLM/Qwen2.5)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
-An enterprise-grade, event-driven intelligent orchestration platform that transforms unstructured asynchronous dialogues (text and audio) into structured, validated domain schemas using pluggable LLM and Speech-to-Text inference backends. Built with a decoupled Clean Architecture, the platform processes conversational data incrementally as an evolving finite-state machine rather than using fragile one-shot extraction.
+Manually filling out forms from conversations is slow, repetitive, and error-prone. While databases require rigid structures, humans naturally communicate using unstructured language. ProductLabs AI Form Filler bridges this gap.
+
+This FastAPI application hooks into live text chats or audio streams to extract key details and populate forms in real time. Instead of running a slow batch pass at the end of a long transcript, the system processes dialogue turns incrementally as they happen. This updates a running state-machine view of the form and suggests dynamic schema extensions on the fly. Built on a decoupled Clean Architecture, the platform allows you to swap machine learning inference backends behind a single unified contract.
 
 <div class="image-gallery-container" style="width: 100%; text-align: center; font-size: 0;">
     <div class="image-wrapper" style="display: inline-block; width: 48%; margin-right: 2%; vertical-align: top; font-size: 14px;">
