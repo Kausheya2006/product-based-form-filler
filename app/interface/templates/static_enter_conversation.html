@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+{% block title %}Enter Conversation — {{ form.name }}{% endblock %}
+
+{% block body_class %}live-page{% endblock %}
+{% block content %}
+<!-- Hidden submit form -->
+<form method="post" action="/conversations/create" id="chatForm" style="display:none;">
+  <input type="hidden" name="form_id"           value="{{ form.id }}" />
+  <input type="hidden" name="conversation_text" id="conversation_text" />
+  <input type="hidden" name="conversation_id"   id="hidden_conv_id" />
+</form>
+
+<form method="post" action="/conversations/create" id="saveChatForm" style="display:none;">
+    <input type="hidden" name="form_id" value="{{ form.id }}" />
+    <input type="hidden" name="conversation_text" id="save_conversation_text" />
+    <input type="hidden" name="conversation_id" id="save_conv_id" />
+    <input type="hidden" name="extract" value="false">
+</form>
+
+<div class="page-shell">
+
+  <!-- Header -->
+  <div class="live-header">
+    <h1>Enter Conversation</h1>
+    <span class="pill">NEW</span>
+    <span class="form-badge">Form: {{ form.name }} &nbsp;/&nbsp; {{ form.id }}</span>
+    <div class="header-actions">
+      <a href="/forms/{{ form.id }}" class="btn">← Back</a>
+    </div>
+  </div>
+
+  <div class="panel-chat">
+    <div class="panel-label">Conversation Input</div>
+
+    <!-- Conversation ID -->
+    <div class="conv-id-bar">
+      <label for="convIdInput">Conversation ID</label>
+      <input id="convIdInput" placeholder="auto-generated if empty" />
+      <span class="hint">Optional — leave blank to auto-generate</span>
+    </div>
+
+    <!-- Bubbles -->
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-empty" id="chatEmpty">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+        </svg>
+        <p>Add speakers below, then type the first message.</p>
+      </div>
+    </div>
+
+    <!-- Add speaker -->
+    <div class="add-speaker-row">
+      <input id="newSpeakerName" placeholder="New speaker (e.g. Doctor)…" />
+      <button type="button" id="addSpeakerBtn">+ Add Speaker</button>
+    </div>
+
+    <!-- Active speaker selector -->
+    <div class="speaker-strip" id="speakerStrip" style="display:none;">
+      <span class="speaker-strip-label">Speaking as:</span>
+      <div id="speakerChips" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
+    </div>
+
+    <!-- Message input -->
+    <div class="input-row">
+      <textarea id="msgInput" rows="1" placeholder="Type a message and press Enter…"></textarea>
+      <button class="send-btn" id="sendBtn" title="Send (Enter)" disabled>↑</button>
+    </div>
+
+    <!-- Run Extraction -->
+    <div class="extract-bar">
+      <button class="btn-extract" id="runExtractionBtn" disabled>Save &amp; Run Extraction →</button>
+      <span class="extract-hint">Saves the conversation and runs field extraction once</span>
+    </div>
+
+    <div class="extract-bar">
+        <button class="btn-extract" id="runSaveBtn" disabled>Save Conversation</button>
+        <span class="extract-hint">Saves the conversation</span>
+    </div>
+
+    <!-- Status -->
+    <div class="status-bar">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">Add speakers and messages to begin</span>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const FORM_ID = "{{ form.id }}";
+
+  let speakers      = [];
+  let messages      = [];
+  let activeSpeaker = null;
+
+  const chatMessages   = document.getElementById("chatMessages");
+  const chatEmpty      = document.getElementById("chatEmpty");
+  const newSpeakerName = document.getElementById("newSpeakerName");
+  const addSpeakerBtn  = document.getElementById("addSpeakerBtn");
+  const speakerChips   = document.getElementById("speakerChips");
+  const speakerStrip   = document.getElementById("speakerStrip");
+  const msgInput       = document.getElementById("msgInput");
+  const sendBtn        = document.getElementById("sendBtn");
+  const runExtrBtn     = document.getElementById("runExtractionBtn");
+  const runSaveBtn     = document.getElementById("runSaveBtn");
+  const statusDot      = document.getElementById("statusDot");
+  const statusText     = document.getElementById("statusText");
+  const convIdInput    = document.getElementById("convIdInput");
+
+  // ── Speaker management ──
+  function renderSpeakerChips() {
+    speakerChips.innerHTML = "";
+    speakers.forEach(s => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "speaker-chip" + (s === activeSpeaker ? " active" : "");
+      chip.textContent = s;
+      chip.addEventListener("click", () => setActiveSpeaker(s));
+      speakerChips.appendChild(chip);
+    });
+    speakerStrip.style.display = speakers.length ? "flex" : "none";
+    sendBtn.disabled = !activeSpeaker;
+  }
+
+  function setActiveSpeaker(name) {
+    activeSpeaker = name;
+    renderSpeakerChips();
+    msgInput.focus();
+  }
+
+  function addSpeaker() {
+    const name = newSpeakerName.value.trim();
+    if (!name || speakers.includes(name)) { newSpeakerName.value = ""; return; }
+    speakers.push(name);
+    if (!activeSpeaker) setActiveSpeaker(name);
+    else renderSpeakerChips();
+    newSpeakerName.value = "";
+    msgInput.focus();
+  }
+
+  addSpeakerBtn.addEventListener("click", addSpeaker);
+  newSpeakerName.addEventListener("keydown", e => {
+    if (e.key === "Enter") { e.preventDefault(); addSpeaker(); }
+  });
+
+  // ── Send message ──
+  function sendMessage() {
+    const text = msgInput.value.trim();
+    if (!text || !activeSpeaker) return;
+
+    const idx = messages.length;
+    messages.push({ speaker: activeSpeaker, text });
+
+    appendBubble(activeSpeaker, text, idx);
+
+    msgInput.value = "";
+    autosizeTextarea(msgInput);
+    chatEmpty.style.display = "none";
+    runExtrBtn.disabled = false;
+    runSaveBtn.disabled = false;
+    statusText.textContent = `${messages.length} message${messages.length > 1 ? "s" : ""} — ready to run extraction`;
+  }
+
+  function appendBubble(speaker, text, idx) {
+    const sideIdx = speakers.indexOf(speaker);
+    const side    = sideIdx % 2 === 0 ? "left" : "right";
+
+    const row = document.createElement("div");
+    row.className = `bubble-row ${side}`;
+
+    // Speaker row
+    const speakerRow = document.createElement("div");
+    speakerRow.className = "bubble-speaker-row";
+
+    const avatar = document.createElement("div");
+    avatar.className = "bubble-avatar";
+    avatar.textContent = speaker.charAt(0).toUpperCase();
+
+    const nameLabel = document.createElement("span");
+    nameLabel.className = "bubble-speaker-name";
+    nameLabel.textContent = speaker.toUpperCase();
+
+    if (side === "right") {
+      speakerRow.appendChild(nameLabel);
+      speakerRow.appendChild(avatar);
+    } else {
+      speakerRow.appendChild(avatar);
+      speakerRow.appendChild(nameLabel);
+    }
+
+    // Bubble — contenteditable
+    const wrap = document.createElement("div");
+    wrap.className = "bubble-text-wrap";
+
+    const ce = document.createElement("div");
+    ce.className = "bubble-text";
+    ce.contentEditable = "true";
+    ce.setAttribute("data-placeholder", "Type message…");
+    ce.innerText = text;
+
+    ce.addEventListener("input", () => {
+      messages[idx].text = ce.innerText.replace(/\n$/, "");
+    });
+
+    ce.addEventListener("paste", e => {
+      e.preventDefault();
+      document.execCommand("insertText", false, e.clipboardData.getData("text/plain"));
+    });
+
+    wrap.appendChild(ce);
+    row.appendChild(speakerRow);
+    row.appendChild(wrap);
+    chatMessages.appendChild(row);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  sendBtn.addEventListener("click", sendMessage);
+
+  msgInput.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  msgInput.addEventListener("input", () => autosizeTextarea(msgInput));
+
+  function autosizeTextarea(el) {
+    el.style.height = "auto";
+    el.style.height = (el.scrollHeight + 2) + "px";
+  }
+
+  // ── Run Extraction (submit form) ──
+  runExtrBtn.addEventListener("click", () => {
+    if (messages.length === 0) return;
+
+    // Sync any edits made directly to bubbles
+    const rows = chatMessages.querySelectorAll(".bubble-row");
+    rows.forEach((row, idx) => {
+      const ce = row.querySelector(".bubble-text");
+      if (ce && messages[idx]) {
+        messages[idx].text = ce.innerText.replace(/\n$/, "");
+      }
+    });
+
+    const conversationText = messages
+      .filter(m => m.text.trim())
+      .map(m => `${m.speaker}: ${m.text}`)
+      .join("\n");
+
+    document.getElementById("conversation_text").value = conversationText;
+    document.getElementById("hidden_conv_id").value    = convIdInput.value.trim();
+
+    statusDot.classList.add("busy");
+    statusText.textContent = "Saving and running extraction…";
+    runExtrBtn.disabled = true;
+    runSaveBtn.disabled = true;
+
+    document.getElementById("chatForm").submit();
+  });
+
+  runSaveBtn.addEventListener("click", () => {
+        if (messages.length === 0) return;
+
+        // Sync any edits made directly to bubbles
+        const rows = chatMessages.querySelectorAll(".bubble-row");
+        rows.forEach((row, idx) => {
+            const ce = row.querySelector(".bubble-text");
+            if (ce && messages[idx]) {
+                messages[idx].text = ce.innerText.replace(/\n$/, "");
+            }
+        });
+
+        const conversationText = messages
+            .filter(m => m.text.trim())
+            .map(m => `${m.speaker}: ${m.text}`)
+            .join("\n");
+
+        document.getElementById("save_conversation_text").value = conversationText;
+        document.getElementById("save_conv_id").value = convIdInput.value.trim();
+
+        statusDot.classList.add("busy");
+        statusText.textContent = "Saving conversation...";
+        runExtrBtn.disabled = true;
+        runSaveBtn.disabled = true;
+
+        document.getElementById("saveChatForm").submit();
+    });
+</script>
+
+{% endblock %}

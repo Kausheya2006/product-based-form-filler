@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block title %}Create New Form{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <h1>Create New Form</h1>
+    <p class="page-subtitle">Define the form name, description, and the fields you want to extract from conversations.</p>
+</div>
+
+<form id="create-form" method="post" action="/forms">
+    <div class="card">
+        <div class="form-group">
+            <label for="form_name">Form Name <span style="color:var(--danger)">*</span></label>
+            <input type="text" id="form_name" name="form_name" required placeholder="e.g., Patient Intake Form" />
+        </div>
+
+        <div class="form-group">
+            <label for="form_description">Description</label>
+            <textarea id="form_description" name="form_description" rows="2"
+                placeholder="e.g., Extracts patient details from a clinic intake conversation"></textarea>
+            <p class="form-hint">Helps the AI understand what this form is for.</p>
+        </div>
+    </div>
+
+    <!-- ── Visibility ── -->
+    <div class="card">
+        <div style="margin-bottom:14px;">
+            <h3 style="margin:0 0 4px 0;">Visibility</h3>
+            <p class="form-hint" style="margin:0;">Who can see and use this form.</p>
+        </div>
+
+        <div class="visibility-options">
+            {% if is_admin %}
+            <!-- Admins can only create global forms -->
+            <label class="vis-option" id="vis-global">
+                <input type="radio" name="visibility" value="global" checked />
+                <div class="vis-card">
+                    <div class="vis-label">Global</div>
+                    <div class="vis-desc">Visible to all users on the platform.</div>
+                    <span class="badge badge-yellow vis-badge">Global</span>
+                </div>
+            </label>
+            {% else %}
+            <!-- Regular users can create personal or collaborative forms -->
+            <label class="vis-option" id="vis-personal">
+                <input type="radio" name="visibility" value="personal" checked />
+                <div class="vis-card">
+                    <div class="vis-label">Personal</div>
+                    <div class="vis-desc">Only you can see this form.</div>
+                    <span class="badge badge-gray vis-badge">Personal</span>
+                </div>
+            </label>
+
+            <label class="vis-option" id="vis-collaborative">
+                <input type="radio" name="visibility" value="collaborative" />
+                <div class="vis-card">
+                    <div class="vis-label">Collaborative</div>
+                    <div class="vis-desc">You + specific users. Live co-entry supported.</div>
+                    <span class="badge badge-purple vis-badge">Collaborative</span>
+                </div>
+            </label>
+            {% endif %}
+        </div>
+
+        <!-- Collaborator username inputs — shown only when collaborative is selected (non-admin only) -->
+        {% if not is_admin %}
+        <div id="collaborators-section" style="display:none; margin-top:16px;">
+            <label style="margin-bottom:8px; display:block; font-weight:600; font-size:0.875rem;">
+                Collaborator Usernames
+            </label>
+            <p class="form-hint" style="margin-bottom:10px;">These users will be able to see and co-edit conversations on this form.</p>
+            <div id="collaborators-container">
+                <div class="collab-row">
+                    <input type="text" name="collaborator[]" placeholder="Username (e.g. dr_smith)" style="flex:1;" />
+                    <button type="button" class="btn btn-sm btn-danger" onclick="removeCollaborator(this)">Remove</button>
+                </div>
+            </div>
+            <div style="margin-top:8px;">
+                <button type="button" id="add-collaborator" class="btn btn-sm">＋ Add Collaborator</button>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ── Fields ── -->
+    <div class="card">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+            <h3 style="margin:0;">Fields</h3>
+            <span class="counter" id="field-counter">1 field</span>
+        </div>
+
+        <div id="fields-container">
+            <div class="field-row">
+                <input type="text" name="field_name[]" required placeholder="Field name (e.g., patient_name)" style="flex:1;" />
+                <select name="field_type[]" style="width:130px;">
+                    <option value="string">String</option>
+                    <option value="int">Integer</option>
+                    <option value="float">Float</option>
+                    <option value="email">Email</option>
+                    <option value="phone">Phone Number</option>
+                    <option value="date">Date</option>
+                </select>
+                <button type="button" class="btn btn-sm btn-danger" onclick="removeField(this)" title="Remove field">Remove</button>
+            </div>
+        </div>
+
+        <div style="margin-top:12px;">
+            <button type="button" id="add-field" class="btn btn-sm">＋ Add Field</button>
+        </div>
+    </div>
+
+    <div class="action-row">
+        <a href="/" class="btn">← Cancel</a>
+        <button type="submit" class="btn btn-success">✓ Create Form</button>
+    </div>
+</form>
+
+<!-- hidden row templates -->
+<div id="field-template" style="display:none;">
+    <div class="field-row">
+        <input type="text" name="field_name[]" required placeholder="Field name (e.g., patient_name)" style="flex:1;" />
+        <select name="field_type[]" style="width:130px;">
+            <option value="string">String</option>
+            <option value="int">Integer</option>
+            <option value="float">Float</option>
+            <option value="email">Email</option>
+            <option value="phone">Phone Number</option>
+            <option value="date">Date</option>
+        </select>
+        <button type="button" class="btn btn-sm btn-danger" onclick="removeField(this)" title="Remove field">Remove</button>
+    </div>
+</div>
+
+<div id="collab-template" style="display:none;">
+    <div class="collab-row">
+        <input type="text" name="collaborator[]" placeholder="Username (e.g. dr_smith)" style="flex:1;" />
+        <button type="button" class="btn btn-sm btn-danger" onclick="removeCollaborator(this)">Remove</button>
+    </div>
+</div>
+
+<script src="/static/js/create_form.js"></script>
+<script>
+  // ── Visibility toggle ──
+  const visRadios = document.querySelectorAll('input[name="visibility"]');
+  const collabSection = document.getElementById("collaborators-section");
+
+  function updateVisibility() {
+    const val = document.querySelector('input[name="visibility"]:checked')?.value;
+    if (collabSection) collabSection.style.display = val === "collaborative" ? "block" : "none";
+  }
+
+  visRadios.forEach(r => r.addEventListener("change", updateVisibility));
+
+  // ── Add / remove collaborator rows ──
+  const addCollabBtn = document.getElementById("add-collaborator");
+  if (addCollabBtn) {
+    addCollabBtn.addEventListener("click", () => {
+      const tmpl = document.getElementById("collab-template").firstElementChild.cloneNode(true);
+      document.getElementById("collaborators-container").appendChild(tmpl);
+    });
+  }
+
+  function removeCollaborator(btn) {
+    const container = document.getElementById("collaborators-container");
+    if (container.children.length > 1) {
+      btn.closest(".collab-row").remove();
+    } else {
+      btn.closest(".collab-row").querySelector("input").value = "";
+    }
+  }
+</script>
+{% endblock %}

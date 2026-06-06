@@ -1,0 +1,429 @@
+{% extends "base.html" %}
+{% block title %}Collaborative Session — {{ form.name }}{% endblock %}
+
+{% block body_class %}live-page{% endblock %}
+{% block content %}
+<!-- Hidden submission form -->
+<form id="conversation-form" method="post" action="/conversations/create" style="display:none;">
+  <input type="hidden" name="form_id"           value="{{ form.id }}" />
+  <input type="hidden" name="conversation_text" id="conversation_text" />
+  <input type="hidden" name="conversation_id"   id="hidden_conv_id" />
+  <input type="hidden" name="conversation_name" id="conversation_name" />
+</form>
+
+<div class="page-shell">
+
+  <!-- Header -->
+  <div class="live-header">
+    <h1>Collaborative Session</h1>
+    <span class="pill-collab"> LIVE</span>
+    <span class="form-badge">{{ form.name }}</span>
+    <!-- Connected users shown here dynamically -->
+    <div class="users-strip" id="usersStrip"></div>
+    <div class="header-actions">
+      <a href="/forms/{{ form.id }}" class="btn">← Back</a>
+      <button type="button" class="btn btn-success" id="saveBtn">Save Conversation</button>
+    </div>
+  </div>
+
+  <!-- WS status banner -->
+  <div class="ws-banner connecting" id="wsBanner">Connecting to session…</div>
+
+  <div class="panels">
+
+    <!-- LEFT: Shared chat -->
+    <div class="panel-chat">
+      <div class="panel-label">Live Conversation</div>
+
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-empty" id="chatEmpty">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+          </svg>
+          <p>Waiting for the first message…</p>
+        </div>
+      </div>
+
+      <!-- Typing indicator -->
+      <div class="typing-indicator" id="typingIndicator"></div>
+
+      <!-- Add speaker -->
+      <div class="add-speaker-row">
+        <input id="newSpeakerName" placeholder="New speaker (e.g. Doctor)…" />
+        <button type="button" id="addSpeakerBtn">+ Add Speaker</button>
+      </div>
+
+      <!-- Active speaker selector -->
+      <div class="speaker-strip">
+        <span class="speaker-strip-label">Speaking as:</span>
+        <div id="speakerChips"></div>
+      </div>
+
+      <!-- Input -->
+      <div class="input-row">
+        <textarea id="msgInput" rows="1" placeholder="Type a message and press Enter…"></textarea>
+        <button class="send-btn" id="sendBtn" title="Send (Enter)">↑</button>
+      </div>
+    </div>
+
+    <!-- RIGHT: Live extracted fields -->
+    <div class="panel-output">
+      <div class="panel-label">Live Extracted Fields</div>
+
+      <div class="output-scroll" id="outputScroll">
+        <div class="summary-card" id="summaryCard">
+          <div class="summary-label">Summary</div>
+          <div id="summaryText"></div>
+        </div>
+        <div class="empty-output" id="outputEmpty">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+          </svg>
+          <p>Fields will appear here as messages arrive.</p>
+        </div>
+      </div>
+
+      <div class="status-bar">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Ready</span>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /.page-shell -->
+
+<script>
+  // ── Constants injected by Jinja ──
+  const FORM_ID       = "{{ form.id }}";
+  const ROOM_ID       = "{{ room_id }}";          // passed by the route, e.g. form.id + "-" + uuid
+  const CURRENT_USER  = "{{ current_user }}";     // logged-in username
+  const formFields    = JSON.parse('{{ form.fields | tojson }}');
+
+  // ── DOM refs ──
+  const chatMessages    = document.getElementById("chatMessages");
+  const chatEmpty       = document.getElementById("chatEmpty");
+  const newSpeakerName  = document.getElementById("newSpeakerName");
+  const addSpeakerBtn   = document.getElementById("addSpeakerBtn");
+  const speakerChipsEl  = document.getElementById("speakerChips");
+  const msgInput        = document.getElementById("msgInput");
+  const sendBtn         = document.getElementById("sendBtn");
+  const outputScroll    = document.getElementById("outputScroll");
+  const outputEmpty     = document.getElementById("outputEmpty");
+  const statusDot       = document.getElementById("statusDot");
+  const statusText      = document.getElementById("statusText");
+  const summaryCard     = document.getElementById("summaryCard");
+  const summaryText     = document.getElementById("summaryText");
+  const saveBtn         = document.getElementById("saveBtn");
+  const chatForm        = document.getElementById("conversation-form");
+  const convTextInput   = document.getElementById("conversation_text");
+  const wsBanner        = document.getElementById("wsBanner");
+  const usersStrip      = document.getElementById("usersStrip");
+  const typingIndicator = document.getElementById("typingIndicator");
+
+  // ── State ──
+  let speakers      = [];
+  let activeSpeaker = null;
+  let messages      = [];           // local ordered list of all messages
+  const fieldCards  = {};
+  let typingTimeout = null;
+
+  // ── Helpers ──
+  function autosizeTextarea(el) {
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight + 2, 130) + "px";
+  }
+  function buildRawText(msgs) {
+    return msgs.filter(m => m.speaker || m.text).map(m => `${m.speaker}: ${m.text}`).join("\n");
+  }
+  function flattenObject(obj, prefix = "", out = {}) {
+    if (!obj || typeof obj !== "object") return out;
+    Object.entries(obj).forEach(([k, v]) => {
+      const key = prefix ? `${prefix}.${k}` : k;
+      if (v && typeof v === "object" && !Array.isArray(v)) flattenObject(v, key, out);
+      else out[key] = v;
+    });
+    return out;
+  }
+
+  // ── WebSocket connection ──
+  const WS_URL = `ws://${location.host}/ws/collab/${ROOM_ID}?username=${encodeURIComponent(CURRENT_USER)}`;
+  let ws = null;
+  let wsReconnectTimer = null;
+
+  function connectWS() {
+    wsBanner.className = "ws-banner connecting";
+    wsBanner.textContent = "Connecting to session…";
+
+    ws = new WebSocket(WS_URL);
+
+    ws.onopen = () => {
+      wsBanner.className = "ws-banner connected";
+      wsBanner.textContent = "✓ Connected to live session";
+      setTimeout(() => wsBanner.style.display = "none", 2000);
+    };
+
+    ws.onclose = () => {
+      wsBanner.style.display = "block";
+      wsBanner.className = "ws-banner disconnected";
+      wsBanner.textContent = "Disconnected — reconnecting in 3s…";
+      updateUsersList([]);
+      wsReconnectTimer = setTimeout(connectWS, 3000);
+    };
+
+    ws.onerror = () => {
+      wsBanner.className = "ws-banner disconnected";
+      wsBanner.textContent = "Connection error";
+    };
+
+    ws.onmessage = (event) => {
+      let data;
+      try { data = JSON.parse(event.data); } catch { return; }
+      handleServerMessage(data);
+    };
+  }
+
+  function handleServerMessage(data) {
+    switch (data.type) {
+
+      case "message": {
+        // A message arrived (could be ours echoed back, or remote)
+        const isOwn = data.from === CURRENT_USER;
+        // Add speaker if new
+        if (data.speaker && !speakers.includes(data.speaker)) {
+          speakers.push(data.speaker);
+          renderSpeakers();
+        }
+        messages.push({ speaker: data.speaker, text: data.text });
+        addBubble(data.speaker, data.text, isOwn ? "own" : "remote");
+        convTextInput.value = buildRawText(messages);
+        initFieldCards();
+        runLiveExtraction();
+        // Clear typing for this user
+        clearTypingFor(data.from);
+        break;
+      }
+
+      case "typing": {
+        showTyping(data.from, data.speaker);
+        break;
+      }
+
+      case "user_list":
+      case "user_joined":
+      case "user_left": {
+        updateUsersList(data.users || []);
+        break;
+      }
+
+      case "pong":
+        break;
+    }
+  }
+
+  function sendWS(payload) {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify(payload));
+    }
+  }
+
+  // ── Users strip ──
+  function updateUsersList(users) {
+    usersStrip.innerHTML = "";
+    users.forEach(u => {
+      const pill = document.createElement("span");
+      pill.className = "user-pill" + (u === CURRENT_USER ? " me" : "");
+      pill.innerHTML = `<span class="dot"></span>${u}`;
+      usersStrip.appendChild(pill);
+    });
+  }
+
+  // ── Typing indicators ──
+  const typingUsers = {};   // username -> { speaker, timer }
+
+  function showTyping(fromUser, speaker) {
+    if (typingUsers[fromUser]?.timer) clearTimeout(typingUsers[fromUser].timer);
+    typingUsers[fromUser] = {
+      speaker,
+      timer: setTimeout(() => { delete typingUsers[fromUser]; renderTyping(); }, 3000)
+    };
+    renderTyping();
+  }
+
+  function clearTypingFor(fromUser) {
+    if (typingUsers[fromUser]?.timer) clearTimeout(typingUsers[fromUser].timer);
+    delete typingUsers[fromUser];
+    renderTyping();
+  }
+
+  function renderTyping() {
+    const typing = Object.entries(typingUsers);
+    if (typing.length === 0) {
+      typingIndicator.textContent = "";
+      return;
+    }
+    const label = typing.map(([u, {speaker}]) => `${u} (as ${speaker})`).join(", ");
+    typingIndicator.textContent = `${label} ${typing.length === 1 ? "is" : "are"} typing…`;
+  }
+
+  // ── Speakers ──
+  function renderSpeakers() {
+    speakerChipsEl.innerHTML = "";
+    if (speakers.length === 0) {
+      const hint = document.createElement("span");
+      hint.className = "muted-hint";
+      hint.textContent = "No speakers yet — add one above";
+      speakerChipsEl.appendChild(hint);
+      return;
+    }
+    speakers.forEach(s => {
+      const chip = document.createElement("span");
+      chip.className = "speaker-chip" + (s === activeSpeaker ? " active" : "");
+      chip.textContent = s;
+      chip.addEventListener("click", () => { activeSpeaker = s; renderSpeakers(); msgInput.focus(); });
+      speakerChipsEl.appendChild(chip);
+    });
+  }
+
+  addSpeakerBtn.addEventListener("click", () => {
+    const name = newSpeakerName.value.trim();
+    if (name && !speakers.includes(name)) {
+      speakers.push(name);
+      if (!activeSpeaker) activeSpeaker = name;
+      renderSpeakers();
+    }
+    newSpeakerName.value = "";
+    msgInput.focus();
+  });
+  newSpeakerName.addEventListener("keydown", e => {
+    if (e.key === "Enter") { e.preventDefault(); addSpeakerBtn.click(); }
+  });
+
+  // ── Bubble rendering ──
+  function addBubble(speaker, text, kind = "own") {
+    chatEmpty.style.display = "none";
+    const idx  = speakers.indexOf(speaker);
+    const side = idx % 2 === 0 ? "left" : "right";
+    const wrap = document.createElement("div");
+    wrap.className = `chat-bubble ${side}${kind === "remote" ? " remote" : ""}`;
+
+    const metaEl = document.createElement("div");
+    metaEl.className = "bubble-meta";
+    metaEl.textContent = speaker;
+
+    const bodyEl = document.createElement("div");
+    bodyEl.className = "bubble-body";
+    bodyEl.textContent = text;
+
+    wrap.appendChild(metaEl);
+    wrap.appendChild(bodyEl);
+    chatMessages.appendChild(wrap);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  // ── Send message ──
+  async function sendMessage() {
+    const text = msgInput.value.trim();
+    if (!text) return;
+    if (!activeSpeaker) { alert("Please select a speaker first."); return; }
+
+    // Send to WebSocket — server broadcasts back to everyone including us
+    sendWS({ type: "message", speaker: activeSpeaker, text });
+
+    msgInput.value = "";
+    autosizeTextarea(msgInput);
+  }
+
+  msgInput.addEventListener("input", () => {
+    autosizeTextarea(msgInput);
+    // Send typing indicator
+    if (activeSpeaker) {
+      sendWS({ type: "typing", speaker: activeSpeaker });
+    }
+  });
+
+  msgInput.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+  sendBtn.addEventListener("click", sendMessage);
+
+  // ── Field cards ──
+  function initFieldCards() {
+    outputEmpty.style.display = "none";
+    Object.keys(formFields).forEach(key => {
+      if (fieldCards[key]) return;
+      const card  = document.createElement("div");
+      card.className = "field-card";
+      const keyEl = document.createElement("div");
+      keyEl.className = "field-key";
+      keyEl.innerHTML = `<span class="dot"></span>${key}`;
+      const valEl = document.createElement("div");
+      valEl.className = "field-value empty";
+      valEl.textContent = "—";
+      card.appendChild(keyEl);
+      card.appendChild(valEl);
+      outputScroll.appendChild(card);
+      fieldCards[key] = { card, valueEl: valEl };
+    });
+  }
+
+  function applyFilledData(filledData) {
+    const flat = flattenObject(filledData || {});
+    Object.keys(fieldCards).forEach(key => {
+      const { card, valueEl } = fieldCards[key];
+      const val = flat[key];
+      const display = (val === undefined || val === null || val === "") ? null : String(val);
+      if (display) {
+        card.classList.add("updated");
+        valueEl.className = "field-value";
+        valueEl.textContent = display;
+        setTimeout(() => card.classList.remove("updated"), 2500);
+      } else {
+        valueEl.className = "field-value empty";
+        valueEl.textContent = "—";
+      }
+    });
+  }
+
+  // ── Live extraction ──
+  async function runLiveExtraction() {
+    const conversationText = buildRawText(messages);
+    if (!conversationText.trim()) return;
+
+    statusDot.style.background = "#a78bfa";
+    statusText.textContent = "Processing…";
+
+    const body = new URLSearchParams({ form_id: FORM_ID, conversation_text: conversationText });
+    try {
+      const res  = await fetch("/extract/preview", {
+        method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: body.toString()
+      });
+      const raw  = await res.text();
+      let data   = {};
+      try { data = raw ? JSON.parse(raw) : {}; } catch { data = {}; }
+      if (!res.ok) throw new Error(data.detail || "Extraction failed");
+
+      applyFilledData(data.filled_data || {});
+      if (data.summary) { summaryText.textContent = data.summary; summaryCard.style.display = "block"; }
+      else { summaryCard.style.display = "none"; }
+
+      statusDot.style.background = "var(--success)";
+      statusText.textContent = `Updated — ${new Date().toLocaleTimeString()}`;
+    } catch (err) {
+      statusDot.style.background = "var(--danger)";
+      statusText.textContent = `Extraction error: ${err.message}`;
+    }
+  }
+
+  // ── Save ──
+  saveBtn.addEventListener("click", () => {
+    convTextInput.value = buildRawText(messages);
+    chatForm.submit();
+  });
+
+  // ── Init ──
+  renderSpeakers();
+  connectWS();
+</script>
+
+{% endblock %}

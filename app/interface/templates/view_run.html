@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Run #{{ run.run_id }} — ProductLabs{% endblock %}
+{% block nav_runs %}active{% endblock %}
+{% block content %}
+
+<div class="page-header" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+    <div>
+        <h1 style="margin:0 0 4px 0;">Run #{{ run.run_id }}</h1>
+        <p class="page-subtitle" style="margin:0;">Extraction run details</p>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center;">
+        <span class="badge badge-yellow" style="font-size:0.78rem; padding:4px 10px;">Admin View</span>
+        {% if run.status == 'completed' or run.status == 'success' %}
+            <span class="badge badge-green" style="font-size:0.85rem; padding:6px 14px;">✓ {{ run.status }}</span>
+        {% elif run.status == 'failed' or run.status == 'error' %}
+            <span class="badge badge-red" style="font-size:0.85rem; padding:6px 14px;">✗ {{ run.status }}</span>
+        {% elif run.status == 'running' %}
+            <span class="badge badge-blue" style="font-size:0.85rem; padding:6px 14px;">⟳ {{ run.status }}</span>
+        {% else %}
+            <span class="badge badge-gray" style="font-size:0.85rem; padding:6px 14px;">{{ run.status }}</span>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <h3>Run Info</h3>
+    <div class="run-meta">
+        <span class="label">Conversation</span>
+        <span class="value">
+            <a href="/conversations/{{ run.conversation_id }}?form_id={{ ef.get('form_id', '') }}"
+               style="color:var(--primary);">#{{ run.conversation_id }}</a>
+        </span>
+        <span class="label">Form</span>
+        <span class="value">
+            <a href="/forms/{{ ef.get('form_id', '') }}" style="color:var(--primary);">{{ ef.get('form_id', '—') }}</a>
+        </span>
+        <span class="label">Started</span>
+        <span class="value">{{ run.started_at }}</span>
+        <span class="label">Finished</span>
+        <span class="value">{{ run.finished_at or '—' }}</span>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Extracted Fields</h3>
+    <hr>
+    {% if fields_html %}
+        {{ fields_html | safe }}
+    {% else %}
+        <div class="empty-state" style="padding:20px;">
+            <div class="empty-icon">🔍</div>
+            <p>No data was extracted for this run.</p>
+        </div>
+    {% endif %}
+    {% if run.error %}
+    <div style="margin-top:16px; padding:10px 14px; background:var(--danger-light); border-radius:8px; font-size:0.875rem; color:var(--danger-dark); border:1px solid #fca5a5;">
+        <strong>Error:</strong> {{ run.error }}
+    </div>
+    {% endif %}
+</div>
+
+<div class="action-row">
+    <a href="/runs" class="btn">← All Runs</a>
+    {% if ef.get('form_id') and run.conversation_id %}
+    <a href="/conversations/{{ run.conversation_id }}?form_id={{ ef.get('form_id') }}" class="btn btn-primary">
+        View Conversation →
+    </a>
+    {% endif %}
+</div>
+
+{% endblock %}

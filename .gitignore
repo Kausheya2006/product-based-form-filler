@@ -1,17 +1,33 @@
-# --- Excel / Office Temp Files ---
-~$*.doc*
-~$*.xls*
-*.tmp
+.git
+.github
 
-# --- Python ---
 __pycache__/
-*.py[cod]
-venv/
+*.pyc
+*.pyo
+*.pyd
 
-# --- OS Specific ---
-.DS_Store
-Thumbs.db
-None/
+.pytest_cache/
+.mypy_cache/
+
+.venv/
 .env
-TestPlan-Table\ 1.csv
-src/dontreadmeplz.md
+
+.vscode/
+.idea/
+
+tests/
+test_scripts/
+
+docs/
+
+data_generation/models/
+data_generation/monomodel/model/
+data_generation/*.py
+!data_generation/train.py
+
+data/
+reports/
+
+*.log
+
+.DS_Store

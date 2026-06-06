@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}{{ form.name }} — ProductLabs{% endblock %}
+{% block content %}
+
+<div class="page-header" style="display:flex; align-items:flex-start; justify-content:space-between;">
+    <div>
+        <h1>{{ form.name }}</h1>
+        {% if form.description %}
+        <p class="page-subtitle">{{ form.description }}</p>
+        {% endif %}
+    </div>
+    <button onclick="deleteForm()" class="btn"
+        style="background:#e74c3c; color:#fff; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:0.875rem;">
+        Delete Form
+    </button>
+</div>
+
+<script>
+    async function deleteForm() {
+        if (!confirm('Are you sure you want to delete this form?')) return;
+        const res = await fetch('/forms/{{ form.id }}', { method: 'DELETE' });
+        if (res.ok) {
+            window.location.href = '/';
+        } else {
+            alert('Failed to delete form.');
+        }
+    }
+</script>
+
+<div class="card">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+        <h3 style="margin:0;">Fields</h3>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <span class="badge badge-blue">{{ form.fields | length }} field{{ form.fields | length != 1 and 's' or '' }}</span>
+            <a href="/forms/{{ form.id }}/edit" class="btn btn-sm">Edit Fields</a>
+        </div>
+    </div>
+    {% for k, v in form.fields.items() %}
+    <div class="field">
+        <span class="field-name">{{ k }}</span>
+        <span class="badge badge-gray" style="font-family:monospace; font-size:0.75rem;">{{ v }}</span>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="card">
+    <h3>What would you like to do?</h3>
+    <p style="color:var(--text-muted); font-size:0.875rem; margin-bottom:16px;">Choose how you want to provide the
+        conversation for this form.</p>
+    <div class="action-cards">
+        <a href="/forms/{{ form.id }}/enter-conversation" class="action-card">
+            <span class="ac-icon"></span>
+            <span class="ac-title">Live Extraction</span>
+            <span class="ac-desc">Type out a conversation and view extraction outputs simultaneously.</span>
+        </a>
+        <a href="/forms/{{ form.id }}/conversations" class="action-card">
+            <span class="ac-icon"></span>
+            <span class="ac-title">Select a Conversation</span>
+            <span class="ac-desc">Browse and pick from previously saved conversations.</span>
+        </a>
+         <a href="/forms/{{ form.id }}/asr" class="action-card">
+            <span class="ac-icon"></span>
+            <span class="ac-title">Static Audio Extraction</span>
+            <span class="ac-desc">Record/upload one full conversation, then run chunked static form extraction.</span>
+        </a>
+        <a href="/forms/{{ form.id }}/live" class="action-card">
+            <span class="ac-icon"></span>
+            <span class="ac-title">Static Text Extraction</span>
+            <span class="ac-desc">Type out a conversation and run extraction upon completion.</span>
+        </a>
+       
+        <!-- <a href="/forms/{{ form.id }}/asr" class="action-card">
+            <span class="ac-icon"></span>
+            <span class="ac-title">ASR Extraction</span>
+            <span class="ac-desc">Upload or record audio, transcribe + translate to English, then run static extraction.</span>
+        </a> -->
+    </div>
+</div>
+
+{% endblock %}

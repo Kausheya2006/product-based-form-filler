@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.env
+.vscode/
+data/
+*.log
+.git
+data_generation/models/
+*.safetensors
+*.pt

@@ -1,87 +1,273 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/4T_GxXnv)
-[![Open in Visual Studio Code](https://classroom.github.com/assets/open-in-vscode-2e0aaae1b6195c2367325f4f02e2d04e9abb55f0b24a779b69b11b9e10269abc.svg)](https://classroom.github.com/online_ide?assignment_repo_id=22369915&assignment_repo_type=AssignmentRepo)
-# DASS Spring 2026 Template
+# ProductLabs AI Form Filler
 
-This template includes an Excel-based status tracker and an automated weekly snapshot workflow for submissions.
+ProductLabs AI Form Filler is a FastAPI web app that turns conversations into structured form data. Users can create forms, enter or upload conversations, run extraction, review outputs, and manage saved runs.
 
-## Quick Start
-1. Create/update `docs/StatusTracker.xls` in Microsoft Excel (binary file; do not replace with CSV).
-2. Use these columns in row 1:
-   - Week
-   - Activity Name
-   - Type
-   - Responsible
-   - Est Hours
-   - Actual Hours
-   - Status
-3. Add weekly header rows (Week 1, Week 2, etc.) so students fill in below each header.
-4. Save the file in `docs/` and commit it.
+For architecture and implementation details, see [technical_readme.md](technical_readme.md).
 
-## Repository Layout
-- `.github/workflows/weekly-snapshot.yml` auto-creates weekly release snapshots.
-- `.github/workflows/snapshot-integrity.yml` detects tampering of past weekly snapshots.
-- `docs/StatusTracker.xls` Excel tracker (update weekly).
-- `docs/ProjectPlan.md` project plan template.
-- `docs/release-labels.txt` optional: add weekly labels/categories for TAs.
-- `docs/admin-setup.md` TA-only: required repo settings (tag protection).
-- `src/` project source code.
+## What You Can Do
 
-## Notes
-- `.gitattributes` marks `.xls/.xlsx` as binary to avoid noisy diffs.
-- `.gitignore` ignores Office temp files like `~$StatusTracker.xls`.
+- Create forms with fields such as `patient_name`, `email`, `phone`, and `date`.
+- Run extraction from typed conversations, live conversation entry, or uploaded audio.
+- Review saved outputs and summaries.
+- Edit forms and conversations, then re-run extraction.
+- Use collaborative forms for shared conversation entry.
 
-## Weekly submission integrity (anti-cheat)
+## Quick Start With Docker
 
-### What is enforced automatically
-Every Friday, GitHub Actions will:
+This is the easiest way to run the full stack.
 
-1. **Require weekly activity**: `docs/StatusTracker.xls` and `docs/ProjectPlan.md` must have at least one commit in the current week window.
-2. **Create an immutable anchor**: an **annotated git tag** `submission-week-N` is created pointing to the repository state for that week.
-3. **Create a release** from that tag. The release body is exactly the annotated tag message.
-4. **Include a hash manifest**: the tag/release body includes sha256 hashes of every file under `src/` and `docs/`.
+### Prerequisites
 
-If any check fails, the weekly release/tag is **not created** (the workflow fails).
+- Docker
+- Docker Compose
 
-### How teams add "labels/categories" without editing the Release
-Edit `docs/release-labels.txt`. Its contents are included in the tag annotation + release body.
+### Steps
 
-### Allowing teams to add extra git tags
-Teams may create additional git tags (e.g., `milestone-1`) on their own commits.
-However, to prevent rewriting submission history, course admins should enable **Tag protection** for:
+1. Open a terminal in `src/`.
+2. Make sure `src/.env` has at least these values:
 
-- `submission-week-*` (no deletions / force-updates)
+```env
+MONGO_URI=mongodb://mongodb:27017/chat_db
+DB_NAME=chat_db
+```
 
-### Tamper detection
-Another workflow runs periodically to verify that for every `submission-week-*` tag:
+3. Start the stack:
 
-- the GitHub Release body matches the annotated tag message (SHA256 check)
+```bash
+docker compose up --build
+```
 
-If a mismatch is found, it fails and opens a GitHub Issue as an audit trail.
+4. Open the app:
 
-> Note: GitHub cannot fully prevent cheating if students have full write access, but protected submission tags + hash manifests make manipulation difficult and highly detectable.
+```text
+http://localhost:8000
+```
 
-## Process Integrity Safeguards (TA Use)
-Use these interventions to discourage fabrication and enforce process adherence.
+### What Starts
 
-### Tier 1: Soft Intervention (Mentorship)
-- Observer Effect Warning: reference a specific tracker data point to signal review.
-  Script: "I noticed in your tracker that Task A took exactly 4.0 hours and Task B took exactly 4.0 hours. Real development usually has more variation (e.g., 3.5 or 4.25). Please ensure you are logging actual clock times, not rough estimates."
-- Git History Trap: if commits show batching, ask for proof tied to the stated day.
-  Script: "Your tracker says you finished the API setup on Tuesday. Can you show me the git commit hash corresponding to that specific task on Tuesday?"
+- `mongodb` on port `27017`
+- `model-service` on port `8001`
+- `app` on port `8000`
 
-### Tier 2: Hard Intervention (Grading Penalty)
-- Variance Check: if variance is suspiciously low (e.g., every entry is 2 hours), deduct 10-20% of the weekly process grade for Data Quality.
-  Justification: "Data Quality. The logs provided lack statistical realism and appear smoothed. This is poor project management practice."
-- Friday Night Deduction: if the tracker was only touched right before the deadline, deduct 50% of the process grade for Lack of Continuous Integration.
-  Justification: "Agile requires iterative tracking. Batch-updating at the deadline defeats the purpose of the tracker."
+### Notes
 
-### Tier 3: Formal Integrity Violation
-- Forensic Audit: if the tracker claims work with no code changes in `src/`, conduct a Viva audit.
-  Action: open GitHub Insights (Network graph) live, overlay tracker claims, and ask for the corresponding code.
-  Outcome: if no code exists for claimed work, report Academic Dishonesty to the course professor.
+- The first real-model startup can take several minutes because model weights may be downloaded.
+- Docker volumes `mongo_data` and `hf_cache` keep database and Hugging Face cache data between runs.
+- Stop everything with:
 
-## Policy Text for Course Handout
-- Integrity of Project Artifacts: The `StatusTracker.xls` is a living document, not a homework assignment. It must reflect the actual state of development.
-- Batch Updates: Updating logs retroactively for multiple days/weeks is considered a failure of process adherence.
-- Fabrication: Logging hours for work not supported by version control evidence (git commits) constitutes academic dishonesty and will result in a grade of zero for that module.
-- Verification: Teaching staff reserve the right to audit tracker data against commit timestamps and variance analysis.
+```bash
+docker compose down
+```
+
+## Local Run Without Full Docker
+
+This is useful if you want to run only MongoDB in Docker and run the FastAPI app directly on your machine.
+
+### Minimal app-only setup
+
+From `src/`:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.app.txt
+docker compose up -d mongodb
+
+export MONGO_URI="mongodb://localhost:27017/chat_db"
+export DB_NAME="chat_db"
+export MOCK_MODELS="true"
+
+uvicorn src.interface.api:app --host 0.0.0.0 --port 8000 --reload
+```
+
+Open `http://localhost:8000`.
+
+### Why `MOCK_MODELS=true`?
+
+It lets the app start without loading extraction or summarization models. This is the fastest setup for UI work, flow testing, and general local development.
+
+## Model Runtime Options
+
+The app supports several inference backends. In normal use, choose one mode at a time through `src/.env` or exported environment variables.
+
+### Backend selection order
+
+The app resolves model backends in this order:
+
+```text
+MOCK_MODELS
+-> USE_MODAL_INFERENCE
+-> USE_LOCAL_CONTAINER_GEMMA4
+-> MODEL_SERVICE_URL
+-> USE_OLLAMA
+-> bundled local models
+```
+
+### Common modes
+
+#### 1. Fastest local development
+
+```env
+MOCK_MODELS=true
+```
+
+#### 2. Docker Compose default
+
+Use the bundled `model-service` container:
+
+```env
+MODEL_SERVICE_URL=http://model-service:8001
+```
+
+This is already the compose default for the `app` container.
+
+#### 3. Ollama
+
+```env
+USE_OLLAMA=true
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_EXTRACT_MODEL=qwen2.5:1.5b
+OLLAMA_SUMMARIZER_MODEL=qwen2.5:1.5b
+```
+
+#### 4. Modal
+
+```env
+USE_MODAL_INFERENCE=true
+MODAL_INFERENCE_USE_SDK=true
+MODAL_APP_NAME=monomodel-qwen3-4b-infer
+MODAL_EXTRACT_FUNCTION=modal_live_extract
+MODAL_SUMMARIZER_FUNCTION=modal_summarize
+```
+
+#### 5. Local container Gemma
+
+```env
+USE_LOCAL_CONTAINER_GEMMA4=true
+LOCAL_CONTAINER_BASE_URL=http://localhost:11434
+LOCAL_CONTAINER_EXTRACT_MODEL=gemma4-e2b:latest
+LOCAL_CONTAINER_SUMMARIZER_MODEL=gemma4-e2b:latest
+```
+
+## Typical User Workflow
+
+1. Register a user account.
+2. Create a form.
+3. Add fields you want extracted.
+4. Choose one of the extraction entry modes:
+   - Static text extraction
+   - Live extraction
+   - Static audio extraction
+5. Review the extracted output and summary.
+6. Open saved outputs later from the Outputs page.
+
+## Extraction Modes
+
+### Static Text Extraction
+
+- Enter a speaker-labelled conversation such as `Doctor: ...`
+- Save the conversation
+- Run extraction once
+- Review the output page
+
+### Live Extraction
+
+- Enter conversation turns as they happen
+- The UI can preview incremental extraction state
+- Useful when the conversation grows over time
+
+### Static Audio Extraction
+
+- Upload a conversation recording
+- The app transcribes audio
+- For supported non-English inputs, it translates to English before extraction
+- Optional diarization can split the transcript into speakers
+
+## Running Tests
+
+Run commands from `src/`.
+
+If you are running tests locally outside Docker, install the full test dependencies first:
+
+```bash
+pip install -r requirements.txt
+docker compose up -d mongodb
+```
+
+### Interface tests
+
+```bash
+export MOCK_MODELS="true"
+python -m pytest tests/test_interface_flows.py # integration tests
+python -m pytest tests/test_unit_domain_speakers. # unit tests
+python -m pytest tests/test_unit_interface_helpers.py # unit tests
+```
+
+Run a single case:
+
+```bash
+python -m pytest tests/test_interface_flows.py -k tc08
+```
+
+### Browser E2E tests
+
+Install Playwright once:
+
+```bash
+python -m playwright install chromium
+```
+
+Start the app, then in another terminal:
+
+```bash
+bash scripts/run_r2_e2e_headed.sh
+```
+
+or
+
+```bash
+bash scripts/run_r2_e2e_headless.sh
+```
+
+## Troubleshooting
+
+### The app opens but extraction is slow or fails on first run
+
+- Real models may still be downloading.
+- Check container logs with `docker compose logs app` and `docker compose logs model-service`.
+
+### Mongo connection errors
+
+- In Docker Compose, use `mongodb://mongodb:27017/chat_db`.
+- For local `uvicorn`, use `mongodb://localhost:27017/chat_db`.
+
+### You only want to demo the UI
+
+- Set `MOCK_MODELS=true`.
+
+### Audio features fail
+
+- The app container expects `ffmpeg`.
+- Audio and diarization also depend on heavier ML libraries and may take longer to warm up.
+
+## Project Layout
+
+```text
+src/
+├── docker-compose.yml
+├── Dockerfile.app
+├── Dockerfile
+├── requirements.app.txt
+├── requirements.txt
+├── scripts/
+├── tests/
+└── src/
+    ├── application/
+    ├── domain/
+    ├── infrastructure/
+    └── interface/
+```
+
+## Further Reading
+
+- [technical_readme.md](docs/technical_readme.md) for models, architecture, and design notes
