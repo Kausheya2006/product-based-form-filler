@@ -1,136 +1,102 @@
 # ProductLabs AI Form Filler
 
-ProductLabs AI Form Filler is a FastAPI web app that turns conversations into structured form data. Users can create forms, enter or upload conversations, run extraction, review outputs, and manage saved runs.
+# ProductLabs AI Form Filler
 
-For architecture and implementation details, see [technical_readme.md](technical_readme.md).
+[![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Qwen](https://img.shields.io/badge/Model-Qwen--3-7c3aed?style=for-the-badge&logo=alibabacloud&logoColor=white)](https://github.com/QwenLM/Qwen2.5)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
-## What You Can Do
+An enterprise-grade, event-driven intelligent orchestration platform that transforms unstructured asynchronous dialogues (text and audio) into structured, validated domain schemas using pluggable LLM and Speech-to-Text inference backends. Built with a decoupled Clean Architecture, the platform processes conversational data incrementally as an evolving finite-state machine rather than using fragile one-shot extraction.
 
-- Create forms with fields such as `patient_name`, `email`, `phone`, and `date`.
-- Run extraction from typed conversations, live conversation entry, or uploaded audio.
-- Review saved outputs and summaries.
-- Edit forms and conversations, then re-run extraction.
-- Use collaborative forms for shared conversation entry.
+<div class="image-gallery-container" style="width: 100%; text-align: center; font-size: 0;">
+    <div class="image-wrapper" style="display: inline-block; width: 48%; margin-right: 2%; vertical-align: top; font-size: 14px;">
+        <img src="app/interface/static/live.png" alt="First System State Diagram" style="width: 100%; height: auto; border: 1px solid #e2e8f0; border-radius: 6px;">
+        <p style="margin-top: 8px; color: #4a5568; font-style: italic;">Figure 1: Live chat extraction</p>
+    </div>
+    <div class="image-wrapper" style="display: inline-block; width: 48%; vertical-align: top; font-size: 14px;">
+        <img src="app/interface/static/options.png" alt="Second System State Diagram" style="width: 100%; height: auto; border: 1px solid #e2e8f0; border-radius: 6px;">
+        <p style="margin-top: 8px; color: #4a5568; font-style: italic;">Figure 2: Available options</p>
+    </div>
+</div>
 
-## Quick Start With Docker
+---
 
-This is the easiest way to run the full stack.
+## System Features Matrix
+
+| Feature Domain | Capabilities & Technical Implementation |
+| :--- | :--- |
+| **Dynamic Schema Engine** | • **Custom Form Builder:** Create, update, and version highly specialized forms tailored to unique domain workflows.<br>• **Polymorphic Field Architecture:** Define custom extraction targets using structural natural-language instructions or explicit datatype rules. |
+| **Multi-Channel Ingestion Flow** | • **Static Text Parsing:** Ingest and normalize complete speaker-labeled scripts (`Speaker: Text`) into transactional timelines.<br>• **Live Incremental Entry:** Stream conversational turns in real-time with continuous UI preview updates as the dialogue unfolds.<br>• **Asynchronous Audio Processing:** Upload raw voice recordings directly into the automated processing pipeline. |
+| **Speaker Diarization Pipelines** | • **Acoustic Speaker Segregation:** Isolate and label independent voice tracks from single-channel audio inputs.<br>• **Temporal Voice Tracking:** Map exactly who spoke when to generate clean, speaker-labeled conversational transcripts automatically. |
+| **Intelligent Contextual Insights** | • **Turn-by-Turn Summarization:** Generate an immediate, high-density analytical summary of the interaction automatically after every extraction execution.<br>• **Out-of-Schema Field Suggestions:** Leverage LLM reasoning to identify critical, off-record information and surface dynamic suggestions for new form fields based on conversational context. |
+| **Enterprise Identity Governance** | • **Granular Role-Based Access Control (RBAC):** Restrict system access and secure workflows with distinct data-boundary privileges for regular **Users** and platform **Administrators**. |
+
+
+---
+
+##  Quick Start (Dockerized Microservices)
 
 ### Prerequisites
 
-- Docker
-- Docker Compose
+* Docker & Docker Compose (v2.0+)
+* Minimum 8GB RAM allocated to your Docker host container if utilizing local inference engines.
 
-### Steps
+### Deployment Steps
 
-1. Open a terminal in `src/`.
-2. Make sure `src/.env` has at least these values:
+1. Navigate to the deployment context root:
+    ```bash
+    cd product-based-form-filler
+    ```
 
-```env
-MONGO_URI=mongodb://mongodb:27017/chat_db
-DB_NAME=chat_db
-```
+2. Populate the local application context runtime variables (`.env`):
 
-3. Start the stack:
+    ```env
+    MONGO_URI=mongodb://mongodb:27017/chat_db
+    DB_NAME=chat_db
+    MODEL_SERVICE_URL=http://model-service:8001
+    ```
 
-```bash
-docker compose up --build
-```
 
-4. Open the app:
+3. Initialize the distributed composition stack:
+    ```bash
+    docker compose -f docker/docker-compose.yml up --build -d
+    ```
 
-```text
-http://localhost:8000
-```
+4. Access the presentation web dashboard at `http://localhost:8000`
 
-### What Starts
+---
 
-- `mongodb` on port `27017`
-- `model-service` on port `8001`
-- `app` on port `8000`
+##  Local Developer Workflow (Lightweight)
 
-### Notes
-
-- The first real-model startup can take several minutes because model weights may be downloaded.
-- Docker volumes `mongo_data` and `hf_cache` keep database and Hugging Face cache data between runs.
-- Stop everything with:
+For rapid UI/UX validation or end-to-end flow auditing without local GPU/ML dependencies, instantiate with a mock orchestration driver:
 
 ```bash
-docker compose down
-```
-
-## Local Run Without Full Docker
-
-This is useful if you want to run only MongoDB in Docker and run the FastAPI app directly on your machine.
-
-### Minimal app-only setup
-
-From `src/`:
-
-```bash
+# Setup isolation environment
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.app.txt
-docker compose up -d mongodb
 
+# Bootstrap persistent state database in background
+docker compose -f docker/docker-compose.yml up -d mongodb
+
+# Configure runtime mock variables
 export MONGO_URI="mongodb://localhost:27017/chat_db"
 export DB_NAME="chat_db"
 export MOCK_MODELS="true"
 
-uvicorn src.interface.api:app --host 0.0.0.0 --port 8000 --reload
+# Boot the hypercorn/uvicorn worker
+uvicorn app.interface.api:app --host 0.0.0.0 --port 8000 --reload
+
 ```
+---
 
-Open `http://localhost:8000`.
+## Pluggable Inference Matrix Resolution
 
-### Why `MOCK_MODELS=true`?
+### Sample Environment Injections
 
-It lets the app start without loading extraction or summarization models. This is the fastest setup for UI work, flow testing, and general local development.
-
-## Model Runtime Options
-
-The app supports several inference backends. In normal use, choose one mode at a time through `src/.env` or exported environment variables.
-
-### Backend selection order
-
-The app resolves model backends in this order:
-
-```text
-MOCK_MODELS
--> USE_MODAL_INFERENCE
--> USE_LOCAL_CONTAINER_GEMMA4
--> MODEL_SERVICE_URL
--> USE_OLLAMA
--> bundled local models
-```
-
-### Common modes
-
-#### 1. Fastest local development
-
-```env
-MOCK_MODELS=true
-```
-
-#### 2. Docker Compose default
-
-Use the bundled `model-service` container:
-
-```env
-MODEL_SERVICE_URL=http://model-service:8001
-```
-
-This is already the compose default for the `app` container.
-
-#### 3. Ollama
-
-```env
-USE_OLLAMA=true
-OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_EXTRACT_MODEL=qwen2.5:1.5b
-OLLAMA_SUMMARIZER_MODEL=qwen2.5:1.5b
-```
-
-#### 4. Modal
+#### Production Scale-Out (Distributed Serverless via Modal)
 
 ```env
 USE_MODAL_INFERENCE=true
@@ -138,136 +104,78 @@ MODAL_INFERENCE_USE_SDK=true
 MODAL_APP_NAME=monomodel-qwen3-4b-infer
 MODAL_EXTRACT_FUNCTION=modal_live_extract
 MODAL_SUMMARIZER_FUNCTION=modal_summarize
+
 ```
 
-#### 5. Local container Gemma
+#### Localized Self-Hosted Matrix (Ollama Infrastructure)
 
 ```env
-USE_LOCAL_CONTAINER_GEMMA4=true
-LOCAL_CONTAINER_BASE_URL=http://localhost:11434
-LOCAL_CONTAINER_EXTRACT_MODEL=gemma4-e2b:latest
-LOCAL_CONTAINER_SUMMARIZER_MODEL=gemma4-e2b:latest
+USE_OLLAMA=true
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_EXTRACT_MODEL=qwen2.5:1.5b
+OLLAMA_SUMMARIZER_MODEL=qwen2.5:1.5b
+
 ```
 
-## Typical User Workflow
+---
 
-1. Register a user account.
-2. Create a form.
-3. Add fields you want extracted.
-4. Choose one of the extraction entry modes:
-   - Static text extraction
-   - Live extraction
-   - Static audio extraction
-5. Review the extracted output and summary.
-6. Open saved outputs later from the Outputs page.
+##  Comprehensive Verification Suite
 
-## Extraction Modes
+The repository implements a rigid verification hierarchy composed of unit tests, transactional integration flows, and browser-driven End-to-End headless UI testing using Playwright.
 
-### Static Text Extraction
-
-- Enter a speaker-labelled conversation such as `Doctor: ...`
-- Save the conversation
-- Run extraction once
-- Review the output page
-
-### Live Extraction
-
-- Enter conversation turns as they happen
-- The UI can preview incremental extraction state
-- Useful when the conversation grows over time
-
-### Static Audio Extraction
-
-- Upload a conversation recording
-- The app transcribes audio
-- For supported non-English inputs, it translates to English before extraction
-- Optional diarization can split the transcript into speakers
-
-## Running Tests
-
-Run commands from `src/`.
-
-If you are running tests locally outside Docker, install the full test dependencies first:
+### Core Testing Setup
 
 ```bash
 pip install -r requirements.txt
-docker compose up -d mongodb
+docker compose -f docker/docker-compose.yml up -d mongodb
 ```
 
-### Interface tests
+### Programmatic Integration & Unit Execution
 
 ```bash
 export MOCK_MODELS="true"
-python -m pytest tests/test_interface_flows.py # integration tests
-python -m pytest tests/test_unit_domain_speakers. # unit tests
-python -m pytest tests/test_unit_interface_helpers.py # unit tests
+# Run Full Integration Flows
+python -m pytest tests/test_interface_flows.py
+# Run Domain Domain & Text Rendering Unit Specifications
+python -m pytest tests/test_unit_domain_speakers.py
+python -m pytest tests/test_unit_interface_helpers.py
+
 ```
 
-Run a single case:
+### Headless Web UI Testing Validation
 
 ```bash
-python -m pytest tests/test_interface_flows.py -k tc08
-```
-
-### Browser E2E tests
-
-Install Playwright once:
-
-```bash
+# Install automated browser binaries
 python -m playwright install chromium
+
+# Fire testing scripts
+bash scripts/run_e2e_headless.sh
+
 ```
 
-Start the app, then in another terminal:
+---
 
-```bash
-bash scripts/run_r2_e2e_headed.sh
-```
-
-or
-
-```bash
-bash scripts/run_r2_e2e_headless.sh
-```
-
-## Troubleshooting
-
-### The app opens but extraction is slow or fails on first run
-
-- Real models may still be downloading.
-- Check container logs with `docker compose logs app` and `docker compose logs model-service`.
-
-### Mongo connection errors
-
-- In Docker Compose, use `mongodb://mongodb:27017/chat_db`.
-- For local `uvicorn`, use `mongodb://localhost:27017/chat_db`.
-
-### You only want to demo the UI
-
-- Set `MOCK_MODELS=true`.
-
-### Audio features fail
-
-- The app container expects `ffmpeg`.
-- Audio and diarization also depend on heavier ML libraries and may take longer to warm up.
-
-## Project Layout
+##  Structural Layout
 
 ```text
-src/
-├── docker-compose.yml
-├── Dockerfile.app
-├── Dockerfile
-├── requirements.app.txt
-├── requirements.txt
-├── scripts/
-├── tests/
-└── src/
-    ├── application/
-    ├── domain/
-    ├── infrastructure/
-    └── interface/
+.
+├── app/                  # Application Monolithic Root Context
+│   ├── domain/           # Framework-Agnostic Core Business Objects & Interfaces
+│   ├── application/      # Orchestration Use Cases and Pipeline Logic
+│   ├── infrastructure/   # Persistent DB Proxies, Configurations, and ML Adapters
+│   └── interface/        # High-Concurrency FastAPI Router, WebSockets & Assets
+├── data/                 # Deterministic Datasets, Synthetic Generation & Execution Logs
+├── dataset_generation/   # Multi-turn Synthetic LLM Script Pipelines & Fine-tuning Scripts
+├── docker/               # Configuration Matrices & Multi-Stage Deployment Buildpacks
+├── scripts/              # Automated Infrastructure & Verification Orchestration Scripts
+└── tests/                # Hierarchical Test Suites (Unit, Integration, Playwright E2E)
+
 ```
 
-## Further Reading
+---
 
-- [technical_readme.md](docs/technical_readme.md) for models, architecture, and design notes
+##  Documentation Index
+
+* **Deep Architectural Assessment:** See [TECHNICAL_REPORT.md](docs/TECHNICAL_REPORT.md) for complete file-by-file structural breakdowns.
+* **License Terms:** MIT License protected. See [LICENSE](LICENSE) for details.
+

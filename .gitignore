@@ -18,8 +18,6 @@ __pycache__/
 tests/
 test_scripts/
 
-docs/
-
 data_generation/models/
 data_generation/monomodel/model/
 data_generation/*.py
